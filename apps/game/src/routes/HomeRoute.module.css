@@ -1,0 +1,53 @@
+.home {
+  display: grid;
+  gap: var(--osp-space-6);
+  width: min(100%, var(--osp-content-width));
+}
+
+.heading {
+  display: grid;
+  gap: var(--osp-space-2);
+}
+
+.label {
+  font-family: var(--osp-font-code);
+  font-size: var(--osp-font-size-label);
+  letter-spacing: 0.24em;
+  color: var(--osp-grid);
+}
+
+.mark {
+  font-size: var(--osp-font-size-mark);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  color: var(--osp-text);
+}
+
+.name {
+  font-size: var(--osp-font-size-title);
+  letter-spacing: 0.04em;
+  color: var(--osp-text-dim);
+}
+
+.map {
+  display: grid;
+  gap: var(--osp-space-2);
+  padding: var(--osp-space-5);
+  border: var(--osp-border) solid var(--osp-line);
+  border-left: var(--osp-border-strong) solid var(--osp-grid);
+  border-radius: var(--osp-radius);
+  background: var(--osp-surface-0);
+}
+
+.mapLabel {
+  font-size: var(--osp-font-size-label);
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--osp-grid);
+}
+
+.mapText {
+  color: var(--osp-text-dim);
+}

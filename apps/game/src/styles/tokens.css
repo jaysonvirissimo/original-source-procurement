@@ -1,0 +1,50 @@
+:root {
+  --osp-void: #020706;
+  --osp-surface-0: #06100d;
+  --osp-surface-1: #0a1712;
+  --osp-surface-2: #10231b;
+
+  --osp-grid: #21d69a;
+  --osp-grid-dim: #0a654b;
+  --osp-line: #2c7f63;
+
+  --osp-text: #dcffef;
+  --osp-text-dim: #84ae9b;
+  --osp-text-faint: #526f62;
+
+  --osp-match: #5dff9a;
+  --osp-info: #59d6ff;
+  --osp-warning: #f1c85b;
+  --osp-error: #ff646a;
+
+  --osp-focus: #b5ffe0;
+
+  --osp-space-1: 4px;
+  --osp-space-2: 8px;
+  --osp-space-3: 12px;
+  --osp-space-4: 16px;
+  --osp-space-5: 24px;
+  --osp-space-6: 32px;
+
+  --osp-radius: 2px;
+  --osp-border: 1px;
+  --osp-border-strong: 2px;
+
+  --osp-fast: 90ms;
+  --osp-normal: 180ms;
+  --osp-slow: 320ms;
+
+  --osp-font-code:
+    "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    monospace;
+  --osp-font-display: "Barlow Condensed", system-ui, sans-serif;
+
+  --osp-font-size-base: 14px;
+  --osp-font-size-code: 14px;
+  --osp-font-size-label: 12px;
+  --osp-font-size-title: 24px;
+  --osp-font-size-mark: 72px;
+
+  --osp-content-width: 720px;
+  --osp-grid-cell: 48px;
+}

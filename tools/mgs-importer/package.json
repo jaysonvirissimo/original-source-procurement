@@ -1,0 +1,21 @@
+{
+  "name": "@osp/mgs-importer",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Node-only build tool that produces real-mission pointers from pinned upstream checkouts.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@osp/matching-core": "workspace:*",
+    "@osp/mission-schema": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.4",
+    "typescript": "6.0.3"
+  }
+}
