@@ -1,0 +1,55 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: dark;
+  background: var(--osp-void);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--osp-void);
+  color: var(--osp-text);
+  font-family: var(--osp-font-display);
+  font-size: var(--osp-font-size-base);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+code,
+kbd,
+pre,
+samp {
+  font-family: var(--osp-font-code);
+  font-size: var(--osp-font-size-code);
+}
+
+a {
+  color: var(--osp-info);
+  text-underline-offset: 3px;
+}
+
+:focus-visible {
+  outline: var(--osp-border-strong) solid var(--osp-focus);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0ms !important;
+    transition-duration: 0ms !important;
+  }
+}

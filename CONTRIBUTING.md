@@ -1,0 +1,108 @@
+# Contributing to OSP
+
+## Setup
+
+```sh
+corepack enable
+pnpm install
+pnpm --filter @osp/game exec playwright install
+```
+
+Use Node.js 24. The exact version is in `.nvmrc` and `.tool-versions`.
+
+## Workflow
+
+- Work on a branch. Never commit or push directly to `main`.
+- Open a pull request and complete its template, including the upstream content attestation.
+- Before requesting review, run:
+
+  ```sh
+  pnpm check
+  pnpm test:browser   # after pnpm build, for changes that affect the running game
+  ```
+
+- Keep changes narrow. Avoid unrelated refactors and mass reformatting.
+
+## Writing commits, comments, and documentation
+
+Committed text must stand on its own. State the rule, behavior, or reason directly instead of pointing to documents that live outside the repository.
+
+## Tests
+
+- Maintained TypeScript keeps at least 99% statement, branch, function, and line coverage. Every coverage exclusion needs a comment in the Vitest config.
+- Test behavior, not just types. A green build is not enough.
+- A bug fix normally includes a regression test.
+- Browser tests run in Chromium, Firefox, and WebKit against the production build served under a sub-path.
+- Test output such as coverage, Playwright reports, traces, and HAR recordings is never committed.
+
+## Package boundaries
+
+| Package                   | May depend on                                          | Must not                                                               |
+| ------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------- |
+| `apps/game`               | every package, `psyq-wasm`, `psyq-asm`                 | put comparison, alignment, or classification logic in React components |
+| `packages/mission-schema` | nothing in the workspace                               | import React or `psyq-asm`                                             |
+| `packages/matching-core`  | `psyq-asm`, and `mission-schema` for shared primitives | import React, parse assembly text, use browser storage or the network  |
+| `packages/curriculum`     | `mission-schema`                                       | import the game, or contain any upstream content                       |
+| `tools/mgs-importer`      | `mission-schema`, `matching-core`, `psyq-asm`          | run in the browser, or write upstream content to committed files       |
+
+ESLint enforces the import rules. Changing a boundary, or adding a package, needs an architecture decision record.
+
+Mission and skill behavior comes from validated curriculum data, never from rules hard-coded in UI components.
+
+## Toolchain boundaries
+
+- `psyq-wasm` is the compiler. OSP does not implement a C compiler, preprocessor, compiler worker runtime, EUC-JP converter, or compiler timeout layer.
+- `psyq-asm` is the assembler. OSP does not parse, expand, encode, or disassemble assembly. If `psyq-asm` mishandles compiler output, reduce the case to OSP-authored C and report it upstream instead of working around it here.
+- Exactness is decided on assembled words under relocation masks, never on assembly text.
+
+## Upstream content
+
+OSP never commits or bundles:
+
+- target words or `.s` files from `FoxdieTeam/mgs_reversing`;
+- C source or headers from `FoxdieTeam/mgs_reversing`;
+- PsyQ SDK headers from `FoxdieTeam/psyq_sdk`;
+- any other Konami or Sony material.
+
+Real missions carry pointers and hashes. The game fetches their content at runtime from pinned commits.
+
+The rule applies to every committed or deployed file, not only curriculum data. That includes:
+
+- tests, mocks, fixtures, and snapshots;
+- HAR recordings, Playwright traces, and screenshots;
+- logs, debugging notes, and reproduction reports;
+- generated corpus files and build output.
+
+Transformed content still counts. That covers decoded word arrays, disassembly listings, excerpts, and line-ending conversions. It also covers code that has been renamed, reformatted, reordered, paraphrased, translated into pseudocode or another language, or rewritten by an AI.
+
+- Mocks and fixtures for upstream loading use independently authored content. That means OSP-written C and headers, and word lists generated from OSP-authored source, with hashes computed from that content.
+- Tests that need real upstream content load it at runtime, from the network or from local checkouts named in configuration. They are skipped when neither is available, and they write output only to ignored directories.
+- Public availability, permissive CORS headers, CDN caching, and runtime fetching do not authorize copying upstream content into a commit. Runtime loading is a content-handling policy, not legal clearance.
+
+Hints, manual entries, and briefings are original teaching text. Write them from the target instructions and the curriculum, never by adapting upstream source.
+
+## Dependencies
+
+Before adding a runtime dependency, answer these questions in the pull request:
+
+1. What specific problem does it solve?
+2. Does the platform or an existing dependency already solve it?
+3. What does it add to the client payload?
+4. Is it maintained?
+5. Is its license compatible, and what does distributing it in the built site require (notices, provenance, corresponding source)?
+6. Does it create a second way to do something the project already does?
+
+The stack is deliberately fixed. Do not add a state library, CSS framework, UI component framework, second editor, second schema library, second test runner, or any assembler, disassembler, or assembly parser other than `psyq-asm`. Large or competing dependencies need an architecture decision record.
+
+Pin toolchain packages (`psyq-wasm`, `psyq-asm`) to exact versions. Upgrading either one means regenerating synthetic targets and recording any change in emitted words.
+
+## Architecture decision records
+
+Decisions that change a locked choice go in `docs/adr/NNNN-short-title.md`, using the template in [`docs/adr/README.md`](docs/adr/README.md). Each record states its context, decision, and consequences directly. Do not rewrite accepted records to hide history. Supersede them with a new record instead.
+
+## Accessibility, privacy, and copy
+
+- Never make 3D, motion, color, or audio necessary to play. Every control must be usable from the keyboard.
+- Do not add analytics, telemetry, or any remote submission of player source.
+- Write short, concrete product copy. OSP assumes the player is intelligent: no mascots, tutorial chatter, or motivational filler.
+- Use only original art and audio.

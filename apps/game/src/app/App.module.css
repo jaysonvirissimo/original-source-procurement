@@ -1,0 +1,41 @@
+.shell {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  min-height: 100vh;
+  background-color: var(--osp-void);
+  background-image:
+    linear-gradient(
+      color-mix(in srgb, var(--osp-grid-dim) 22%, transparent) var(--osp-border),
+      transparent var(--osp-border)
+    ),
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--osp-grid-dim) 22%, transparent) var(--osp-border),
+      transparent var(--osp-border)
+    );
+  background-size: var(--osp-grid-cell) var(--osp-grid-cell);
+}
+
+.main {
+  display: grid;
+  place-items: center;
+  padding: var(--osp-space-6);
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: var(--osp-space-3) var(--osp-space-5);
+  border-top: var(--osp-border) solid var(--osp-grid-dim);
+  background: var(--osp-surface-0);
+}
+
+.footerLink {
+  color: var(--osp-text-dim);
+  font-size: var(--osp-font-size-label);
+  letter-spacing: 0.06em;
+}
+
+.footerLink:hover {
+  color: var(--osp-text);
+}

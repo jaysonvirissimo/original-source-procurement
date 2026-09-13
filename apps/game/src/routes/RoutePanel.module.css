@@ -1,0 +1,37 @@
+.panel {
+  display: grid;
+  gap: var(--osp-space-3);
+  width: min(100%, var(--osp-content-width));
+  padding: var(--osp-space-5);
+  border: var(--osp-border) solid var(--osp-line);
+  border-left: var(--osp-border-strong) solid var(--osp-grid);
+  border-radius: var(--osp-radius);
+  background: var(--osp-surface-0);
+}
+
+.label {
+  font-family: var(--osp-font-code);
+  font-size: var(--osp-font-size-label);
+  letter-spacing: 0.24em;
+  color: var(--osp-grid);
+}
+
+.title {
+  font-size: var(--osp-font-size-title);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--osp-text);
+}
+
+.detail {
+  color: var(--osp-info);
+}
+
+.message {
+  color: var(--osp-text-dim);
+}
+
+.link {
+  justify-self: start;
+  color: var(--osp-info);
+}

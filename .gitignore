@@ -1,1 +1,20 @@
-/tmp
+# Local working files and reports
+tmp/
+
+# Dependencies and build output
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Test output
+coverage/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+*.trace.zip
+trace/
+*.har
+
+# Operating system files
+.DS_Store
