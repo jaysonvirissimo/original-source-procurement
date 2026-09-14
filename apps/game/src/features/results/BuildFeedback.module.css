@@ -1,0 +1,34 @@
+.feedback {
+  display: grid;
+  gap: var(--osp-space-1);
+  padding: var(--osp-space-2) var(--osp-space-3);
+  border-left: var(--osp-border-strong) solid var(--osp-line);
+  background: var(--osp-surface-1);
+}
+
+.stale,
+.warning {
+  color: var(--osp-warning);
+}
+
+.stale {
+  font-family: var(--osp-font-code);
+  font-size: var(--osp-font-size-label);
+}
+
+.error {
+  color: var(--osp-error);
+}
+
+.neutral {
+  color: var(--osp-text-dim);
+}
+
+.diagnostics {
+  max-height: 8lh;
+  margin: 0;
+  padding-left: var(--osp-space-4);
+  overflow: auto;
+  font-family: var(--osp-font-code);
+  font-size: var(--osp-font-size-label);
+}

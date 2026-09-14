@@ -1,0 +1,49 @@
+.button {
+  font: inherit;
+  letter-spacing: 0.08em;
+  padding: var(--osp-space-1) var(--osp-space-3);
+  border: var(--osp-border) solid var(--osp-grid-dim);
+  border-radius: var(--osp-radius);
+  background: var(--osp-surface-2);
+  color: var(--osp-text);
+  cursor: pointer;
+}
+
+.button:hover:not(:disabled) {
+  border-color: var(--osp-grid);
+}
+
+.button:disabled {
+  color: var(--osp-text-faint);
+  cursor: default;
+}
+
+.button[aria-pressed="true"] {
+  border-color: var(--osp-grid);
+  color: var(--osp-grid);
+}
+
+.primary {
+  border-color: var(--osp-grid);
+}
+
+.label {
+  font-family: var(--osp-font-code);
+  font-size: var(--osp-font-size-label);
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--osp-grid);
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

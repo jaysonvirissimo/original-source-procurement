@@ -202,6 +202,28 @@ describe("auditDistribution", () => {
     expect(issues[0]?.path).toBe("assets/worker-abc123.js");
   });
 
+  it("passes build IDs recorded as mission provenance", async () => {
+    await buildCompliantSite();
+    await write(
+      "assets/index-abc123.js",
+      'const t={toolchain:{compilerBuildId:"sha256:1111111111111111","preprocessorBuildId":\'sha256:2222222222222222\'}};',
+    );
+
+    await expect(auditDistribution(site, EXPECTATIONS)).resolves.toEqual([]);
+  });
+
+  it("fails a build ID outside provenance even when provenance also names it", async () => {
+    await buildCompliantSite();
+    await write(
+      "assets/index-abc123.js",
+      'const t={compilerBuildId:"sha256:1111111111111111"},a="sha256:1111111111111111";',
+    );
+
+    const issues = await auditDistribution(site, EXPECTATIONS);
+
+    expect(issues.map((issue) => issue.code)).toEqual(["transformed-artifact"]);
+  });
+
   it("fails a second copy of a compiler module", async () => {
     await buildCompliantSite();
     await write("assets/cc1psx-abc123.wasm", ARTIFACTS["cc1psx.wasm"] ?? "");

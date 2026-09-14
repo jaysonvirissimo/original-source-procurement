@@ -1,0 +1,19 @@
+.handle {
+  display: grid;
+  place-items: center;
+  width: var(--osp-space-3);
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.handle::before {
+  content: "";
+  width: var(--osp-border-strong);
+  height: var(--osp-space-6);
+  background: var(--osp-line);
+}
+
+.handle:hover::before,
+.handle:focus-visible::before {
+  background: var(--osp-grid);
+}
