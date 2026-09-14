@@ -6,7 +6,7 @@ Players write C, compile it in the browser with the PsyQ 4.4 toolchain, and comp
 
 ## Status
 
-Early foundation. The repository contains the workspace, tooling, deployment pipeline, and a branded application shell. Missions, compiler integration, and the matching engine are not implemented yet.
+Early foundation. The repository contains the workspace, tooling, deployment pipeline, a branded application shell, validated curriculum schemas, and the in-browser toolchain: C compiles with `psyq-wasm` and assembles with `psyq-asm`, and the Settings screen runs a toolchain check. Missions and the matching engine are not implemented yet.
 
 ## Requirements
 
@@ -23,18 +23,19 @@ pnpm --filter @osp/game dev
 
 ## Commands
 
-| Command                    | Purpose                                                                             |
-| -------------------------- | ----------------------------------------------------------------------------------- |
-| `pnpm format`              | Format every file with Prettier                                                     |
-| `pnpm format:check`        | Verify formatting                                                                   |
-| `pnpm lint`                | ESLint with type-aware TypeScript rules and package-boundary checks                 |
-| `pnpm typecheck`           | Strict TypeScript across the workspace                                              |
-| `pnpm test`                | Unit tests with Vitest                                                              |
-| `pnpm test:coverage`       | Unit tests with the 99% coverage gate                                               |
-| `pnpm build`               | Production build of the game into `apps/game/dist`                                  |
-| `pnpm test:browser`        | Playwright tests in Chromium, Firefox, and WebKit against the build                 |
-| `pnpm curriculum:validate` | Validate skills, missions, manual entries, and the default path                     |
-| `pnpm check`               | The merge gate: format, lint, typecheck, coverage, curriculum validation, and build |
+| Command                    | Purpose                                                                                                 |
+| -------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `pnpm format`              | Format every file with Prettier                                                                         |
+| `pnpm format:check`        | Verify formatting                                                                                       |
+| `pnpm lint`                | ESLint with type-aware TypeScript rules and package-boundary checks                                     |
+| `pnpm typecheck`           | Strict TypeScript across the workspace                                                                  |
+| `pnpm test`                | Unit tests with Vitest                                                                                  |
+| `pnpm test:coverage`       | Unit tests with the 99% coverage gate                                                                   |
+| `pnpm build`               | Production build of the game into `apps/game/dist`                                                      |
+| `pnpm test:browser`        | Playwright tests in Chromium, Firefox, and WebKit against the build                                     |
+| `pnpm curriculum:validate` | Validate skills, missions, manual entries, and the default path                                         |
+| `pnpm audit:distribution`  | Check that the built site may distribute the GPL-2.0-only compiler artifacts                            |
+| `pnpm check`               | The merge gate: format, lint, typecheck, coverage, curriculum validation, build, and distribution audit |
 
 Browser tests serve the production build under a sub-path, the way GitHub Pages serves a project site. Before running them locally, run `pnpm build` and install the browsers once with `pnpm --filter @osp/game exec playwright install`.
 
@@ -68,6 +69,8 @@ OSP uses only original art and audio. It is not affiliated with Konami.
 ## Third-party software
 
 Every production build includes `THIRD_PARTY_NOTICES.txt` at the site root. It lists each bundled third-party package with its exact version, license, and full license text. See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+The compiler and preprocessor artifacts from `psyq-wasm` are GPL-2.0-only. The site ships them unmodified under `vendor/psyq-wasm/<version>/`, with their license texts, provenance records, and the release's corresponding-source archive. The first build on a machine downloads that archive, so it needs network access once.
 
 ## License
 

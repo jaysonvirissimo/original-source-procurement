@@ -4,3 +4,6 @@ packages:
   - tools/*
 
 engineStrict: true
+
+minimumReleaseAgeExclude:
+  - psyq-asm@0.2.0

@@ -7,6 +7,8 @@ export default defineProject({
     name: "game",
     environment: "jsdom",
     include: ["src/**/*.test.{ts,tsx}"],
+    // These run in the root node project, against the real toolchain.
+    exclude: ["src/**/*.node.test.ts"],
     setupFiles: ["./src/test/setup.ts"],
   },
 });

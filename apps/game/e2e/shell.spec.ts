@@ -1,46 +1,5 @@
-import { expect, test, type Page } from "@playwright/test";
-
-interface PageWatch {
-  readonly consoleErrors: string[];
-  readonly externalRequests: string[];
-}
-
-/**
- * Records console errors and blocks every request that leaves the site's
- * origin, so the shell must work with no CDN or other external host.
- */
-async function watchPage(page: Page, baseURL: string): Promise<PageWatch> {
-  const origin = new URL(baseURL).origin;
-  const watch: PageWatch = { consoleErrors: [], externalRequests: [] };
-
-  page.on("console", (message) => {
-    if (message.type() === "error") {
-      watch.consoleErrors.push(message.text());
-    }
-  });
-  page.on("pageerror", (error) => {
-    watch.consoleErrors.push(error.message);
-  });
-
-  await page.route("**/*", async (route) => {
-    const url = route.request().url();
-    if (new URL(url).origin === origin) {
-      await route.continue();
-      return;
-    }
-    watch.externalRequests.push(url);
-    await route.abort("blockedbyclient");
-  });
-
-  return watch;
-}
-
-function siteUrl(baseURL: string | undefined, path: string): string {
-  if (baseURL === undefined) {
-    throw new Error("Browser tests need a baseURL.");
-  }
-  return new URL(path, baseURL).href;
-}
+import { expect, test } from "@playwright/test";
+import { siteUrl, watchPage, type PageWatch } from "./page-watch.ts";
 
 let watch: PageWatch;
 
@@ -50,6 +9,7 @@ test.beforeEach(async ({ page, baseURL }) => {
 
 test.afterEach(() => {
   expect(watch.externalRequests).toEqual([]);
+  expect(watch.nonGetRequests).toEqual([]);
   expect(watch.consoleErrors).toEqual([]);
 });
 
@@ -127,4 +87,23 @@ test("the build ships third-party notices", async ({ page, baseURL }) => {
   expect(text).toMatch(/^@fontsource\/ibm-plex-mono \d+\.\d+\.\d+$/m);
   expect(text).toMatch(/^@fontsource\/barlow-condensed \d+\.\d+\.\d+$/m);
   expect(text).toContain("SIL OPEN FONT LICENSE");
+  expect(text).toMatch(/^psyq-wasm 1\.0\.0$/m);
+  expect(text).toMatch(/^psyq-asm 0\.2\.0$/m);
+  expect(text).toContain("GNU GENERAL PUBLIC LICENSE");
+});
+
+test("the build publishes the compiler's corresponding source", async ({
+  page,
+  baseURL,
+}) => {
+  const vendor = "./vendor/psyq-wasm/1.0.0/";
+
+  for (const file of [
+    "psyq-wasm-1.0.0-corresponding-source.tar.gz",
+    "PROVENANCE.md",
+    "LICENSES/GPL-2.0-only.txt",
+  ]) {
+    const response = await page.request.head(siteUrl(baseURL, vendor + file));
+    expect(response.status(), file).toBe(200);
+  }
 });

@@ -10,6 +10,8 @@ export default defineConfig({
           environment: "node",
           include: [
             "apps/game/build/**/*.test.ts",
+            // Game code tested against the real toolchain in Node.
+            "apps/game/src/**/*.node.test.ts",
             "packages/*/src/**/*.test.ts",
             "tools/*/src/**/*.test.ts",
           ],
@@ -33,6 +35,9 @@ export default defineConfig({
         // Command-line entry point that passes the shipped curriculum and the
         // console to runValidation, which unit tests cover directly.
         "packages/curriculum/src/bin/**",
+        // Command-line entry point that passes the pinned release and the
+        // console to runDistributionAudit, which unit tests cover directly.
+        "apps/game/build/bin/**",
         "**/*.d.ts",
         // Test-only setup that registers Testing Library cleanup; no product behavior.
         "apps/game/src/test/**",
