@@ -58,6 +58,7 @@ Mission and skill behavior comes from validated curriculum data, never from rule
 - a mission on the default path that needs a skill no earlier mission on the path teaches;
 - a real mission with inline target words, authored headers, a solution, or compiler input that differs from upstream's default build;
 - a synthetic mission whose `solution` or words do not match their recorded hashes;
+- a mission annotation that points past its target's words, sits on a mission without an inline target, or links an unknown manual entry;
 - a real-function pointer whose provenance, solution reference, compiler input, or header keys do not follow upstream's default build.
 
 Prerequisites are the source of truth for progression. The default path is a recommended order that must stay consistent with them.

@@ -15,7 +15,12 @@ import {
   type CurriculumData,
 } from "./validate.ts";
 
-const ENTRY = { id: "sample.entry", section: "C", title: "Sample" };
+const ENTRY = {
+  id: "sample.entry",
+  section: "C",
+  title: "Sample",
+  body: ["A sample entry."],
+};
 
 function skill(id: string, prerequisites: string[] = []): Skill {
   return {
@@ -146,6 +151,34 @@ describe("validateCurriculum", () => {
         data({ skills: [{ ...skill("S.A"), manualEntry: "nowhere" }] }),
       ),
     ).toEqual(["unknown-manual-entry"]);
+  });
+
+  it("reports an annotation linking an unknown manual entry", async () => {
+    const annotated = await mission({
+      teaches: ["S.A"],
+      annotations: [
+        {
+          range: { start: 0, end: 1 },
+          text: "Known.",
+          manualEntry: ENTRY.id,
+        },
+        { range: { start: 1, end: 2 }, text: "Unlinked." },
+        {
+          range: { start: 1, end: 2 },
+          text: "Unknown.",
+          manualEntry: "nowhere",
+        },
+      ],
+    });
+    await expect(
+      validateCurriculum(data({ missions: [annotated] })),
+    ).resolves.toEqual([
+      {
+        code: "unknown-manual-entry",
+        path: "missions[0].annotations[2].manualEntry",
+        message: "Unknown manual entry nowhere.",
+      },
+    ]);
   });
 
   it("reports a skill cycle", async () => {

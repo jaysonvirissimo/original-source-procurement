@@ -1,6 +1,15 @@
 import { returnPath } from "./001-return-path.ts";
 import { argumentZero } from "./002-argument-zero.ts";
 import { addImmediate } from "./003-add-immediate.ts";
+import { shiftLeft } from "./004-shift-left.ts";
+import { scaleCheck } from "./005-scale-check.ts";
+import { loadWord } from "./006-load-word.ts";
+import { dereference } from "./007-dereference.ts";
+import { storeWord } from "./008-store-word.ts";
+import { fieldOffset } from "./009-field-offset.ts";
+import { signedByte } from "./010-signed-byte.ts";
+import { wrongSign } from "./011-wrong-sign.ts";
+import { qualification01 } from "./012-qualification-01.ts";
 import type { MissionDraft } from "./authoring.ts";
 
 export type { MissionDraft } from "./authoring.ts";
@@ -13,4 +22,13 @@ export const missionDrafts: readonly MissionDraft[] = [
   returnPath,
   argumentZero,
   addImmediate,
+  shiftLeft,
+  scaleCheck,
+  loadWord,
+  dereference,
+  storeWord,
+  fieldOffset,
+  signedByte,
+  wrongSign,
+  qualification01,
 ];

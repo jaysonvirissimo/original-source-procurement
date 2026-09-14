@@ -40,6 +40,10 @@ export const addImmediate: MissionDraft = {
       text: "The assembler shows immediates in hexadecimal. 0x5 is 5.",
     },
     {
+      stage: 4,
+      text: "In C, adding a constant to an int argument produces this addiu.",
+    },
+    {
       stage: 9,
       text: "Return the argument plus 5.",
       revealSolution: true,

@@ -16,7 +16,8 @@ import { createMissionContextResolver } from "../compiler/missionContextResolver
 import { targetListing } from "../compiler/targetListing";
 import { useToolchain } from "../compiler/toolchainContext";
 import type { CompilerDiagnostic } from "../compiler/types";
-import { useMissionCatalog } from "../curriculum/missionCatalog";
+import { nextMission, useMissionCatalog } from "../curriculum/missionCatalog";
+import { missionAnnotations } from "../diff/annotations";
 import { DiffPanel } from "../diff/DiffPanel";
 import { TargetListing } from "../diff/TargetListing";
 import { CEditor } from "../editor/CEditor";
@@ -78,6 +79,14 @@ export function Workspace({ mission }: WorkspaceProps): ReactElement {
   const listing = useMemo(
     () => (target === undefined ? [] : targetListing(target.words)),
     [target],
+  );
+  const annotations = useMemo(() => missionAnnotations(mission), [mission]);
+  const linkedEntries = useMemo(
+    () =>
+      annotations.flatMap(({ manualEntry }) =>
+        manualEntry === undefined ? [] : [manualEntry],
+      ),
+    [annotations],
   );
   const skillNames = useMemo(
     () => new Map(catalog.skills.map((skill) => [skill.id, skill.name])),
@@ -201,6 +210,7 @@ export function Workspace({ mission }: WorkspaceProps): ReactElement {
         attempts={state.attempts}
         hints={hintsUsed(state)}
         skillNames={skillNames}
+        next={nextMission(catalog, mission.id)}
         onReview={() => {
           dispatch({ type: "review-requested" });
         }}
@@ -257,10 +267,15 @@ export function Workspace({ mission }: WorkspaceProps): ReactElement {
               result={result.result}
               stale={stale}
               highlight={highlight}
+              annotations={annotations}
             />
           </>
         ) : (
-          <TargetListing lines={listing} highlight={highlight} />
+          <TargetListing
+            lines={listing}
+            highlight={highlight}
+            annotations={annotations}
+          />
         );
     }
   };
@@ -349,6 +364,7 @@ export function Workspace({ mission }: WorkspaceProps): ReactElement {
         <ManualPanel
           mission={mission}
           catalog={catalog}
+          linkedEntries={linkedEntries}
           onClose={() => {
             setOverlay("none");
           }}

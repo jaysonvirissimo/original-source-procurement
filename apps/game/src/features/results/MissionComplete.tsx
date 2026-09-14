@@ -9,6 +9,8 @@ interface MissionCompleteProps {
   readonly attempts: number;
   readonly hints: number;
   readonly skillNames: ReadonlyMap<string, string>;
+  /** The next mission on the recommended path, if there is one. */
+  readonly next: Pick<Mission, "id" | "title"> | undefined;
   readonly onReview: () => void;
 }
 
@@ -18,6 +20,7 @@ export function MissionComplete({
   attempts,
   hints,
   skillNames,
+  next,
   onReview,
 }: MissionCompleteProps): ReactElement {
   const heading = useRef<HTMLHeadingElement>(null);
@@ -63,6 +66,11 @@ export function MissionComplete({
         <button className={controls.button} type="button" onClick={onReview}>
           Return to workspace
         </button>
+        {next === undefined ? null : (
+          <a href={`#/mission/${encodeURIComponent(next.id)}`}>
+            Next mission · {next.id} {next.title}
+          </a>
+        )}
         <a href="#/">Mission map</a>
       </div>
     </section>

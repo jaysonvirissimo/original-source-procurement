@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MissionAnnotationSchema } from "./annotation.ts";
 import { checkUpstreamBuild, CompilerSettingsSchema } from "./compiler.ts";
 import { CompletionRuleSchema } from "./completion.ts";
 import { DifficultyProfileSchema } from "./difficulty.ts";
@@ -77,6 +78,8 @@ const MissionObjectSchema = z.strictObject({
   target: TargetSchema,
   prediction: PredictionPromptSchema.optional(),
   hints: z.array(HintSchema),
+  // Synthetic missions only: notes on target words for guided play.
+  annotations: z.array(MissionAnnotationSchema).optional(),
   difficulty: DifficultyProfileSchema,
 });
 type MissionShape = z.infer<typeof MissionObjectSchema>;
@@ -89,6 +92,7 @@ export const MissionSchema = MissionObjectSchema.superRefine((mission, ctx) => {
   checkSourceAndTarget(mission, report);
   checkTaughtSkills(mission, report);
   checkHints(mission, report);
+  checkAnnotations(mission, report);
   if (
     (mission.kind === "prediction" ||
       mission.completion === "prediction-recorded") &&
@@ -103,6 +107,28 @@ export const MissionSchema = MissionObjectSchema.superRefine((mission, ctx) => {
 export type Mission = z.infer<typeof MissionSchema>;
 
 type Report = (path: IssuePath, message: string) => void;
+
+function checkAnnotations(mission: MissionShape, report: Report): void {
+  if (mission.annotations === undefined) {
+    return;
+  }
+  if (mission.target.kind !== "inline") {
+    report(
+      ["annotations"],
+      "Only missions with an inline target annotate target words.",
+    );
+    return;
+  }
+  const wordCount = mission.target.words.length;
+  mission.annotations.forEach((annotation, index) => {
+    if (annotation.range.end > wordCount) {
+      report(
+        ["annotations", index, "range"],
+        "An annotation must stay inside the target function.",
+      );
+    }
+  });
+}
 
 function checkSourceAndTarget(mission: MissionShape, report: Report): void {
   if (!isRealMissionKind(mission.kind)) {

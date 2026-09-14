@@ -1,9 +1,12 @@
 import type { ReactElement } from "react";
-import { useMissionCatalog } from "../features/curriculum/missionCatalog";
+import {
+  orderedMissions,
+  useMissionCatalog,
+} from "../features/curriculum/missionCatalog";
 import styles from "./HomeRoute.module.css";
 
 export function HomeRoute(): ReactElement {
-  const { missions } = useMissionCatalog();
+  const missions = orderedMissions(useMissionCatalog());
 
   return (
     <div className={styles.home}>

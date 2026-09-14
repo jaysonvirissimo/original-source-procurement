@@ -3,6 +3,8 @@ import type { InstructionRange } from "@osp/mission-schema";
 import type { ReactElement } from "react";
 import { classNames } from "../../styles/classNames";
 import controls from "../../styles/controls.module.css";
+import { AnnotationList } from "./AnnotationList";
+import { annotationLabels, type WordAnnotation } from "./annotations";
 import {
   inRange,
   mismatchKindOf,
@@ -18,6 +20,8 @@ interface DiffPanelProps {
   readonly stale: boolean;
   /** Target words a revealed hint points at. */
   readonly highlight: InstructionRange | undefined;
+  /** Teaching notes on target words. */
+  readonly annotations: readonly WordAnnotation[];
 }
 
 /** Target and generated instructions side by side, with their mismatches. */
@@ -25,6 +29,7 @@ export function DiffPanel({
   result,
   stale,
   highlight,
+  annotations,
 }: DiffPanelProps): ReactElement {
   return (
     <div className={styles.diff}>
@@ -84,7 +89,11 @@ export function DiffPanel({
                     <code>{generated?.text}</code>
                   </td>
                   <td className={styles.note} title={generated?.origin?.note}>
-                    {[provenanceLabel(generated?.origin), highlighted && "HINT"]
+                    {[
+                      provenanceLabel(generated?.origin),
+                      ...annotationLabels(annotations, row.target),
+                      highlighted && "HINT",
+                    ]
                       .filter(Boolean)
                       .join(" · ")}
                   </td>
@@ -94,6 +103,7 @@ export function DiffPanel({
           </tbody>
         </table>
       </div>
+      <AnnotationList annotations={annotations} />
       {result.mismatches.length === 0 ? null : (
         <ul className={styles.mismatches} aria-label="Mismatches">
           {result.mismatches.map((mismatch) => (

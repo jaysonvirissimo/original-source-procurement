@@ -14,5 +14,7 @@ export const ManualEntrySchema = z.strictObject({
   id: ManualEntryIdSchema,
   section: z.enum(MANUAL_SECTIONS),
   title: TextSchema,
+  // Paragraphs of plain text.
+  body: z.array(TextSchema).min(1),
 });
 export type ManualEntry = z.infer<typeof ManualEntrySchema>;

@@ -348,6 +348,9 @@ describe("Workspace", () => {
       within(hints).getByRole("button", { name: "Reveal next hint" }),
     );
     fireEvent.click(
+      within(hints).getByRole("button", { name: "Reveal next hint" }),
+    );
+    fireEvent.click(
       within(hints).getByRole("button", { name: "Reveal the solution" }),
     );
 

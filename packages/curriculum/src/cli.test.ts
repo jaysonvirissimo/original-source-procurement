@@ -29,7 +29,7 @@ describe("runValidation", () => {
     const { output, log, error } = capture();
     await expect(runValidation(curriculum, output)).resolves.toBe(0);
     expect(log).toEqual([
-      "Curriculum is valid: 10 skills, 3 missions, 3 on the default path.",
+      "Curriculum is valid: 10 skills, 12 missions, 12 on the default path.",
     ]);
     expect(error).toEqual([]);
   });

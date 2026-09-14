@@ -1,4 +1,4 @@
-import type { Mission } from "@osp/mission-schema";
+import type { ManualEntry, Mission } from "@osp/mission-schema";
 import { useId, type ReactElement } from "react";
 import controls from "../../styles/controls.module.css";
 import type { MissionCatalog } from "../curriculum/missionCatalog";
@@ -7,28 +7,75 @@ import styles from "./OverlayPanel.module.css";
 interface ManualPanelProps {
   readonly mission: Pick<Mission, "teaches" | "requires" | "practices">;
   readonly catalog: Pick<MissionCatalog, "skills" | "manualEntries">;
+  /** Entries that visible annotations link to. */
+  readonly linkedEntries: readonly string[];
   readonly onClose: () => void;
 }
 
-/** Manual entries for the mission's skills, over the workspace. */
+interface Item {
+  readonly key: string;
+  readonly label: string;
+  readonly title: string;
+  readonly description?: string;
+  /** Shown the first time its entry appears. */
+  readonly body: readonly string[];
+}
+
+/**
+ * Manual entries for the mission's skills, then any other entries its
+ * annotations link to, over the workspace.
+ */
 export function ManualPanel({
   mission,
   catalog,
+  linkedEntries,
   onClose,
 }: ManualPanelProps): ReactElement {
   const titleId = useId();
+  const shown = new Set<string>();
+  const bodyOf = (entry: ManualEntry | undefined): readonly string[] => {
+    if (entry === undefined || shown.has(entry.id)) {
+      return [];
+    }
+    shown.add(entry.id);
+    return entry.body;
+  };
+  const findEntry = (id: string) =>
+    catalog.manualEntries.find((candidate) => candidate.id === id);
+
   const skillIds = [
     ...new Set([...mission.teaches, ...mission.requires, ...mission.practices]),
   ];
-  const entries = skillIds.flatMap((id) => {
+  const skillItems = skillIds.flatMap((id): Item[] => {
     const skill = catalog.skills.find((candidate) => candidate.id === id);
     if (skill === undefined) {
       return [];
     }
-    const entry = catalog.manualEntries.find(
-      (candidate) => candidate.id === skill.manualEntry,
-    );
-    return [{ skill, entry }];
+    const entry = findEntry(skill.manualEntry);
+    return [
+      {
+        key: skill.id,
+        label:
+          entry === undefined ? skill.id : `${entry.section} · ${entry.title}`,
+        title: skill.name,
+        description: skill.description,
+        body: bodyOf(entry),
+      },
+    ];
+  });
+  const linkedItems = [...new Set(linkedEntries)].flatMap((id): Item[] => {
+    const entry = findEntry(id);
+    if (entry === undefined || shown.has(entry.id)) {
+      return [];
+    }
+    return [
+      {
+        key: entry.id,
+        label: entry.section,
+        title: entry.title,
+        body: bodyOf(entry),
+      },
+    ];
   });
 
   return (
@@ -42,15 +89,16 @@ export function ManualPanel({
         </button>
       </header>
       <ul className={styles.list}>
-        {entries.map(({ skill, entry }) => (
-          <li className={styles.item} key={skill.id}>
-            <p className={controls.label}>
-              {entry === undefined
-                ? skill.id
-                : `${entry.section} · ${entry.title}`}
-            </p>
-            <h3 className={styles.itemTitle}>{skill.name}</h3>
-            <p>{skill.description}</p>
+        {[...skillItems, ...linkedItems].map((item) => (
+          <li className={styles.item} key={item.key}>
+            <p className={controls.label}>{item.label}</p>
+            <h3 className={styles.itemTitle}>{item.title}</h3>
+            {item.description === undefined ? null : <p>{item.description}</p>}
+            {item.body.map((paragraph, index) => (
+              <p className={styles.dim} key={index}>
+                {paragraph}
+              </p>
+            ))}
           </li>
         ))}
       </ul>
