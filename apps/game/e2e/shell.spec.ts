@@ -26,18 +26,28 @@ test("the home route shows the OSP name", async ({ page }) => {
   await expect(page.getByRole("region", { name: "Mission map" })).toBeVisible();
 });
 
-for (const [hash, heading] of [
-  ["#/settings", "Settings"],
-  ["#/mission/001", "Mission"],
+// Settings starts the compiler worker. Reloading while the worker is still
+// importing its modules makes WebKit log the cancelled imports as console
+// errors, so the test waits until the route has settled on both loads.
+for (const [hash, heading, settled] of [
+  ["#/settings", "Settings", "Compiler build"],
+  ["#/mission/001", "Mission", undefined],
 ] as const) {
   test(`refreshing ${hash} keeps the route`, async ({ page }) => {
-    await page.goto(`./${hash}`);
     const title = page.getByRole("heading", { level: 1, name: heading });
-    await expect(title).toBeVisible();
+    const expectSettled = async () => {
+      await expect(title).toBeVisible();
+      if (settled !== undefined) {
+        await expect(page.getByText(settled)).toBeVisible({ timeout: 30_000 });
+      }
+    };
+
+    await page.goto(`./${hash}`);
+    await expectSettled();
 
     await page.reload();
 
-    await expect(title).toBeVisible();
+    await expectSettled();
   });
 }
 
