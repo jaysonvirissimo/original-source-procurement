@@ -23,17 +23,18 @@ pnpm --filter @osp/game dev
 
 ## Commands
 
-| Command              | Purpose                                                             |
-| -------------------- | ------------------------------------------------------------------- |
-| `pnpm format`        | Format every file with Prettier                                     |
-| `pnpm format:check`  | Verify formatting                                                   |
-| `pnpm lint`          | ESLint with type-aware TypeScript rules and package-boundary checks |
-| `pnpm typecheck`     | Strict TypeScript across the workspace                              |
-| `pnpm test`          | Unit tests with Vitest                                              |
-| `pnpm test:coverage` | Unit tests with the 99% coverage gate                               |
-| `pnpm build`         | Production build of the game into `apps/game/dist`                  |
-| `pnpm test:browser`  | Playwright tests in Chromium, Firefox, and WebKit against the build |
-| `pnpm check`         | The merge gate: format, lint, typecheck, coverage, and build        |
+| Command                    | Purpose                                                                             |
+| -------------------------- | ----------------------------------------------------------------------------------- |
+| `pnpm format`              | Format every file with Prettier                                                     |
+| `pnpm format:check`        | Verify formatting                                                                   |
+| `pnpm lint`                | ESLint with type-aware TypeScript rules and package-boundary checks                 |
+| `pnpm typecheck`           | Strict TypeScript across the workspace                                              |
+| `pnpm test`                | Unit tests with Vitest                                                              |
+| `pnpm test:coverage`       | Unit tests with the 99% coverage gate                                               |
+| `pnpm build`               | Production build of the game into `apps/game/dist`                                  |
+| `pnpm test:browser`        | Playwright tests in Chromium, Firefox, and WebKit against the build                 |
+| `pnpm curriculum:validate` | Validate skills, missions, manual entries, and the default path                     |
+| `pnpm check`               | The merge gate: format, lint, typecheck, coverage, curriculum validation, and build |
 
 Browser tests serve the production build under a sub-path, the way GitHub Pages serves a project site. Before running them locally, run `pnpm build` and install the browsers once with `pnpm --filter @osp/game exec playwright install`.
 

@@ -15,7 +15,8 @@
     "test:coverage": "vitest run --coverage",
     "test:browser": "pnpm --filter @osp/game test:browser",
     "build": "pnpm --filter @osp/game build",
-    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:coverage && pnpm build"
+    "curriculum:validate": "node packages/curriculum/src/bin/validate.ts",
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:coverage && pnpm curriculum:validate && pnpm build"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
