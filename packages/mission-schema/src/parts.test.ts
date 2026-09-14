@@ -187,6 +187,7 @@ describe("small schemas", () => {
         id: "mips.delay-slots",
         section: "MIPS",
         title: "Delay slots",
+        body: ["The instruction after a jump runs first."],
       }).success,
     ).toBe(true);
     expect(
@@ -194,6 +195,15 @@ describe("small schemas", () => {
         id: "mips.delay-slots",
         section: "Assembly",
         title: "Delay slots",
+        body: ["The instruction after a jump runs first."],
+      }).success,
+    ).toBe(false);
+    expect(
+      ManualEntrySchema.safeParse({
+        id: "mips.delay-slots",
+        section: "MIPS",
+        title: "Delay slots",
+        body: [],
       }).success,
     ).toBe(false);
   });

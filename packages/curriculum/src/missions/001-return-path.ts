@@ -26,6 +26,13 @@ export const returnPath: MissionDraft = {
   starterSource: SOURCE,
   solution: SOURCE,
   symbol: "return_path",
+  annotations: [
+    {
+      range: { start: 1, end: 2 },
+      text: "The constant 42 lands in $v0, the register that carries the return value.",
+      manualEntry: "abi.return-values",
+    },
+  ],
   hints: [
     {
       stage: 1,

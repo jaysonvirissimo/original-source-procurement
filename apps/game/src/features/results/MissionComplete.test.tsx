@@ -16,6 +16,7 @@ describe("MissionComplete", () => {
         attempts={11}
         hints={1}
         skillNames={new Map([["MIPS.ARITH.ADD_IMMEDIATE", "Add immediate"]])}
+        next={{ id: "004", title: "SHIFT LEFT" }}
         onReview={onReview}
       />,
     );
@@ -36,6 +37,11 @@ describe("MissionComplete", () => {
     expect(
       screen.getByRole("link", { name: "Mission map" }).getAttribute("href"),
     ).toBe("#/");
+    expect(
+      screen
+        .getByRole("link", { name: "Next mission · 004 SHIFT LEFT" })
+        .getAttribute("href"),
+    ).toBe("#/mission/004");
   });
 
   it("says when a mission teaches no new skill", () => {
@@ -46,11 +52,13 @@ describe("MissionComplete", () => {
         attempts={1}
         hints={0}
         skillNames={new Map()}
+        next={undefined}
         onReview={vi.fn()}
       />,
     );
 
     expect(screen.getByText(/No new skill/)).toBeTruthy();
     expect(screen.getByText("NO")).toBeTruthy();
+    expect(screen.queryByRole("link", { name: /Next mission/ })).toBeNull();
   });
 });

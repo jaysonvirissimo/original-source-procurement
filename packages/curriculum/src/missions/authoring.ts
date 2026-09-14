@@ -36,3 +36,20 @@ export function translationDifficulty(size: number): DifficultyProfile {
     specialHardware: 0,
   };
 }
+
+/** A memory-phase profile: loads and stores through supplied types. */
+export function memoryDifficulty(
+  size: number,
+  types: number,
+): DifficultyProfile {
+  return {
+    size,
+    controlFlow: 0,
+    memory: 1,
+    abi: 1,
+    types,
+    compilerShaping: 0,
+    context: 0,
+    specialHardware: 0,
+  };
+}

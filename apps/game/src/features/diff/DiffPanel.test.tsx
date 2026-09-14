@@ -76,6 +76,7 @@ describe("DiffPanel", () => {
         result={result}
         stale={false}
         highlight={{ start: 1, end: 2 }}
+        annotations={[]}
       />,
     );
 
@@ -95,7 +96,14 @@ describe("DiffPanel", () => {
   });
 
   it("lists mismatches with their evidence and causes, and labels a stale build", () => {
-    render(<DiffPanel result={result} stale highlight={undefined} />);
+    render(
+      <DiffPanel
+        result={result}
+        stale
+        highlight={undefined}
+        annotations={[]}
+      />,
+    );
 
     const items = within(
       screen.getByRole("list", { name: "Mismatches" }),
@@ -113,9 +121,51 @@ describe("DiffPanel", () => {
         result={{ ...result, mismatches: [] }}
         stale={false}
         highlight={undefined}
+        annotations={[]}
       />,
     );
 
     expect(screen.queryByRole("list", { name: "Mismatches" })).toBeNull();
+    expect(screen.queryByRole("list", { name: "Annotations" })).toBeNull();
+  });
+
+  it("labels annotated target rows and lists each note in full", () => {
+    render(
+      <DiffPanel
+        result={result}
+        stale={false}
+        highlight={{ start: 1, end: 2 }}
+        annotations={[
+          {
+            range: { start: 1, end: 2 },
+            label: "delay slot",
+            text: "Runs before the jump takes effect.",
+          },
+          {
+            range: { start: 0, end: 2 },
+            label: "note",
+            text: "The whole function.",
+          },
+        ]}
+      />,
+    );
+
+    const rows = within(
+      screen.getByRole("table", { name: "Target and generated instructions" }),
+    ).getAllByRole("row");
+    expect(rows.map((row) => row.textContent)).toEqual([
+      "StatusTargetGeneratedNote",
+      "≈Equal outside relocated fieldslw $v1,0x20($a0)lw $v1,0x20($a0)note",
+      "+Extra in your outputnopload delay nop",
+      "−Missing from your outputjr $radelay slot · note · HINT",
+    ]);
+    expect(
+      within(screen.getByRole("list", { name: "Annotations" }))
+        .getAllByRole("listitem")
+        .map((item) => item.textContent),
+    ).toEqual([
+      "Word 1 · delay slotRuns before the jump takes effect.",
+      "Words 0–1 · noteThe whole function.",
+    ]);
   });
 });

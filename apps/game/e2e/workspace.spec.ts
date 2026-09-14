@@ -1,3 +1,4 @@
+import { defaultPath, missions } from "@osp/curriculum";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { siteUrl, watchPage, type PageWatch } from "./page-watch.ts";
 
@@ -191,6 +192,75 @@ test("the primary flow works from the keyboard alone", async ({
   await tab(page.getByRole("button", { name: "Return to workspace" }));
   await page.keyboard.press("Enter");
   await expect(status(page)).toHaveText("EXACT MATCH");
+});
+
+test("a fresh session plays the default path from the mission map to the last mission", async ({
+  page,
+}) => {
+  test.setTimeout(300_000);
+  const path = defaultPath.map((id) => {
+    const mission = missions.find((entry) => entry.id === id);
+    if (mission === undefined) {
+      throw new Error(`The curriculum has no mission ${id}.`);
+    }
+    return mission;
+  });
+
+  await page.goto("./");
+  const [first] = path;
+  if (first === undefined) {
+    throw new Error("The default path is empty.");
+  }
+  await page
+    .getByRole("region", { name: "Mission map" })
+    .getByRole("link", { name: `${first.id} ${first.title}` })
+    .click();
+
+  for (const [position, mission] of path.entries()) {
+    await expect(
+      page.getByRole("heading", { level: 1, name: mission.title }),
+    ).toBeVisible();
+    await page.getByRole("button", { name: "Enter" }).click();
+    await expect(compileButton(page)).toBeEnabled({ timeout: 30_000 });
+
+    switch (mission.completion) {
+      case "acknowledge-evidence": {
+        const acknowledge = page.getByRole("button", {
+          name: "Acknowledge evidence",
+        });
+        await compile(page);
+        await expect(acknowledge).toBeEnabled({ timeout: 30_000 });
+        await acknowledge.click();
+        break;
+      }
+      case "prediction-recorded": {
+        const answer = mission.prediction?.choices[mission.prediction.answer];
+        if (answer === undefined) {
+          throw new Error(`Mission ${mission.id} has no prediction answer.`);
+        }
+        await page.getByRole("radio", { name: answer }).check();
+        await page.getByRole("button", { name: "Record prediction" }).click();
+        await compile(page);
+        break;
+      }
+      case "exact":
+        await setSource(page, mission.solution ?? "");
+        await compile(page);
+        break;
+    }
+    await missionComplete(page);
+
+    const next = path[position + 1];
+    if (next === undefined) {
+      await expect(
+        page.getByRole("link", { name: /Next mission/ }),
+      ).toHaveCount(0);
+    } else {
+      await page
+        .getByRole("link", { name: `Next mission · ${next.id} ${next.title}` })
+        .click();
+    }
+  }
 });
 
 test("the workspace fits a 1280×720 viewport", async ({ page }) => {

@@ -345,9 +345,9 @@ describe("hints, overlays, and layout", () => {
     const once = run(hashed(), { type: "hint-revealed" });
     const all = run(
       once,
-      { type: "hint-revealed" },
-      { type: "hint-revealed" },
-      { type: "hint-revealed" },
+      ...exactMission.hints
+        .slice(1)
+        .map(() => ({ type: "hint-revealed" }) as const),
     );
 
     expect(hintsUsed(hashed())).toBe(0);

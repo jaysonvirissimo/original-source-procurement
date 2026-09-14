@@ -30,6 +30,10 @@ export {
   type FeasibilityPointer,
 } from "./feasibility.ts";
 export {
+  MissionAnnotationSchema,
+  type MissionAnnotation,
+} from "./annotation.ts";
+export {
   HintSchema,
   InstructionRangeSchema,
   type Hint,

@@ -1,18 +1,23 @@
 import type { InstructionRange } from "@osp/mission-schema";
 import type { ReactElement } from "react";
 import { classNames } from "../../styles/classNames";
+import { AnnotationList } from "./AnnotationList";
+import { annotationLabels, type WordAnnotation } from "./annotations";
 import { inRange } from "./diffLabels";
 import styles from "./DiffPanel.module.css";
 
 interface TargetListingProps {
   readonly lines: readonly string[];
   readonly highlight: InstructionRange | undefined;
+  /** Teaching notes on target words. */
+  readonly annotations: readonly WordAnnotation[];
 }
 
 /** The target instructions, shown before there is a build to compare. */
 export function TargetListing({
   lines,
   highlight,
+  annotations,
 }: TargetListingProps): ReactElement {
   return (
     <div className={styles.diff}>
@@ -41,13 +46,21 @@ export function TargetListing({
                   <td>
                     <code>{line}</code>
                   </td>
-                  <td className={styles.note}>{highlighted ? "HINT" : ""}</td>
+                  <td className={styles.note}>
+                    {[
+                      ...annotationLabels(annotations, index),
+                      highlighted && "HINT",
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </td>
                 </tr>
               );
             })}
           </tbody>
         </table>
       </div>
+      <AnnotationList annotations={annotations} />
     </div>
   );
 }

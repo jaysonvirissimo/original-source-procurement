@@ -1,5 +1,11 @@
 export { ALIGNMENT_COSTS } from "./align.ts";
 export {
+  observations,
+  type Observation,
+  type ObservationKind,
+  type WordProvenance,
+} from "./annotate.ts";
+export {
   definedFunctions,
   extractFunction,
   functionFromWords,

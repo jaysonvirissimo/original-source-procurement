@@ -94,7 +94,7 @@ export async function validateCurriculum(
   );
 
   checkSkillGraph(skills, manualEntries, report);
-  checkMissionSkills(missions, skills, report);
+  checkMissionReferences(missions, skills, manualEntries, report);
   checkDefaultPath(data.defaultPath, missions, skills, report);
   await checkHashes(missions, report);
   checkFeasibilityPointers(data.feasibilityPointers ?? [], report);
@@ -194,9 +194,10 @@ function checkSkillGraph(
 
 const SKILL_LISTS = ["requires", "teaches", "practices"] as const;
 
-function checkMissionSkills(
+function checkMissionReferences(
   missions: ReadonlyMap<string, Parsed<Mission>>,
   skills: ReadonlyMap<string, Parsed<Skill>>,
+  manualEntries: ReadonlyMap<string, Parsed<ManualEntry>>,
   report: Report,
 ): void {
   for (const { index, value: mission } of missions.values()) {
@@ -211,6 +212,15 @@ function checkMissionSkills(
         }
       });
     }
+    mission.annotations?.forEach(({ manualEntry }, position) => {
+      if (manualEntry !== undefined && !manualEntries.has(manualEntry)) {
+        report(
+          "unknown-manual-entry",
+          ["missions", index, "annotations", position, "manualEntry"],
+          `Unknown manual entry ${manualEntry}.`,
+        );
+      }
+    });
   }
 }
 

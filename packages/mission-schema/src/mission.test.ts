@@ -321,6 +321,43 @@ describe("hints", () => {
     ).toEqual([]);
   });
 
+  it("keeps annotations inside an inline target", () => {
+    expect(
+      issues(
+        syntheticMission({
+          annotations: [
+            {
+              range: { start: 0, end: 1 },
+              text: "The return.",
+              manualEntry: "abi.return-values",
+            },
+            { range: { start: 1, end: 3 }, text: "Past the end." },
+          ],
+        }),
+      ),
+    ).toEqual([
+      issue(
+        "annotations.1.range",
+        "An annotation must stay inside the target function.",
+      ),
+    ]);
+  });
+
+  it("rejects annotations on a mission with a remote target", () => {
+    expect(
+      issues(
+        realMission({
+          annotations: [{ range: { start: 0, end: 1 }, text: "A note." }],
+        }),
+      ),
+    ).toEqual([
+      issue(
+        "annotations",
+        "Only missions with an inline target annotate target words.",
+      ),
+    ]);
+  });
+
   it("rejects a real-solved reveal on a stage other than 5 or 9", () => {
     expect(
       issues(
