@@ -1,0 +1,7 @@
+.editor {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  border: var(--osp-border) solid var(--osp-line);
+  border-radius: var(--osp-radius);
+}

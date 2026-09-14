@@ -1,0 +1,107 @@
+.diff {
+  display: grid;
+  gap: var(--osp-space-3);
+  align-content: start;
+  min-width: 0;
+}
+
+.stale {
+  font-family: var(--osp-font-code);
+  font-size: var(--osp-font-size-label);
+  letter-spacing: 0.06em;
+  color: var(--osp-warning);
+}
+
+.help {
+  color: var(--osp-text-dim);
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--osp-font-code);
+  font-size: var(--osp-font-size-code);
+}
+
+.table th {
+  padding: 0 var(--osp-space-2) var(--osp-space-1);
+  font-size: var(--osp-font-size-label);
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-align: left;
+  text-transform: uppercase;
+  color: var(--osp-grid);
+}
+
+.table td {
+  padding: 2px var(--osp-space-2);
+  white-space: nowrap;
+}
+
+.marker {
+  width: 3ch;
+  text-align: center;
+}
+
+.index {
+  width: 5ch;
+  color: var(--osp-text-faint);
+}
+
+.equal .marker {
+  color: var(--osp-match);
+}
+
+.field-only .marker {
+  color: var(--osp-info);
+}
+
+.different .marker,
+.inserted .marker,
+.deleted .marker {
+  color: var(--osp-error);
+}
+
+.different td,
+.inserted td,
+.deleted td {
+  background: color-mix(in srgb, var(--osp-error) 8%, transparent);
+}
+
+.highlighted td {
+  box-shadow: inset 0 calc(-1 * var(--osp-border)) 0 var(--osp-info);
+}
+
+.note {
+  font-size: var(--osp-font-size-label);
+  color: var(--osp-text-dim);
+}
+
+.mismatches {
+  display: grid;
+  gap: var(--osp-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mismatch {
+  display: grid;
+  gap: var(--osp-space-1);
+  padding: var(--osp-space-2) var(--osp-space-3);
+  border-left: var(--osp-border-strong) solid var(--osp-error);
+  background: var(--osp-surface-1);
+}
+
+.kind {
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.evidence {
+  color: var(--osp-text-dim);
+}

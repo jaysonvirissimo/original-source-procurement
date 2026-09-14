@@ -1,0 +1,28 @@
+.prediction {
+  display: grid;
+  gap: var(--osp-space-2);
+  justify-items: start;
+  margin: 0;
+  padding: var(--osp-space-2) var(--osp-space-3);
+  border: var(--osp-border) solid var(--osp-line);
+  border-left: var(--osp-border-strong) solid var(--osp-info);
+  border-radius: var(--osp-radius);
+  background: var(--osp-surface-1);
+}
+
+.choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--osp-space-3);
+}
+
+.choice {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--osp-space-1);
+  cursor: pointer;
+}
+
+.dim {
+  color: var(--osp-text-dim);
+}

@@ -48,6 +48,27 @@
   color: var(--osp-grid);
 }
 
-.mapText {
+.missions {
+  display: grid;
+  gap: var(--osp-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mission {
+  display: inline-flex;
+  gap: var(--osp-space-3);
+  color: var(--osp-text);
+  text-decoration: none;
+  letter-spacing: 0.06em;
+}
+
+.mission:hover {
+  color: var(--osp-grid);
+}
+
+.missionId {
+  font-family: var(--osp-font-code);
   color: var(--osp-text-dim);
 }

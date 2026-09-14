@@ -12,14 +12,16 @@ The build fails if a bundled package has no license file, so a deployment cannot
 
 The distributed packages currently include:
 
-| Package                           | License              | Contents                                                                      |
-| --------------------------------- | -------------------- | ----------------------------------------------------------------------------- |
-| `react`, `react-dom`, `scheduler` | MIT                  | User interface runtime                                                        |
-| `@fontsource/ibm-plex-mono`       | OFL-1.1              | IBM Plex Mono font files                                                      |
-| `@fontsource/barlow-condensed`    | OFL-1.1              | Barlow Condensed font files                                                   |
-| `psyq-wasm`                       | MIT AND GPL-2.0-only | PsyQ 4.4 compiler and preprocessor (WebAssembly) and their TypeScript wrapper |
-| `psyq-asm`                        | MIT                  | ASPSX-compatible assembler and R3000 decoder                                  |
-| `zod`                             | MIT                  | Schema validation                                                             |
+| Package                             | License              | Contents                                                                      |
+| ----------------------------------- | -------------------- | ----------------------------------------------------------------------------- |
+| `react`, `react-dom`, `scheduler`   | MIT                  | User interface runtime                                                        |
+| `@fontsource/ibm-plex-mono`         | OFL-1.1              | IBM Plex Mono font files                                                      |
+| `@fontsource/barlow-condensed`      | OFL-1.1              | Barlow Condensed font files                                                   |
+| `psyq-wasm`                         | MIT AND GPL-2.0-only | PsyQ 4.4 compiler and preprocessor (WebAssembly) and their TypeScript wrapper |
+| `psyq-asm`                          | MIT                  | ASPSX-compatible assembler and R3000 decoder                                  |
+| `zod`                               | MIT                  | Schema validation                                                             |
+| `@codemirror/*`, `@lezer/*`         | MIT                  | C source editor, syntax highlighting, and parser                              |
+| `style-mod`, `w3c-keyname`, `crelt` | MIT                  | Editor styling and keyboard support used by CodeMirror                        |
 
 The generated `THIRD_PARTY_NOTICES.txt` in each build is authoritative. This table is a summary.
 

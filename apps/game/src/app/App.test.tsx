@@ -17,6 +17,11 @@ describe("App", () => {
     expect(screen.getByRole("heading", { level: 1, name: "OSP" })).toBeTruthy();
     expect(screen.getByText("Original Source Procurement")).toBeTruthy();
     expect(screen.getByRole("region", { name: "Mission map" })).toBeTruthy();
+    expect(
+      screen
+        .getByRole("link", { name: "001 RETURN PATH" })
+        .getAttribute("href"),
+    ).toBe("#/mission/001");
   });
 
   it("links to the third-party notices shipped with the build", () => {
@@ -42,13 +47,21 @@ describe("App", () => {
 });
 
 describe("RouteView", () => {
-  it("names the requested mission", () => {
-    render(<RouteView route={{ kind: "mission", missionId: "001" }} />);
+  it("opens the requested mission's briefing", () => {
+    render(
+      <ToolchainProvider createToolchain={createToolchain}>
+        <RouteView route={{ kind: "mission", missionId: "001" }} />
+      </ToolchainProvider>,
+    );
 
     expect(
-      screen.getByRole("heading", { level: 1, name: "Mission" }),
+      screen.getByRole("heading", { level: 1, name: "RETURN PATH" }),
     ).toBeTruthy();
-    expect(screen.getByText("001")).toBeTruthy();
+  });
+
+  it("offers a way back from an unknown mission", () => {
+    render(<RouteView route={{ kind: "mission", missionId: "999" }} />);
+
     expect(
       screen
         .getByRole("link", { name: "Return to mission map" })

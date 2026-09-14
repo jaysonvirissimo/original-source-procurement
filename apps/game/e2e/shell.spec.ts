@@ -31,7 +31,7 @@ test("the home route shows the OSP name", async ({ page }) => {
 // errors, so the test waits until the route has settled on both loads.
 for (const [hash, heading, settled] of [
   ["#/settings", "Settings", "Compiler build"],
-  ["#/mission/001", "Mission", undefined],
+  ["#/mission/001", "RETURN PATH", undefined],
 ] as const) {
   test(`refreshing ${hash} keeps the route`, async ({ page }) => {
     const title = page.getByRole("heading", { level: 1, name: heading });

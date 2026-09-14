@@ -147,7 +147,7 @@ export async function auditDistribution(
     const extension = extname(path);
     if (SCRIPT_EXTENSIONS.has(extension)) {
       const text = (await read(path)).toString("utf8");
-      const buildId = release.buildIds.find((id) => text.includes(id));
+      const buildId = release.buildIds.find((id) => holdsGlueBuildId(text, id));
       if (buildId !== undefined) {
         issues.push({
           code: "transformed-artifact",
@@ -168,6 +168,22 @@ export async function auditDistribution(
   }
 
   return issues;
+}
+
+/**
+ * Whether a script contains a build ID other than as mission provenance.
+ * Synthetic mission targets record the compiler that generated them in
+ * `compilerBuildId` and `preprocessorBuildId` properties; that is data, not
+ * glue code. Minification keeps property names, so an ID anywhere else, such
+ * as a renamed copy of the glue's own constant, still counts.
+ */
+function holdsGlueBuildId(text: string, id: string): boolean {
+  const escaped = id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const provenance = new RegExp(
+    `["']?(?:compilerBuildId|preprocessorBuildId)["']?\\s*:\\s*(["'\`])${escaped}\\1`,
+    "g",
+  );
+  return text.replace(provenance, "").includes(id);
 }
 
 export interface AuditOutput {

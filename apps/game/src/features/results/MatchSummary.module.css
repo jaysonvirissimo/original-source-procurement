@@ -1,0 +1,26 @@
+.summary {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 2px var(--osp-space-4);
+  margin: 0;
+  font-family: var(--osp-font-code);
+  font-size: var(--osp-font-size-label);
+  letter-spacing: 0.08em;
+}
+
+.summary dt {
+  color: var(--osp-text-dim);
+}
+
+.summary dd {
+  margin: 0;
+  color: var(--osp-text);
+}
+
+.summary .yes {
+  color: var(--osp-match);
+}
+
+.summary .no {
+  color: var(--osp-error);
+}
