@@ -49,6 +49,20 @@ ESLint enforces the import rules. Changing a boundary, or adding a package, need
 
 Mission and skill behavior comes from validated curriculum data, never from rules hard-coded in UI components.
 
+## Curriculum data
+
+`pnpm curriculum:validate` checks every skill, mission, and manual entry against its schema, then checks the rules that span documents. It runs as part of `pnpm check`. Among other things, it rejects:
+
+- a skill or mission that references an unknown skill, or a prerequisite cycle;
+- a mission that teaches more than one skill without a `teachesOverride` reason, or a synthesis mission that teaches any skill;
+- a mission on the default path that needs a skill no earlier mission on the path teaches;
+- a real mission with inline target words, authored headers, a solution, or compiler input that differs from upstream's default build;
+- a synthetic mission whose `solution` or words do not match their recorded hashes.
+
+Prerequisites are the source of truth for progression. The default path is a recommended order that must stay consistent with them.
+
+Package sources that `pnpm curriculum:validate` loads run directly on Node.js with type stripping, so relative imports in `mission-schema` and `curriculum` use explicit `.ts` extensions and only erasable TypeScript syntax.
+
 ## Toolchain boundaries
 
 - `psyq-wasm` is the compiler. OSP does not implement a C compiler, preprocessor, compiler worker runtime, EUC-JP converter, or compiler timeout layer.

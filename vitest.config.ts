@@ -28,6 +28,11 @@ export default defineConfig({
       ],
       exclude: [
         "**/*.test.{ts,tsx}",
+        // Generators shared by property tests; no product behavior.
+        "**/*.test-helpers.ts",
+        // Command-line entry point that passes the shipped curriculum and the
+        // console to runValidation, which unit tests cover directly.
+        "packages/curriculum/src/bin/**",
         "**/*.d.ts",
         // Test-only setup that registers Testing Library cleanup; no product behavior.
         "apps/game/src/test/**",
