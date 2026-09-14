@@ -1,1 +1,25 @@
-export {};
+export { ALIGNMENT_COSTS } from "./align.ts";
+export {
+  definedFunctions,
+  extractFunction,
+  functionFromWords,
+} from "./extract.ts";
+export { compareFunction, matchFunction } from "./match.ts";
+export {
+  MISMATCH_KINDS,
+  type AlignmentRow,
+  type AlignmentStatus,
+  type FieldDifference,
+  type FunctionRelocation,
+  type GeneratedFunction,
+  type GeneratedWord,
+  type InstructionRange,
+  type MatchInstruction,
+  type MatchOutcome,
+  type MatchResult,
+  type MatchSummary,
+  type MatchTarget,
+  type Mismatch,
+  type MismatchKind,
+  type RelocationTargetIdentity,
+} from "./types.ts";
