@@ -56,6 +56,24 @@
   list-style: none;
 }
 
+.row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--osp-space-3);
+}
+
+.started,
+.complete {
+  font-family: var(--osp-font-code);
+  font-size: var(--osp-font-size-label);
+  letter-spacing: 0.12em;
+  color: var(--osp-text-dim);
+}
+
+.complete {
+  color: var(--osp-grid);
+}
+
 .mission {
   display: inline-flex;
   gap: var(--osp-space-3);

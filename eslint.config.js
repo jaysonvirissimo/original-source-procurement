@@ -91,6 +91,21 @@ export default defineConfig(
   },
 
   {
+    files: ["apps/game/src/**/*.{ts,tsx}"],
+    ignores: ["apps/game/src/features/persistence/**"],
+    rules: {
+      "no-restricted-globals": [
+        "error",
+        ...["indexedDB", "localStorage", "sessionStorage"].map((name) => ({
+          name,
+          message:
+            'Browser storage is reached only through features/persistence. See "Package boundaries" in CONTRIBUTING.md.',
+        })),
+      ],
+    },
+  },
+
+  {
     files: ["packages/mission-schema/**/*.ts"],
     rules: forbidImports("mission-schema", [...REACT, "psyq-asm", "@osp/*"]),
   },

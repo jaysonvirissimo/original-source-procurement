@@ -87,12 +87,20 @@ const theme = EditorView.theme(
   { dark: true },
 );
 
+/** Source that replaces the whole document once per revision. */
+export interface EditorReplacement {
+  readonly revision: number;
+  readonly source: string;
+}
+
 interface CEditorProps {
   /** The source when the editor mounts; later edits live in the editor. */
   readonly initialSource: string;
   readonly label: string;
   readonly filename: string;
   readonly diagnostics: readonly CompilerDiagnostic[];
+  /** Replaces the document as one undoable change, as restoring an attempt does. */
+  readonly replacement?: EditorReplacement | undefined;
   readonly onChange: (source: string) => void;
   readonly onCompile: () => void;
 }
@@ -106,6 +114,7 @@ export function CEditor({
   label,
   filename,
   diagnostics,
+  replacement,
   onChange,
   onCompile,
 }: CEditorProps): ReactElement {
@@ -182,6 +191,23 @@ export function CEditor({
       ),
     );
   }, [diagnostics, filename]);
+
+  useEffect(() => {
+    const editor = view.current;
+    /* v8 ignore next 3 -- the editor effect above runs first. */
+    if (editor === undefined) {
+      return;
+    }
+    if (replacement !== undefined) {
+      editor.dispatch({
+        changes: {
+          from: 0,
+          to: editor.state.doc.length,
+          insert: replacement.source,
+        },
+      });
+    }
+  }, [replacement]);
 
   return <div className={styles.editor} ref={host} />;
 }

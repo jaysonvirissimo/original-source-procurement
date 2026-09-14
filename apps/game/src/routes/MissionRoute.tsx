@@ -1,5 +1,6 @@
 import type { ReactElement } from "react";
 import { useMissionCatalog } from "../features/curriculum/missionCatalog";
+import { usePlayerProgress } from "../features/persistence/progressContext";
 import { Workspace } from "../features/workspace/Workspace";
 import { RoutePanel } from "./RoutePanel";
 
@@ -9,6 +10,7 @@ interface MissionRouteProps {
 
 export function MissionRoute({ missionId }: MissionRouteProps): ReactElement {
   const { missions } = useMissionCatalog();
+  const { state } = usePlayerProgress();
   const mission = missions.find((entry) => entry.id === missionId);
 
   if (mission === undefined) {
@@ -20,6 +22,12 @@ export function MissionRoute({ missionId }: MissionRouteProps): ReactElement {
       />
     );
   }
-  // A new mission starts a new workspace.
-  return <Workspace key={mission.id} mission={mission} />;
+  // A new mission starts a new workspace from its saved progress.
+  return (
+    <Workspace
+      key={mission.id}
+      mission={mission}
+      saved={state.missions[mission.id]}
+    />
+  );
 }

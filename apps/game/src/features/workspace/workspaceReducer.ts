@@ -1,6 +1,8 @@
 import type { Mission } from "@osp/mission-schema";
 import type { ResolveOutcome } from "../compiler/missionContextResolver";
 import type { CompilationInput } from "../compiler/types";
+import type { EditorReplacement } from "../editor/CEditor";
+import type { MissionProgress } from "../persistence/schema";
 import {
   currentMatch,
   isComplete,
@@ -19,6 +21,9 @@ export type WorkspaceMission = Pick<
   "id" | "completion" | "starterSource" | "target" | "hints" | "prediction"
 >;
 
+/** What a workspace resumes from: the saved source and the hints already opened. */
+export type SavedWorkspace = Pick<MissionProgress, "source" | "hintMaxStage">;
+
 export type ContextState =
   | { readonly kind: "resolving" }
   | { readonly kind: "ready"; readonly input: CompilationInput }
@@ -29,7 +34,7 @@ export type ContextState =
   /** The mission's target is not an inline target. */
   | { readonly kind: "unsupported-target" };
 
-export type Overlay = "none" | "manual" | "hint";
+export type Overlay = "none" | "manual" | "hint" | "history";
 
 export interface WorkspaceState {
   readonly mission: WorkspaceMission;
@@ -50,8 +55,12 @@ export interface WorkspaceState {
   /** The editor's share of the workspace width. */
   readonly split: number;
   readonly completed: boolean;
+  /** The Compile request whose result completed the mission, or 0. */
+  readonly completedBuildId: number;
   /** The player returned to the workspace after completing the mission. */
   readonly reviewing: boolean;
+  /** Source restored from history, for the editor to apply. */
+  readonly replacement: EditorReplacement | undefined;
 }
 
 export type WorkspaceAction =
@@ -71,12 +80,14 @@ export type WorkspaceAction =
   | { readonly type: "hint-revealed" }
   | { readonly type: "overlay-changed"; readonly overlay: Overlay }
   | { readonly type: "split-resized"; readonly split: number }
-  | { readonly type: "review-requested" };
+  | { readonly type: "review-requested" }
+  | { readonly type: "attempt-restored"; readonly source: string };
 
 export const SPLIT_LIMITS = { min: 0.25, max: 0.75 } as const;
 
 export function initialWorkspaceState(
   mission: WorkspaceMission,
+  saved?: SavedWorkspace,
 ): WorkspaceState {
   return {
     mission,
@@ -85,18 +96,20 @@ export function initialWorkspaceState(
       missionMatchTarget(mission) === undefined
         ? { kind: "unsupported-target" }
         : { kind: "resolving" },
-    source: mission.starterSource,
+    source: saved?.source ?? mission.starterSource,
     sourceSha256: undefined,
     latestBuildId: 0,
     compiling: undefined,
     result: undefined,
     attempts: 0,
     actions: {},
-    hintStage: 0,
+    hintStage: saved?.hintMaxStage ?? 0,
     overlay: "none",
     split: 0.5,
     completed: false,
+    completedBuildId: 0,
     reviewing: false,
+    replacement: undefined,
   };
 }
 
@@ -136,7 +149,7 @@ export function workspaceReducer(
   if (next === state || next.completed || !isComplete(completionState(next))) {
     return next;
   }
-  return { ...next, completed: true };
+  return { ...next, completed: true, completedBuildId: next.latestBuildId };
 }
 
 function apply(state: WorkspaceState, action: WorkspaceAction): WorkspaceState {
@@ -180,6 +193,18 @@ function apply(state: WorkspaceState, action: WorkspaceAction): WorkspaceState {
       };
     case "review-requested":
       return state.completed ? { ...state, reviewing: true } : state;
+    case "attempt-restored":
+      return action.source === state.source
+        ? state
+        : {
+            ...state,
+            source: action.source,
+            sourceSha256: undefined,
+            replacement: {
+              revision: (state.replacement?.revision ?? 0) + 1,
+              source: action.source,
+            },
+          };
   }
 }
 

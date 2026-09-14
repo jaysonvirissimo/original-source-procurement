@@ -1,6 +1,7 @@
 import { sha256Hex } from "@osp/curriculum/hash";
 import type { Mission } from "@osp/mission-schema";
 import {
+  useCallback,
   useEffect,
   useMemo,
   useReducer,
@@ -21,12 +22,20 @@ import { missionAnnotations } from "../diff/annotations";
 import { DiffPanel } from "../diff/DiffPanel";
 import { TargetListing } from "../diff/TargetListing";
 import { CEditor } from "../editor/CEditor";
+import {
+  usePlayerProgress,
+  type SaveStatus,
+} from "../persistence/progressContext";
+import type { Attempt, MissionProgress } from "../persistence/schema";
+import { attemptFrom } from "../progress/attempts";
+import { completionEvidence } from "../progress/evidence";
 import { BuildFeedback } from "../results/BuildFeedback";
 import { MatchSummary } from "../results/MatchSummary";
 import { MissionComplete } from "../results/MissionComplete";
 import { useUpstream } from "../upstream/upstreamContext";
 import { canAcknowledge } from "./completion";
 import { HintPanel } from "./HintPanel";
+import { HistoryPanel } from "./HistoryPanel";
 import { ManualPanel } from "./ManualPanel";
 import { matchStatus } from "./matchStatus";
 import {
@@ -36,6 +45,7 @@ import {
 } from "./missionResult";
 import { PredictionPanel } from "./PredictionPanel";
 import { SplitHandle } from "./SplitHandle";
+import { useSourceAutosave } from "./useSourceAutosave";
 import styles from "./Workspace.module.css";
 import {
   completionState,
@@ -47,6 +57,7 @@ import {
 } from "./workspaceReducer";
 
 const NO_DIAGNOSTICS: readonly CompilerDiagnostic[] = [];
+const NO_ATTEMPTS: readonly Attempt[] = [];
 
 const UPSTREAM_UNAVAILABLE =
   "Field missions load their targets from the mgs_reversing project on GitHub, and OSP couldn't reach it. Training missions still work. Check your connection and try again.";
@@ -55,22 +66,28 @@ const UPSTREAM_CONTENT_MISMATCH =
 
 interface WorkspaceProps {
   readonly mission: Mission;
+  /** Progress saved before this workspace opened. */
+  readonly saved?: MissionProgress | undefined;
 }
 
 /**
  * Plays one mission: briefing, editing, compiling, comparing, and
  * completion. Mission state lives in the workspace reducer; this component
- * runs the asynchronous work and dispatches its results.
+ * runs the asynchronous work, dispatches its results, and records progress.
  */
-export function Workspace({ mission }: WorkspaceProps): ReactElement {
+export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
   const catalog = useMissionCatalog();
   const upstream = useUpstream();
   const { state: toolchain, start } = useToolchain();
+  const progress = usePlayerProgress();
+  const { dispatch: record, now, newId } = progress;
   const [state, dispatch] = useReducer(
     workspaceReducer,
-    mission,
-    initialWorkspaceState,
+    { mission, saved },
+    (initial) => initialWorkspaceState(initial.mission, initial.saved),
   );
+  // Completions from this visit share it; a later visit records new ones.
+  const [sessionId] = useState(newId);
   const [resolveRequest, setResolveRequest] = useState(0);
   const buildCounter = useRef(0);
   const running = useRef<AbortController | undefined>(undefined);
@@ -92,8 +109,12 @@ export function Workspace({ mission }: WorkspaceProps): ReactElement {
     () => new Map(catalog.skills.map((skill) => [skill.id, skill.name])),
     [catalog],
   );
+  const missionRef = useMemo(
+    () => ({ id: mission.id, starterSource: mission.starterSource }),
+    [mission],
+  );
 
-  const { entered, source, context, result } = state;
+  const { entered, source, context, result, hintStage, completed } = state;
   const unsupported = context.kind === "unsupported-target";
 
   // The briefing does not need the compiler, so it starts on entry.
@@ -131,6 +152,68 @@ export function Workspace({ mission }: WorkspaceProps): ReactElement {
     [],
   );
 
+  const saveSource = useCallback(
+    (next: string) => {
+      record({
+        type: "source-saved",
+        mission: missionRef,
+        source: next,
+        at: now(),
+      });
+    },
+    [record, missionRef, now],
+  );
+  useSourceAutosave(entered ? source : undefined, saveSource);
+
+  useEffect(() => {
+    if (hintStage > 0) {
+      record({
+        type: "hint-stage-saved",
+        mission: missionRef,
+        stage: hintStage,
+        at: now(),
+      });
+    }
+  }, [hintStage, record, missionRef, now]);
+
+  const predictionChoice = state.actions.prediction?.choice;
+  const { completedBuildId } = state;
+  useEffect(() => {
+    if (!completed) {
+      return;
+    }
+    const completionId = `${sessionId}:${String(completedBuildId)}`;
+    const at = now();
+    const facts = { completionId, hintStage, completedAt: at };
+    const evidence = completionEvidence(
+      mission,
+      predictionChoice === undefined ? facts : { ...facts, predictionChoice },
+    );
+    const event = {
+      type: "mission-completed",
+      mission: missionRef,
+      completionId,
+      at,
+      skills: evidence.skills,
+    } as const;
+    // A repeated completion ID is ignored, so later hint changes add nothing.
+    record(
+      evidence.prediction === undefined
+        ? event
+        : { ...event, prediction: evidence.prediction },
+    );
+  }, [
+    completed,
+    completedBuildId,
+    sessionId,
+    hintStage,
+    predictionChoice,
+    mission,
+    missionRef,
+    record,
+    now,
+  ]);
+
   const diagnostics = useMemo(
     () =>
       result?.kind === "build-failed" &&
@@ -162,14 +245,37 @@ export function Workspace({ mission }: WorkspaceProps): ReactElement {
       controller.signal,
     );
     running.current = undefined;
-    dispatch({
-      type: "build-resolved",
-      result: missionResultFrom(request, outcome, mission.symbol, target),
-    });
+    const missionResult = missionResultFrom(
+      request,
+      outcome,
+      mission.symbol,
+      target,
+    );
+    dispatch({ type: "build-resolved", result: missionResult });
+    // Only a comparison is an attempt; failed builds have nothing to compare.
+    if (missionResult.kind === "matched") {
+      record({
+        type: "attempt-recorded",
+        mission: missionRef,
+        attempt: attemptFrom({
+          id: newId(),
+          missionId: mission.id,
+          createdAt: now(),
+          source,
+          match: missionResult.result,
+          info: toolchain.service.info,
+          aspsxVersion: context.input.aspsxVersion,
+        }),
+      });
+    }
   };
 
   const setOverlay = (overlay: Overlay) => {
     dispatch({ type: "overlay-changed", overlay });
+  };
+
+  const toggleOverlay = (overlay: Overlay) => {
+    setOverlay(state.overlay === overlay ? "none" : overlay);
   };
 
   const retryContext = () => {
@@ -197,12 +303,13 @@ export function Workspace({ mission }: WorkspaceProps): ReactElement {
         skillNames={skillNames}
         onEnter={() => {
           dispatch({ type: "entered" });
+          record({ type: "mission-started", mission: missionRef, at: now() });
         }}
       />
     );
   }
 
-  if (state.completed && !state.reviewing) {
+  if (completed && !state.reviewing) {
     return (
       <MissionComplete
         mission={mission}
@@ -304,6 +411,7 @@ export function Workspace({ mission }: WorkspaceProps): ReactElement {
             label="C source"
             filename={mission.compiler.filename}
             diagnostics={diagnostics}
+            replacement={state.replacement}
             onChange={(next) => {
               dispatch({ type: "edited", source: next });
             }}
@@ -370,6 +478,31 @@ export function Workspace({ mission }: WorkspaceProps): ReactElement {
           }}
         />
       ) : null}
+      {state.overlay === "history" ? (
+        <HistoryPanel
+          attempts={
+            progress.state.missions[mission.id]?.attempts ?? NO_ATTEMPTS
+          }
+          onPin={(attemptId, pinned) => {
+            record({
+              type: "attempt-pinned",
+              missionId: mission.id,
+              attemptId,
+              pinned,
+            });
+          }}
+          onRestore={(attempt) => {
+            dispatch({ type: "attempt-restored", source: attempt.source });
+            setOverlay("none");
+          }}
+          onClear={() => {
+            record({ type: "history-cleared", missionId: mission.id });
+          }}
+          onClose={() => {
+            setOverlay("none");
+          }}
+        />
+      ) : null}
 
       <footer className={styles.controls}>
         <button
@@ -410,7 +543,7 @@ export function Workspace({ mission }: WorkspaceProps): ReactElement {
           type="button"
           aria-pressed={state.overlay === "hint"}
           onClick={() => {
-            setOverlay(state.overlay === "hint" ? "none" : "hint");
+            toggleOverlay("hint");
           }}
         >
           Hint
@@ -420,10 +553,20 @@ export function Workspace({ mission }: WorkspaceProps): ReactElement {
           type="button"
           aria-pressed={state.overlay === "manual"}
           onClick={() => {
-            setOverlay(state.overlay === "manual" ? "none" : "manual");
+            toggleOverlay("manual");
           }}
         >
           Manual
+        </button>
+        <button
+          className={controls.button}
+          type="button"
+          aria-pressed={state.overlay === "history"}
+          onClick={() => {
+            toggleOverlay("history");
+          }}
+        >
+          History
         </button>
         {toolchain.status === "failed" ? (
           <div className={styles.alert} role="alert">
@@ -442,7 +585,17 @@ export function Workspace({ mission }: WorkspaceProps): ReactElement {
         <p className={styles.attempt}>
           ATTEMPT {String(state.attempts).padStart(2, "0")}
         </p>
+        <p className={styles.saved}>
+          {saveLabel(progress.saveStatus, progress.persistent)}
+        </p>
       </footer>
     </div>
   );
+}
+
+function saveLabel(status: SaveStatus, persistent: boolean): string {
+  if (!persistent || status.kind === "failed") {
+    return "NOT SAVED";
+  }
+  return status.kind === "saving" ? "SAVING" : "SAVED";
 }
