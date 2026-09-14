@@ -1,6 +1,6 @@
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   collectNotices,
@@ -37,6 +37,7 @@ async function installPackage(
   await mkdir(root, { recursive: true });
   await writeFile(join(root, "package.json"), JSON.stringify(manifest));
   for (const [file, contents] of Object.entries(files)) {
+    await mkdir(dirname(join(root, file)), { recursive: true });
     await writeFile(join(root, file), contents);
   }
   return root;
@@ -112,6 +113,24 @@ describe("readPackageNotice", () => {
       license: "OFL-1.1",
       licenseText: "Font license text\n",
     });
+  });
+
+  it("appends the per-license texts of a LICENSES directory", async () => {
+    const root = await installPackage(
+      "dual",
+      { name: "dual", version: "1.0.0", license: "MIT AND GPL-2.0-only" },
+      {
+        LICENSE: "Applied per file.\n",
+        "LICENSES/MIT.txt": "MIT text\n",
+        "LICENSES/GPL-2.0-only.txt": "GPL text\n",
+      },
+    );
+
+    const notice = await readPackageNotice(root);
+
+    expect(notice.licenseText).toBe(
+      "Applied per file.\n\n--- LICENSES/GPL-2.0-only.txt ---\n\nGPL text\n\n--- LICENSES/MIT.txt ---\n\nMIT text",
+    );
   });
 
   it("fails when the package has no license file", async () => {
@@ -212,5 +231,36 @@ describe("thirdPartyNotices", () => {
     const source = JSON.stringify(emitted);
     expect(source).toContain("lib 1.0.0");
     expect(source).toContain("@fonts/face 1.0.0");
+  });
+
+  it("appends the appendix after the package entries", async () => {
+    const libRoot = await installPackage(
+      "lib",
+      { name: "lib", version: "1.0.0", license: "MIT" },
+      { LICENSE: "MIT license text" },
+    );
+    const plugin = thirdPartyNotices({ appendix: "Compiler provenance\n" });
+    const emitted: { source: string }[] = [];
+    const { generateBundle } = plugin;
+    if (typeof generateBundle !== "function") {
+      throw new Error("The notices plugin must use function hooks.");
+    }
+
+    await generateBundle.call(
+      {
+        getModuleIds: () => [join(libRoot, "index.js")][Symbol.iterator](),
+        emitFile: (file: { source: string }) => {
+          emitted.push(file);
+          return "reference";
+        },
+      } as never,
+      {} as never,
+      {} as never,
+      true,
+    );
+
+    expect(emitted[0]?.source).toBe(
+      `${await collectNotices([join(libRoot, "index.js")])}\nCompiler provenance\n`,
+    );
   });
 });

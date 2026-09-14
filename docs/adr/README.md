@@ -17,6 +17,7 @@ Changing a locked decision requires a new record. Accepted records are never rew
 | [0007](0007-synthetic-relocation-comparison.md) | Synthetic relocation comparison | Accepted |
 | [0008](0008-compilation-input.md)               | Compilation input               | Accepted |
 | [0009](0009-mission-completion.md)              | Mission completion              | Accepted |
+| [0010](0010-compiler-artifact-distribution.md)  | Compiler artifact distribution  | Accepted |
 
 ## Template
 

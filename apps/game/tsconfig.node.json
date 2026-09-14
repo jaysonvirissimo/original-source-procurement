@@ -11,6 +11,7 @@
     "vitest.config.ts",
     "playwright.config.ts",
     "build",
-    "e2e"
+    "e2e",
+    "src/**/*.node.test.ts"
   ]
 }

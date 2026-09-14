@@ -12,10 +12,25 @@ The build fails if a bundled package has no license file, so a deployment cannot
 
 The distributed packages currently include:
 
-| Package                           | License | Contents                    |
-| --------------------------------- | ------- | --------------------------- |
-| `react`, `react-dom`, `scheduler` | MIT     | User interface runtime      |
-| `@fontsource/ibm-plex-mono`       | OFL-1.1 | IBM Plex Mono font files    |
-| `@fontsource/barlow-condensed`    | OFL-1.1 | Barlow Condensed font files |
+| Package                           | License              | Contents                                                                      |
+| --------------------------------- | -------------------- | ----------------------------------------------------------------------------- |
+| `react`, `react-dom`, `scheduler` | MIT                  | User interface runtime                                                        |
+| `@fontsource/ibm-plex-mono`       | OFL-1.1              | IBM Plex Mono font files                                                      |
+| `@fontsource/barlow-condensed`    | OFL-1.1              | Barlow Condensed font files                                                   |
+| `psyq-wasm`                       | MIT AND GPL-2.0-only | PsyQ 4.4 compiler and preprocessor (WebAssembly) and their TypeScript wrapper |
+| `psyq-asm`                        | MIT                  | ASPSX-compatible assembler and R3000 decoder                                  |
+| `zod`                             | MIT                  | Schema validation                                                             |
 
 The generated `THIRD_PARTY_NOTICES.txt` in each build is authoritative. This table is a summary.
+
+## Compiler artifacts
+
+`psyq-wasm` applies its licenses per file. Its wrapper is MIT. Its compiler and preprocessor artifacts, `cc1psx.wasm`, `cc1psx.js`, `cccp.wasm`, and `cccp.js`, are GPL-2.0-only. The notices entry for `psyq-wasm` therefore includes its `LICENSE` file and both texts from its `LICENSES/` directory.
+
+The site ships those artifacts unmodified in `vendor/psyq-wasm/<version>/`, together with:
+
+- `LICENSE` and `LICENSES/`;
+- `PROVENANCE.md`, `SHA256SUMS`, and `build-info.json`, which identify the exact artifacts and the sources they were built from;
+- the release's corresponding-source archive.
+
+The notices file ends with a section that lists each artifact's SHA-256, the compiler source commit, and the archive's location and hash. `pnpm audit:distribution` fails any built site where these do not hold.

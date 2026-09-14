@@ -1,16 +1,18 @@
-import type { ReactElement } from "react";
+import type { ReactElement, ReactNode } from "react";
 import styles from "./RoutePanel.module.css";
 
 interface RoutePanelProps {
   readonly title: string;
   readonly message: string;
   readonly detail?: string;
+  readonly children?: ReactNode;
 }
 
 export function RoutePanel({
   title,
   message,
   detail,
+  children,
 }: RoutePanelProps): ReactElement {
   return (
     <section className={styles.panel}>
@@ -22,6 +24,7 @@ export function RoutePanel({
         </p>
       )}
       <p className={styles.message}>{message}</p>
+      {children}
       <a className={styles.link} href="#/">
         Return to mission map
       </a>

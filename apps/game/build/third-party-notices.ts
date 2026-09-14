@@ -88,8 +88,36 @@ export async function readPackageNotice(root: string): Promise<PackageNotice> {
     );
   }
 
-  const licenseText = await readFile(join(root, licenseFile), "utf8");
+  const mainText = await readFile(join(root, licenseFile), "utf8");
+  const additionalTexts = await readLicensesDirectory(root);
+  const licenseText =
+    additionalTexts.length === 0
+      ? mainText
+      : [mainText.trimEnd(), ...additionalTexts].join("\n\n");
   return { name, version, license, licenseText };
+}
+
+/**
+ * Reads the per-license texts a package keeps in `LICENSES/`, as packages
+ * with more than one license do. Each text is headed by its file name.
+ */
+async function readLicensesDirectory(root: string): Promise<string[]> {
+  let names: string[];
+  try {
+    names = await readdir(join(root, "LICENSES"));
+  } catch {
+    // The package has no LICENSES directory.
+    return [];
+  }
+
+  return Promise.all(
+    names
+      .sort()
+      .map(
+        async (file) =>
+          `--- LICENSES/${file} ---\n\n${(await readFile(join(root, "LICENSES", file), "utf8")).trim()}`,
+      ),
+  );
 }
 
 export function renderNotices(notices: readonly PackageNotice[]): string {
@@ -151,9 +179,12 @@ export async function collectNotices(
  * build, with its exact version, license, and full license text. It covers
  * bundled JavaScript modules and emitted assets, because CSS imports such as
  * font packages reach the build only as assets. The build fails if a
- * distributed package has no license file.
+ * distributed package has no license file. `appendix`, when given, follows
+ * the package entries.
  */
-export function thirdPartyNotices(): Plugin {
+export function thirdPartyNotices(
+  options: { readonly appendix?: string } = {},
+): Plugin {
   let projectRoot = process.cwd();
 
   return {
@@ -169,10 +200,18 @@ export function thirdPartyNotices(): Plugin {
           : [],
       );
 
+      const notices = await collectNotices([
+        ...this.getModuleIds(),
+        ...assetSources,
+      ]);
+
       this.emitFile({
         type: "asset",
         fileName: NOTICES_FILE_NAME,
-        source: await collectNotices([...this.getModuleIds(), ...assetSources]),
+        source:
+          options.appendix === undefined
+            ? notices
+            : `${notices}\n${options.appendix}`,
       });
     },
   };

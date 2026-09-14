@@ -43,9 +43,11 @@ jobs:
       - name: Smoke test the build under a sub-path
         run: pnpm test:browser --project=chromium
 
-      # Once the site distributes compiler artifacts, a dependency-distribution
-      # audit runs here and blocks the upload unless the built site carries
-      # license notices, exact artifact provenance, and corresponding source.
+      # Blocks the upload unless the built site ships the GPL-2.0-only compiler
+      # artifacts verbatim, with license notices, exact provenance, and their
+      # corresponding source.
+      - name: Audit compiler artifact distribution
+        run: pnpm audit:distribution
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5

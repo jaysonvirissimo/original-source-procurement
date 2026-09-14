@@ -68,6 +68,15 @@ Package sources that `pnpm curriculum:validate` loads run directly on Node.js wi
 - `psyq-wasm` is the compiler. OSP does not implement a C compiler, preprocessor, compiler worker runtime, EUC-JP converter, or compiler timeout layer.
 - `psyq-asm` is the assembler. OSP does not parse, expand, encode, or disassemble assembly. If `psyq-asm` mishandles compiler output, reduce the case to OSP-authored C and report it upstream instead of working around it here.
 - Exactness is decided on assembled words under relocation masks, never on assembly text.
+- Only `apps/game/src/features/compiler` imports `psyq-wasm` or `psyq-asm`. The rest of the game sees `BuildOutcome` values, and ESLint enforces the rule.
+
+### Compiler artifact distribution
+
+`psyq-wasm`'s compiler and preprocessor artifacts (`cc1psx.wasm`, `cc1psx.js`, `cccp.wasm`, `cccp.js`) are GPL-2.0-only. The build ships them, and the worker modules that load them, byte-for-byte under `vendor/psyq-wasm/<version>/`, never through the bundler. Alongside them it ships `psyq-wasm`'s license texts, `PROVENANCE.md`, `SHA256SUMS`, `build-info.json`, and the release's corresponding-source archive. The archive is downloaded once into an ignored cache and verified against a pinned hash.
+
+`pnpm audit:distribution` checks the built site. It fails if the notices are incomplete, if an artifact, record, or the source archive is missing or has the wrong hash, or if any other file holds a copy of an artifact, modified or not. It runs in `pnpm check`, in CI, and before every Pages upload.
+
+To upgrade `psyq-wasm`, update every pinned value in `apps/game/build/psyq-wasm-release.ts` from the new release. The build fails until the installed package, its `SHA256SUMS`, and its `build-info.json` agree with those pins. It also fails if the package no longer creates its worker the way the build expects.
 
 ## Upstream content
 
@@ -109,6 +118,8 @@ Before adding a runtime dependency, answer these questions in the pull request:
 The stack is deliberately fixed. Do not add a state library, CSS framework, UI component framework, second editor, second schema library, second test runner, or any assembler, disassembler, or assembly parser other than `psyq-asm`. Large or competing dependencies need an architecture decision record.
 
 Pin toolchain packages (`psyq-wasm`, `psyq-asm`) to exact versions. Upgrading either one means regenerating synthetic targets and recording any change in emitted words.
+
+pnpm refuses package versions published within its minimum release age. For most packages, pick the newest version outside that window instead of adding a `minimumReleaseAgeExclude` entry. The exception is the pinned versions of `psyq-wasm` and `psyq-asm`, which the project maintainer publishes for this game. Those may be listed in `minimumReleaseAgeExclude`, so a toolchain release can be adopted the day it is published.
 
 ## Architecture decision records
 

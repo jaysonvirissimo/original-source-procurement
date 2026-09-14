@@ -73,9 +73,21 @@ export default defineConfig(
       "apps/game/*.config.ts",
       "apps/game/build/**/*.ts",
       "apps/game/e2e/**/*.ts",
+      "apps/game/src/**/*.node.test.ts",
       "tools/**/*.ts",
     ],
     languageOptions: { globals: globals.node },
+  },
+
+  {
+    files: ["apps/game/src/**/*.{ts,tsx}"],
+    ignores: ["apps/game/src/features/compiler/**"],
+    rules: forbidImports("Game code outside the toolchain service", [
+      "psyq-wasm",
+      "psyq-wasm/*",
+      "psyq-asm",
+      "psyq-asm/*",
+    ]),
   },
 
   {
