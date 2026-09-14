@@ -373,3 +373,62 @@ describe("hints, overlays, and layout", () => {
     );
   });
 });
+
+describe("saved progress and history", () => {
+  it("resumes from saved source and the hints already opened", () => {
+    const state = initialWorkspaceState(exactMission, {
+      source: "int saved;\n",
+      hintMaxStage: 2,
+    });
+
+    expect(state).toMatchObject({
+      source: "int saved;\n",
+      hintStage: 2,
+      completed: false,
+      replacement: undefined,
+    });
+    expect(hintsUsed(state)).toBe(2);
+  });
+
+  it("restores an attempt's source as a new editor revision and stales the result", () => {
+    const built = compileAndResolve(
+      hashed(),
+      matchedResult(exactMission, request(exactMission, 1, SOURCE), false),
+    );
+    const restored = run(
+      built,
+      { type: "overlay-changed", overlay: "history" },
+      { type: "attempt-restored", source: "int a;\n" },
+    );
+
+    expect(restored).toMatchObject({
+      overlay: "history",
+      source: "int a;\n",
+      sourceSha256: undefined,
+      replacement: { revision: 1, source: "int a;\n" },
+    });
+    expect(isStale(restored)).toBe(true);
+    expect(
+      run(restored, { type: "attempt-restored", source: "int a;\n" }),
+    ).toBe(restored);
+    expect(
+      run(restored, { type: "attempt-restored", source: "int b;\n" })
+        .replacement,
+    ).toEqual({ revision: 2, source: "int b;\n" });
+  });
+
+  it("remembers the build that completed the mission", () => {
+    const completed = compileAndResolve(
+      hashed(),
+      matchedResult(exactMission, request(exactMission, 1, SOURCE)),
+    );
+    const rebuilt = compileAndResolve(
+      completed,
+      matchedResult(exactMission, request(exactMission, 2, SOURCE)),
+    );
+
+    expect(hashed().completedBuildId).toBe(0);
+    expect(completed.completedBuildId).toBe(1);
+    expect(rebuilt.completedBuildId).toBe(1);
+  });
+});

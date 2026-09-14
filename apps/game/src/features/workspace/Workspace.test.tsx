@@ -14,10 +14,15 @@ import {
   waitFor,
   within,
 } from "@testing-library/react";
+import type { ReactElement } from "react";
 import { describe, expect, it, vi } from "vitest";
-import { fakeToolchain } from "../../test/fakeToolchain";
+import { deferred, fakeToolchain } from "../../test/fakeToolchain";
+import { memoryProgress } from "../../test/progressStorage";
 import { ToolchainProvider } from "../compiler/ToolchainProvider";
 import type { BuildOutcome, ToolchainService } from "../compiler/types";
+import { saveDataError } from "../persistence/errors";
+import { missionProgress } from "../persistence/persistence.test-helpers";
+import { emptyPlayerState, type PlayerState } from "../persistence/schema";
 import type { UpstreamService } from "../upstream/types";
 import { offlineUpstream, UpstreamContext } from "../upstream/upstreamContext";
 import {
@@ -47,24 +52,48 @@ interface RenderOptions {
   readonly service?: ToolchainService;
   readonly createToolchain?: () => Promise<ToolchainService>;
   readonly upstream?: UpstreamService;
+  readonly player?: PlayerState;
 }
 
-function renderWorkspace(mission: Mission, options: RenderOptions = {}) {
+/** Renders the workspace inside memory-backed progress, once it has loaded. */
+async function renderWorkspace(mission: Mission, options: RenderOptions = {}) {
   const service = options.service ?? fakeToolchain();
-  const workspace = <Workspace mission={mission} />;
-  return render(
-    <ToolchainProvider
-      createToolchain={
-        options.createToolchain ?? (() => Promise.resolve(service))
-      }
-    >
-      {options.upstream === undefined ? (
-        workspace
-      ) : (
-        <UpstreamContext value={options.upstream}>{workspace}</UpstreamContext>
-      )}
-    </ToolchainProvider>,
+  const progress = memoryProgress(options.player);
+  const tree = (content: ReactElement) =>
+    progress.wrap(
+      <ToolchainProvider
+        createToolchain={
+          options.createToolchain ?? (() => Promise.resolve(service))
+        }
+      >
+        {options.upstream === undefined ? (
+          content
+        ) : (
+          <UpstreamContext value={options.upstream}>{content}</UpstreamContext>
+        )}
+      </ToolchainProvider>,
+    );
+  const workspace = (key: string) => (
+    <Workspace
+      key={key}
+      mission={mission}
+      saved={progress.backing.player.missions[mission.id]}
+    />
   );
+  const view = render(tree(workspace("first")));
+  await screen.findByRole("button", { name: "Enter" });
+  return {
+    ...view,
+    progress,
+    /** Removes the workspace and keeps progress mounted, as leaving a mission does. */
+    close: () => {
+      view.rerender(tree(<p>Closed</p>));
+    },
+    reopen: async () => {
+      view.rerender(tree(workspace("again")));
+      await screen.findByRole("button", { name: "Enter" });
+    },
+  };
 }
 
 function enter(): void {
@@ -116,7 +145,7 @@ function replaceSource(source: string): void {
 describe("Workspace", () => {
   it("opens on the briefing, then shows the target before the first build", async () => {
     const service = fakeToolchain();
-    renderWorkspace(addImmediate, { service });
+    await renderWorkspace(addImmediate, { service });
 
     expect(
       screen.getByRole("heading", { level: 1, name: "ADD IMMEDIATE" }),
@@ -136,7 +165,7 @@ describe("Workspace", () => {
 
   it("classifies a mismatch, marks it stale after an edit, and completes on an exact match", async () => {
     const service = fakeToolchain(mismatch003);
-    renderWorkspace(addImmediate, { service });
+    await renderWorkspace(addImmediate, { service });
     enter();
 
     await compileWhenReady();
@@ -185,7 +214,7 @@ describe("Workspace", () => {
           finish = resolve;
         }),
     );
-    renderWorkspace(addImmediate, { service });
+    await renderWorkspace(addImmediate, { service });
     enter();
 
     await compileWhenReady();
@@ -216,7 +245,7 @@ describe("Workspace", () => {
     const service = fakeToolchain(
       successWith(objectWith("add_five", inlineWords(addImmediate))),
     );
-    renderWorkspace(addImmediate, { service });
+    await renderWorkspace(addImmediate, { service });
     enter();
 
     await compileWhenReady();
@@ -257,7 +286,7 @@ describe("Workspace", () => {
         },
       ],
     });
-    renderWorkspace(addImmediate, { service });
+    await renderWorkspace(addImmediate, { service });
     enter();
 
     await compileWhenReady();
@@ -279,7 +308,7 @@ describe("Workspace", () => {
     const service = fakeToolchain(
       successWith(objectWith("return_path", [0, 0])),
     );
-    renderWorkspace(returnPath, { service });
+    await renderWorkspace(returnPath, { service });
     enter();
     const acknowledge = () => button("Acknowledge evidence");
 
@@ -298,9 +327,9 @@ describe("Workspace", () => {
     expect(screen.getByText("NO")).toBeTruthy();
   });
 
-  it("completes a prediction mission after a wrong prediction and a matched build", async () => {
+  it("completes a prediction mission after a wrong prediction and a matched build, recording the prediction", async () => {
     const service = fakeToolchain(successWith(objectWith("argument_zero", [])));
-    renderWorkspace(argumentZero, { service });
+    const { progress } = await renderWorkspace(argumentZero, { service });
     enter();
 
     expect(button("Record prediction")).toHaveProperty("disabled", true);
@@ -321,6 +350,14 @@ describe("Workspace", () => {
     expect(
       await screen.findByRole("heading", { name: "Mission complete" }),
     ).toBeTruthy();
+    await waitFor(() => {
+      expect(progress.backing.player.missions["002"]?.predictions).toEqual([
+        expect.objectContaining({
+          choice: argumentZero.prediction?.choices.indexOf("$v0"),
+          correct: false,
+        }),
+      ]);
+    });
 
     fireEvent.click(button("Return to workspace"));
     expect(
@@ -328,8 +365,8 @@ describe("Workspace", () => {
     ).toContain("Answer: $a0.");
   });
 
-  it("reveals hints in order, highlights the target, and shows the solution read-only", () => {
-    renderWorkspace(addImmediate);
+  it("reveals hints in order, highlights the target, and shows the solution read-only", async () => {
+    await renderWorkspace(addImmediate);
     enter();
 
     fireEvent.click(button("Hint"));
@@ -378,8 +415,8 @@ describe("Workspace", () => {
     expect(screen.queryByRole("region", { name: "Hints" })).toBeNull();
   });
 
-  it("opens the manual over the workspace without losing the source", () => {
-    renderWorkspace(addImmediate);
+  it("opens the manual over the workspace without losing the source", async () => {
+    await renderWorkspace(addImmediate);
     enter();
     const edited = "int add_immediate(int a) { return a + 1; }\n";
     replaceSource(edited);
@@ -406,8 +443,8 @@ describe("Workspace", () => {
     expect(editorView().state.doc.toString()).toBe(edited);
   });
 
-  it("resizes the panels from the keyboard and by dragging", () => {
-    renderWorkspace(addImmediate);
+  it("resizes the panels from the keyboard and by dragging", async () => {
+    await renderWorkspace(addImmediate);
     enter();
     const handle = screen.getByRole("separator", {
       name: "Resize the editor and assembly panels",
@@ -448,7 +485,7 @@ describe("Workspace", () => {
 
   it("compiles with Mod-Enter from the editor or any workspace control", async () => {
     const service = fakeToolchain(mismatch003);
-    renderWorkspace(addImmediate, { service });
+    await renderWorkspace(addImmediate, { service });
     enter();
     const hint = button("Hint");
 
@@ -492,7 +529,7 @@ describe("Workspace", () => {
           }
         }),
     );
-    const { unmount } = renderWorkspace(addImmediate, { service });
+    const { unmount } = await renderWorkspace(addImmediate, { service });
     enter();
 
     await compileWhenReady();
@@ -538,7 +575,7 @@ describe("Workspace", () => {
           source: "cache",
         });
       const service = fakeToolchain(mismatch003);
-      renderWorkspace(withRemoteHeader, {
+      await renderWorkspace(withRemoteHeader, {
         service,
         upstream: { ...offlineUpstream, loadC },
       });
@@ -566,7 +603,7 @@ describe("Workspace", () => {
     const loadC = vi.fn<UpstreamService["loadC"]>(
       () => new Promise(() => undefined),
     );
-    renderWorkspace(withRemoteHeader, {
+    await renderWorkspace(withRemoteHeader, {
       upstream: { ...offlineUpstream, loadC },
     });
     enter();
@@ -575,8 +612,8 @@ describe("Workspace", () => {
     expect(compileButton()).toHaveProperty("disabled", true);
   });
 
-  it("explains that a mission with a remote target cannot load in this build", () => {
-    renderWorkspace(realMission());
+  it("explains that a mission with a remote target cannot load in this build", async () => {
+    await renderWorkspace(realMission());
     enter();
 
     expect(screen.getByRole("alert").textContent).toContain(
@@ -591,7 +628,7 @@ describe("Workspace", () => {
       .fn<() => Promise<ToolchainService>>()
       .mockRejectedValueOnce(new Error("no WebAssembly"))
       .mockResolvedValue(service);
-    renderWorkspace(addImmediate, { createToolchain });
+    await renderWorkspace(addImmediate, { createToolchain });
     enter();
 
     const alert = await screen.findByRole("alert");
@@ -603,5 +640,262 @@ describe("Workspace", () => {
     expect(
       await screen.findByRole("heading", { name: "Mission complete" }),
     ).toBeTruthy();
+  });
+});
+
+describe("Workspace progress", () => {
+  const edited = (addend: number) =>
+    `int add_immediate(int a) { return a + ${String(addend)}; }\n`;
+
+  it("records the mission as started only once the player enters", async () => {
+    const { progress } = await renderWorkspace(addImmediate);
+    expect(progress.backing.player.missions["003"]).toBeUndefined();
+
+    enter();
+
+    await waitFor(() => {
+      expect(progress.backing.player.missions["003"]?.source).toBe(
+        addImmediate.starterSource,
+      );
+    });
+  });
+
+  it("resumes from saved source and the hints already opened", async () => {
+    const player = {
+      ...emptyPlayerState(),
+      missions: {
+        "003": missionProgress({ source: edited(9), hintMaxStage: 2 }),
+      },
+    };
+    await renderWorkspace(addImmediate, { player });
+    enter();
+
+    expect(editorView().state.doc.toString()).toBe(edited(9));
+    fireEvent.click(button("Hint"));
+    expect(
+      within(screen.getByRole("region", { name: "Hints" })).getAllByRole(
+        "listitem",
+      ),
+    ).toHaveLength(2);
+  });
+
+  it("saves edited source after a pause, and at once when the workspace closes", async () => {
+    const { progress, close } = await renderWorkspace(addImmediate);
+    enter();
+    const saved = () => progress.backing.player.missions["003"]?.source;
+
+    replaceSource(edited(1));
+    await waitFor(
+      () => {
+        expect(saved()).toBe(edited(1));
+      },
+      { timeout: 3000 },
+    );
+
+    replaceSource(edited(2));
+    close();
+    // Well inside the save delay, so only the flush on closing can explain it.
+    await waitFor(
+      () => {
+        expect(saved()).toBe(edited(2));
+      },
+      { timeout: 400 },
+    );
+  });
+
+  it("shows whether progress is saved", async () => {
+    const { progress } = await renderWorkspace(addImmediate);
+    enter();
+    expect(await screen.findByText("SAVED")).toBeTruthy();
+
+    const pending = deferred<undefined>();
+    vi.spyOn(progress.storage.persistence, "save")
+      .mockImplementationOnce(() => pending.promise)
+      .mockRejectedValueOnce(saveDataError("quota"));
+    const revealHint = () => {
+      fireEvent.click(button("Hint"));
+      fireEvent.click(
+        within(screen.getByRole("region", { name: "Hints" })).getByRole(
+          "button",
+          { name: "Reveal next hint" },
+        ),
+      );
+      fireEvent.click(button("Hint"));
+    };
+
+    revealHint();
+    expect(await screen.findByText("SAVING")).toBeTruthy();
+    await act(async () => {
+      pending.resolve(undefined);
+      await pending.promise;
+    });
+    expect(await screen.findByText("SAVED")).toBeTruthy();
+
+    revealHint();
+    expect(await screen.findByText("NOT SAVED")).toBeTruthy();
+  });
+
+  it("records an attempt for each comparison, and none for a failed build", async () => {
+    const service = fakeToolchain(mismatch003);
+    const { progress } = await renderWorkspace(addImmediate, { service });
+    enter();
+    const attempts = () => progress.backing.player.missions["003"]?.attempts;
+
+    await compileWhenReady();
+    await waitFor(() => {
+      expect(attempts()).toHaveLength(1);
+    });
+    expect(attempts()?.[0]).toMatchObject({
+      missionId: "003",
+      source: addImmediate.starterSource,
+      exact: false,
+      compilerBuildId: "compiler-build",
+      preprocessorBuildId: "preprocessor-build",
+      psyqAsmVersion: "0.2.0",
+      aspsxVersion: "2.77",
+      pinned: false,
+    });
+
+    service.build.mockResolvedValue({
+      kind: "compiler-failure",
+      diagnostics: [],
+    });
+    await compileWhenReady();
+    await waitFor(() => {
+      expect(statusText()).toBe("BUILD FAILED");
+    });
+    expect(attempts()).toHaveLength(1);
+  });
+
+  it("records completion evidence once per visit, and again on a replay", async () => {
+    const service = fakeToolchain(exact003);
+    const { progress, close, reopen } = await renderWorkspace(addImmediate, {
+      service,
+    });
+    const [taught] = addImmediate.teaches;
+    if (taught === undefined) {
+      throw new Error("Mission 003 teaches a skill.");
+    }
+    const mission = () => progress.backing.player.missions["003"];
+    const evidence = () => progress.backing.player.skills[taught]?.evidence;
+    enter();
+
+    await compileWhenReady();
+    await screen.findByRole("heading", { name: "Mission complete" });
+    await waitFor(() => {
+      expect(mission()?.completion?.count).toBe(1);
+    });
+    expect(evidence()).toEqual([
+      expect.objectContaining({
+        missionId: "003",
+        kind: "introduced",
+        hintMaxStage: 0,
+        solutionRevealed: false,
+      }),
+    ]);
+
+    fireEvent.click(button("Return to workspace"));
+    fireEvent.click(button("Hint"));
+    fireEvent.click(
+      within(screen.getByRole("region", { name: "Hints" })).getByRole(
+        "button",
+        { name: "Reveal next hint" },
+      ),
+    );
+    await compileWhenReady();
+    await waitFor(() => {
+      expect(mission()?.attempts).toHaveLength(2);
+    });
+    expect(mission()?.hintMaxStage).toBe(1);
+    expect(mission()?.completion?.count).toBe(1);
+    expect(evidence()).toHaveLength(1);
+
+    close();
+    await reopen();
+    enter();
+    await compileWhenReady();
+    await screen.findByRole("heading", { name: "Mission complete" });
+    await waitFor(() => {
+      expect(mission()?.completion?.count).toBe(2);
+    });
+    expect(evidence()).toHaveLength(2);
+    expect(evidence()?.[1]).toMatchObject({ hintMaxStage: 1 });
+  });
+
+  it("keeps attempts in history to pin, restore, and clear", async () => {
+    const service = fakeToolchain(mismatch003);
+    const { progress } = await renderWorkspace(addImmediate, { service });
+    enter();
+    const history = () => screen.getByRole("region", { name: "History" });
+    const rows = () => within(history()).getAllByRole("listitem");
+    const row = (index: number) => {
+      const found = rows()[index];
+      if (found === undefined) {
+        throw new Error(`History has no row ${String(index)}.`);
+      }
+      return found;
+    };
+    const attempts = () =>
+      progress.backing.player.missions["003"]?.attempts ?? [];
+
+    // With no saved progress for the mission, history is empty.
+    act(() => {
+      progress.dispatch({ type: "state-replaced", state: emptyPlayerState() });
+    });
+    fireEvent.click(button("History"));
+    expect(history().textContent).toContain("Each compile");
+    fireEvent.click(within(history()).getByRole("button", { name: "Close" }));
+    expect(screen.queryByRole("region", { name: "History" })).toBeNull();
+
+    await compileWhenReady();
+    await waitFor(() => {
+      expect(attempts()).toHaveLength(1);
+    });
+    replaceSource(edited(4));
+    await compileWhenReady();
+    await waitFor(() => {
+      expect(attempts()).toHaveLength(2);
+    });
+
+    fireEvent.click(button("History"));
+    expect(rows()).toHaveLength(2);
+    fireEvent.click(within(row(1)).getByRole("button", { name: "Pin" }));
+    await waitFor(() => {
+      expect(
+        within(row(1))
+          .getByRole("button", { name: "Pin" })
+          .getAttribute("aria-pressed"),
+      ).toBe("true");
+    });
+    expect(
+      attempts().find((a) => a.source === addImmediate.starterSource)?.pinned,
+    ).toBe(true);
+
+    fireEvent.click(within(row(1)).getByRole("button", { name: "Restore" }));
+    expect(screen.queryByRole("region", { name: "History" })).toBeNull();
+    expect(editorView().state.doc.toString()).toBe(addImmediate.starterSource);
+    expect(statusText()).toBe("NOT AN EXACT MATCH · STALE");
+
+    fireEvent.click(button("History"));
+    fireEvent.click(within(row(1)).getByRole("button", { name: "Restore" }));
+    expect(editorView().state.doc.toString()).toBe(addImmediate.starterSource);
+    fireEvent.click(button("History"));
+    fireEvent.click(within(row(0)).getByRole("button", { name: "Restore" }));
+    expect(editorView().state.doc.toString()).toBe(edited(4));
+    await waitFor(() => {
+      expect(statusText()).toBe("NOT AN EXACT MATCH");
+    });
+
+    fireEvent.click(button("History"));
+    fireEvent.click(
+      within(history()).getByRole("button", { name: "Clear history" }),
+    );
+    fireEvent.click(within(history()).getByRole("button", { name: "Clear" }));
+    await waitFor(() => {
+      expect(rows()).toHaveLength(1);
+    });
+    expect(attempts()).toHaveLength(1);
+    fireEvent.keyDown(history(), { key: "Escape" });
+    expect(screen.queryByRole("region", { name: "History" })).toBeNull();
   });
 });

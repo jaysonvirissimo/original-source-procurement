@@ -89,10 +89,14 @@
   align-items: center;
 }
 
-.attempt {
-  margin-left: auto;
+.attempt,
+.saved {
   font-family: var(--osp-font-code);
   font-size: var(--osp-font-size-label);
   letter-spacing: 0.12em;
   color: var(--osp-text-dim);
+}
+
+.attempt {
+  margin-left: auto;
 }

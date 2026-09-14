@@ -1,0 +1,121 @@
+import { useId, useState, type ReactElement } from "react";
+import controls from "../../styles/controls.module.css";
+import type { Attempt } from "../persistence/schema";
+import history from "./HistoryPanel.module.css";
+import styles from "./OverlayPanel.module.css";
+
+interface HistoryPanelProps {
+  readonly attempts: readonly Attempt[];
+  readonly onPin: (attemptId: string, pinned: boolean) => void;
+  readonly onRestore: (attempt: Attempt) => void;
+  /** Removes every unpinned attempt. */
+  readonly onClear: () => void;
+  readonly onClose: () => void;
+}
+
+/** The mission's saved attempts, newest first, over the workspace. */
+export function HistoryPanel({
+  attempts,
+  onPin,
+  onRestore,
+  onClear,
+  onClose,
+}: HistoryPanelProps): ReactElement {
+  const titleId = useId();
+  const [confirming, setConfirming] = useState(false);
+  const newestFirst = attempts.toSorted((a, b) =>
+    b.createdAt < a.createdAt ? -1 : b.createdAt > a.createdAt ? 1 : 0,
+  );
+  const clearable = attempts.some((attempt) => !attempt.pinned);
+
+  return (
+    <section className={styles.overlay} aria-labelledby={titleId}>
+      <header className={styles.header}>
+        <h2 className={controls.label} id={titleId}>
+          History
+        </h2>
+        <button className={controls.button} type="button" onClick={onClose}>
+          Close
+        </button>
+      </header>
+      {newestFirst.length === 0 ? (
+        <p className={styles.dim}>
+          Each compile that produces a comparison is kept here, with its source.
+          The latest 50 are kept; pin an attempt to keep it longer.
+        </p>
+      ) : (
+        <ol className={styles.list} aria-label="Attempts">
+          {newestFirst.map((attempt) => (
+            <li className={styles.item} key={attempt.id}>
+              <p className={controls.label}>
+                {new Date(attempt.createdAt).toLocaleString()}
+              </p>
+              <p className={attempt.exact ? history.exact : undefined}>
+                {attempt.exact
+                  ? "EXACT MATCH"
+                  : `${String(attempt.mismatchSummary.equalWords)} of ${String(attempt.mismatchSummary.targetWords)} words match`}
+              </p>
+              <div className={history.actions}>
+                <button
+                  className={controls.button}
+                  type="button"
+                  aria-pressed={attempt.pinned}
+                  onClick={() => {
+                    onPin(attempt.id, !attempt.pinned);
+                  }}
+                >
+                  Pin
+                </button>
+                <button
+                  className={controls.button}
+                  type="button"
+                  onClick={() => {
+                    onRestore(attempt);
+                  }}
+                >
+                  Restore
+                </button>
+              </div>
+            </li>
+          ))}
+        </ol>
+      )}
+      {!clearable ? null : confirming ? (
+        <div className={history.actions}>
+          <p className={styles.dim}>
+            Clear unpinned attempts? Pinned attempts stay.
+          </p>
+          <button
+            className={controls.button}
+            type="button"
+            onClick={() => {
+              setConfirming(false);
+              onClear();
+            }}
+          >
+            Clear
+          </button>
+          <button
+            className={controls.button}
+            type="button"
+            onClick={() => {
+              setConfirming(false);
+            }}
+          >
+            Keep history
+          </button>
+        </div>
+      ) : (
+        <button
+          className={controls.button}
+          type="button"
+          onClick={() => {
+            setConfirming(true);
+          }}
+        >
+          Clear history
+        </button>
+      )}
+    </section>
+  );
+}

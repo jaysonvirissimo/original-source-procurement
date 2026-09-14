@@ -18,6 +18,7 @@ Changing a locked decision requires a new record. Accepted records are never rew
 | [0008](0008-compilation-input.md)               | Compilation input               | Accepted |
 | [0009](0009-mission-completion.md)              | Mission completion              | Accepted |
 | [0010](0010-compiler-artifact-distribution.md)  | Compiler artifact distribution  | Accepted |
+| [0011](0011-save-data.md)                       | Save data                       | Accepted |
 
 ## Template
 

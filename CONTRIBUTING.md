@@ -47,6 +47,8 @@ Committed text must stand on its own. State the rule, behavior, or reason direct
 
 ESLint enforces the import rules. Changing a boundary, or adding a package, needs an architecture decision record.
 
+In `apps/game`, only `src/features/persistence` uses `indexedDB`, `localStorage`, or `sessionStorage`. Everything else reaches saved progress through the persistence contexts, and ESLint enforces this too.
+
 Mission and skill behavior comes from validated curriculum data, never from rules hard-coded in UI components.
 
 ## Curriculum data
