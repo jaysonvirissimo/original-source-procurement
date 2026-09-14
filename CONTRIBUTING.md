@@ -70,6 +70,14 @@ Package sources that `pnpm curriculum:validate` loads run directly on Node.js wi
 - Exactness is decided on assembled words under relocation masks, never on assembly text.
 - Only `apps/game/src/features/compiler` imports `psyq-wasm` or `psyq-asm`. The rest of the game sees `BuildOutcome` values, and ESLint enforces the rule.
 
+### Matching
+
+`packages/matching-core` compares one assembled function with its target and explains the differences. It takes a `psyq-asm` object, a symbol, and target words, and never assembly text.
+
+- A **linked** target is real game code. Its relocated fields hold final addresses, so only bits outside the generated relocation masks decide exactness.
+- An **unlinked** target is synthetic output of the same toolchain. Its relocations are also compared by offset, kind, and target, including the addend.
+- Alignment and mismatch classification run only after exactness is decided, and only to teach. Their costs and rules are locked by tests; change a test only together with the rule it covers.
+
 ### Compiler artifact distribution
 
 `psyq-wasm`'s compiler and preprocessor artifacts (`cc1psx.wasm`, `cc1psx.js`, `cccp.wasm`, `cccp.js`) are GPL-2.0-only. The build ships them, and the worker modules that load them, byte-for-byte under `vendor/psyq-wasm/<version>/`, never through the bundler. Alongside them it ships `psyq-wasm`'s license texts, `PROVENANCE.md`, `SHA256SUMS`, `build-info.json`, and the release's corresponding-source archive. The archive is downloaded once into an ignored cache and verified against a pinned hash.
