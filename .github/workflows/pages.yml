@@ -49,6 +49,11 @@ jobs:
       - name: Audit compiler artifact distribution
         run: pnpm audit:distribution
 
+      # Blocks the upload if the built site holds a referenced upstream file,
+      # a target line, or a run of a referenced target's words.
+      - name: Audit the built site for upstream content
+        run: pnpm audit:upstream
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5
         with:

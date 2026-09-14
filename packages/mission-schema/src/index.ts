@@ -21,6 +21,15 @@ export {
   type DifficultyProfile,
 } from "./difficulty.ts";
 export {
+  FEASIBILITY_POINTER_SCHEMA_VERSION,
+  directoryOf,
+  FeasibilityPointerSchema,
+  headerKeys,
+  SDK_HEADER_PREFIX,
+  SDK_INCLUDE_PATH,
+  type FeasibilityPointer,
+} from "./feasibility.ts";
+export {
   HintSchema,
   InstructionRangeSchema,
   type Hint,

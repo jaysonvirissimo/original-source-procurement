@@ -1,4 +1,5 @@
 import {
+  FeasibilityPointerSchema,
   ManualEntrySchema,
   MissionSchema,
   SkillSchema,
@@ -35,6 +36,8 @@ export interface CurriculumData {
   readonly manualEntries: readonly unknown[];
   readonly missions: readonly unknown[];
   readonly defaultPath: readonly string[];
+  /** Pointers to real solved functions checked from local checkouts. */
+  readonly feasibilityPointers?: readonly unknown[];
 }
 
 type PathSegment = string | number | symbol;
@@ -94,6 +97,7 @@ export async function validateCurriculum(
   checkMissionSkills(missions, skills, report);
   checkDefaultPath(data.defaultPath, missions, skills, report);
   await checkHashes(missions, report);
+  checkFeasibilityPointers(data.feasibilityPointers ?? [], report);
 
   return issues;
 }
@@ -286,4 +290,23 @@ async function checkHashes(
       );
     }
   }
+}
+
+function checkFeasibilityPointers(
+  pointers: readonly unknown[],
+  report: Report,
+): void {
+  pointers.forEach((value, index) => {
+    const result = FeasibilityPointerSchema.safeParse(value);
+    if (result.success) {
+      return;
+    }
+    for (const issue of result.error.issues) {
+      report(
+        "schema",
+        ["feasibilityPointers", index, ...issue.path],
+        issue.message,
+      );
+    }
+  });
 }

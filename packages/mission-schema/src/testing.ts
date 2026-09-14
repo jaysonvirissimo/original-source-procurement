@@ -3,6 +3,7 @@ import {
   PSYQ_WASM_DEFAULT_CPP_FLAGS,
   UPSTREAM_DEFAULT_BUILD,
 } from "./compiler.ts";
+import type { FeasibilityPointer } from "./feasibility.ts";
 import type { Mission } from "./mission.ts";
 import type { InlineTarget, RemoteTarget } from "./target.ts";
 
@@ -55,6 +56,51 @@ export function remoteTarget(): RemoteTarget {
     path: "asm/sample/sample_function.s",
     wordCount: 4,
     wordsSha256: PLACEHOLDER_HASH,
+  };
+}
+
+export function feasibilityPointer(): FeasibilityPointer {
+  return {
+    schemaVersion: 1,
+    symbol: "sample_function",
+    source: {
+      kind: "mgs-reversing",
+      repository: "FoxdieTeam/mgs_reversing",
+      build: "default",
+      overlay: "sample",
+      symbol: "sample_function",
+      sourcePath: "source/sample/sample.c",
+    },
+    target: remoteTarget(),
+    solution: {
+      repository: "FoxdieTeam/mgs_reversing",
+      commit: PLACEHOLDER_COMMIT,
+      path: "source/sample/sample.c",
+      sha256: PLACEHOLDER_HASH,
+    },
+    compiler: {
+      gpSize: 0,
+      aspsxVersion: "2.77",
+      rawFlags: [...UPSTREAM_DEFAULT_BUILD.rawFlags],
+      cppFlags: [...UPSTREAM_DEFAULT_BUILD.cppFlags],
+      encoding: "eucjp",
+      filename: "sample.c",
+      headers: {},
+      remoteHeaders: {
+        "psyq/include/sample.h": {
+          repository: "FoxdieTeam/psyq_sdk",
+          commit: PLACEHOLDER_COMMIT,
+          path: "psyq_4.4/include/sample.h",
+          sha256: PLACEHOLDER_HASH,
+        },
+        "source/libsample/sample.h": {
+          repository: "FoxdieTeam/mgs_reversing",
+          commit: PLACEHOLDER_COMMIT,
+          path: "source/libsample/sample.h",
+          sha256: PLACEHOLDER_HASH,
+        },
+      },
+    },
   };
 }
 

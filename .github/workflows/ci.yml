@@ -54,6 +54,9 @@ jobs:
       - name: Audit compiler artifact distribution
         run: pnpm audit:distribution
 
+      - name: Audit tracked files and the built site for upstream content
+        run: pnpm audit:upstream
+
       - name: Install Playwright browsers
         run: pnpm --filter @osp/game exec playwright install --with-deps chromium firefox webkit
 

@@ -57,7 +57,8 @@ Mission and skill behavior comes from validated curriculum data, never from rule
 - a mission that teaches more than one skill without a `teachesOverride` reason, or a synthesis mission that teaches any skill;
 - a mission on the default path that needs a skill no earlier mission on the path teaches;
 - a real mission with inline target words, authored headers, a solution, or compiler input that differs from upstream's default build;
-- a synthetic mission whose `solution` or words do not match their recorded hashes.
+- a synthetic mission whose `solution` or words do not match their recorded hashes;
+- a real-function pointer whose provenance, solution reference, compiler input, or header keys do not follow upstream's default build.
 
 Prerequisites are the source of truth for progression. The default path is a recommended order that must stay consistent with them.
 
@@ -111,6 +112,38 @@ Transformed content still counts. That covers decoded word arrays, disassembly l
 - Public availability, permissive CORS headers, CDN caching, and runtime fetching do not authorize copying upstream content into a commit. Runtime loading is a content-handling policy, not legal clearance.
 
 Hints, manual entries, and briefings are original teaching text. Write them from the target instructions and the curriculum, never by adapting upstream source.
+
+### Checking real functions from local checkouts
+
+`packages/curriculum/src/real/feasibility.ts` points to solved upstream functions with commits, paths, and hashes only. `apps/game/src/features/compiler/realFunction.node.test.ts` checks each one. It reads every pointed file at its pinned commit from local clones, verifies the file against its hash, and resolves the recorded headers. It then builds with the pinned toolchain and requires an exact match. It also checks that:
+
+- changing one token of the solution breaks the match;
+- every recorded header is needed;
+- PsyQ SDK headers stored with CRLF line endings load with LF line endings.
+
+```bash
+OSP_MGS_REVERSING_DIR=/path/to/mgs_reversing \
+OSP_PSYQ_SDK_DIR=/path/to/psyq_sdk \
+pnpm vitest run apps/game/src/features/compiler/realFunction.node.test.ts
+```
+
+Both clones need full git history. Keep them outside this repository. Without both variables the suite is skipped.
+
+The compiled file sits at the virtual root and stands for its upstream directory. Header keys follow from that:
+
+- a header in the same directory is keyed by its path from that directory, such as `libgv.h`;
+- other `mgs_reversing` headers are keyed by their repository path;
+- SDK headers are keyed under `psyq/include/`.
+
+### Upstream audit
+
+`pnpm audit:upstream` checks every tracked file and the built site. It fails on:
+
+- an upstream target file, or a `dw 0x` target line;
+- a file whose SHA-256 matches a referenced upstream file, as-is or after converting its line endings to LF or CRLF;
+- a complete run of a referenced target's words, as numbers in text or as aligned words in binary content.
+
+It runs in `pnpm check`, in CI, and before every Pages upload. It cannot detect excerpts or rewritten code; reviewers check those against the pull request's attestation.
 
 ## Dependencies
 
