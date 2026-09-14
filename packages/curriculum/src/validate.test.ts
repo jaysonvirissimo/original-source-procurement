@@ -1,5 +1,9 @@
 import type { Mission, Skill } from "@osp/mission-schema";
-import { realMission, syntheticMission } from "@osp/mission-schema/testing";
+import {
+  feasibilityPointer,
+  realMission,
+  syntheticMission,
+} from "@osp/mission-schema/testing";
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import { sha256Hex, wordsSha256 } from "./hash.ts";
@@ -59,6 +63,22 @@ describe("formatPath", () => {
 describe("validateCurriculum", () => {
   it("accepts the shipped curriculum", async () => {
     await expect(validateCurriculum(curriculum)).resolves.toEqual([]);
+  });
+
+  it("reports feasibility pointers that fail their schema", async () => {
+    const pointer = feasibilityPointer();
+    pointer.symbol = "other_function";
+    await expect(
+      validateCurriculum(
+        data({ feasibilityPointers: [feasibilityPointer(), pointer] }),
+      ),
+    ).resolves.toEqual([
+      {
+        code: "schema",
+        path: "feasibilityPointers[1].symbol",
+        message: "A pointer's symbol must match its source symbol.",
+      },
+    ]);
   });
 
   it("accepts a consistent curriculum with a default path", async () => {

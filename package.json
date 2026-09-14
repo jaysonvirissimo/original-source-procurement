@@ -16,8 +16,9 @@
     "test:browser": "pnpm --filter @osp/game test:browser",
     "build": "pnpm --filter @osp/game build",
     "curriculum:validate": "node packages/curriculum/src/bin/validate.ts",
+    "audit:upstream": "node apps/game/build/bin/audit-upstream.ts apps/game/dist",
     "audit:distribution": "node apps/game/build/bin/audit-distribution.ts apps/game/dist",
-    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:coverage && pnpm curriculum:validate && pnpm build && pnpm audit:distribution"
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:coverage && pnpm curriculum:validate && pnpm audit:upstream && pnpm build && pnpm audit:distribution"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

@@ -1,9 +1,5 @@
 import { z } from "zod";
-import {
-  CompilerSettingsSchema,
-  sameList,
-  UPSTREAM_DEFAULT_BUILD,
-} from "./compiler.ts";
+import { checkUpstreamBuild, CompilerSettingsSchema } from "./compiler.ts";
 import { CompletionRuleSchema } from "./completion.ts";
 import { DifficultyProfileSchema } from "./difficulty.ts";
 import { HintSchema } from "./hint.ts";
@@ -136,36 +132,7 @@ function checkSourceAndTarget(mission: MissionShape, report: Report): void {
   if (mission.solution !== undefined) {
     report(["solution"], "Only synthetic missions carry a solution.");
   }
-  if (Object.keys(mission.compiler.headers).length > 0) {
-    report(
-      ["compiler", "headers"],
-      "Real missions load all context remotely and carry no authored headers.",
-    );
-  }
-  if (mission.compiler.aspsxVersion !== UPSTREAM_DEFAULT_BUILD.aspsxVersion) {
-    report(
-      ["compiler", "aspsxVersion"],
-      'Real missions use aspsxVersion "2.77", the assembler of upstream\'s default build.',
-    );
-  }
-  if (!sameList(mission.compiler.cppFlags, UPSTREAM_DEFAULT_BUILD.cppFlags)) {
-    report(
-      ["compiler", "cppFlags"],
-      "Real missions use exactly the preprocessor flags of upstream's default build.",
-    );
-  }
-  if (!sameList(mission.compiler.rawFlags, UPSTREAM_DEFAULT_BUILD.rawFlags)) {
-    report(
-      ["compiler", "rawFlags"],
-      "Real missions use exactly the compiler flags of upstream's default build.",
-    );
-  }
-  if (mission.compiler.encoding !== UPSTREAM_DEFAULT_BUILD.encoding) {
-    report(
-      ["compiler", "encoding"],
-      'Real missions use encoding "eucjp", like upstream\'s default build.',
-    );
-  }
+  checkUpstreamBuild(mission.compiler, "Real missions", report);
 }
 
 function checkTaughtSkills(mission: MissionShape, report: Report): void {

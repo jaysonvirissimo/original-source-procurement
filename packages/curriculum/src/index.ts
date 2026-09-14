@@ -1,10 +1,12 @@
 import type { CurriculumData } from "./validate.ts";
 import { manualEntries } from "./manual.ts";
 import { defaultPath, missions } from "./missions.ts";
+import { feasibilityPointers } from "./real/feasibility.ts";
 import { skills } from "./skills.ts";
 
 export { manualEntries } from "./manual.ts";
 export { defaultPath, missions } from "./missions.ts";
+export { feasibilityPointers } from "./real/feasibility.ts";
 export { skills } from "./skills.ts";
 export { findCycle } from "./graph.ts";
 export { sha256Hex, wordsSha256 } from "./hash.ts";
@@ -22,4 +24,5 @@ export const curriculum: CurriculumData = {
   manualEntries,
   missions,
   defaultPath,
+  feasibilityPointers,
 };

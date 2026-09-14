@@ -17,8 +17,9 @@ export type ResolveOutcome =
   | { readonly kind: "cancelled" };
 
 export interface MissionContextResolver {
+  /** Only the mission's compiler settings are read. */
   resolve(
-    mission: Mission,
+    mission: Pick<Mission, "compiler">,
     source: string,
     signal?: AbortSignal,
   ): Promise<ResolveOutcome>;

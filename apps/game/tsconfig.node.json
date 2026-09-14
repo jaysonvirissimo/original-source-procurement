@@ -12,6 +12,7 @@
     "playwright.config.ts",
     "build",
     "e2e",
-    "src/**/*.node.test.ts"
+    "src/**/*.node.test.ts",
+    "src/**/*.node.ts"
   ]
 }

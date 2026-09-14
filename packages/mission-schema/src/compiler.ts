@@ -122,3 +122,47 @@ export const CompilerSettingsSchema = z
     }
   });
 export type CompilerSettings = z.infer<typeof CompilerSettingsSchema>;
+
+type IssuePath = readonly (string | number)[];
+
+/**
+ * Reports compiler settings that differ from upstream's default game build,
+ * which every real function is compiled with. Issue paths start at
+ * `compiler`, and `subject` names what is checked, such as "Real missions".
+ */
+export function checkUpstreamBuild(
+  compiler: CompilerSettings,
+  subject: string,
+  report: (path: IssuePath, message: string) => void,
+): void {
+  if (Object.keys(compiler.headers).length > 0) {
+    report(
+      ["compiler", "headers"],
+      `${subject} load all context remotely and carry no authored headers.`,
+    );
+  }
+  if (compiler.aspsxVersion !== UPSTREAM_DEFAULT_BUILD.aspsxVersion) {
+    report(
+      ["compiler", "aspsxVersion"],
+      `${subject} use aspsxVersion "2.77", the assembler of upstream's default build.`,
+    );
+  }
+  if (!sameList(compiler.cppFlags, UPSTREAM_DEFAULT_BUILD.cppFlags)) {
+    report(
+      ["compiler", "cppFlags"],
+      `${subject} use exactly the preprocessor flags of upstream's default build.`,
+    );
+  }
+  if (!sameList(compiler.rawFlags, UPSTREAM_DEFAULT_BUILD.rawFlags)) {
+    report(
+      ["compiler", "rawFlags"],
+      `${subject} use exactly the compiler flags of upstream's default build.`,
+    );
+  }
+  if (compiler.encoding !== UPSTREAM_DEFAULT_BUILD.encoding) {
+    report(
+      ["compiler", "encoding"],
+      `${subject} use encoding "eucjp", like upstream's default build.`,
+    );
+  }
+}
