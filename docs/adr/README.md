@@ -22,6 +22,7 @@ Changing a locked decision requires a new record. Accepted records are never rew
 | [0012](0012-skill-state-and-fading-help.md)     | Skill state and fading help     | Accepted |
 | [0013](0013-machine-diagrams.md)                | Machine diagrams                | Accepted |
 | [0014](0014-mismatch-teaching-hypotheses.md)    | Mismatch teaching hypotheses    | Accepted |
+| [0015](0015-vr-presentation-layer.md)           | VR presentation layer           | Accepted |
 
 ## Template
 

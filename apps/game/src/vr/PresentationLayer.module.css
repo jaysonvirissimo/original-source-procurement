@@ -1,0 +1,16 @@
+/*
+ * Fixed behind the page content. The layer renders inside the main content's
+ * stacking context, so a negative z-index keeps it under every panel.
+ */
+.layer {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* The renderer sets pointer events on its own wrapper; the background never takes input. */
+.canvas,
+.canvas canvas {
+  pointer-events: none !important;
+}

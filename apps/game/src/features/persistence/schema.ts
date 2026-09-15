@@ -130,15 +130,58 @@ export type SkillProgress = z.infer<typeof SkillProgressSchema>;
 export const SCAFFOLD_SETTINGS = ["adaptive", "full", "minimal"] as const;
 export type ScaffoldSetting = (typeof SCAFFOLD_SETTINGS)[number];
 
+/**
+ * `full` draws the decorative 3D background; `simple` never starts WebGL and
+ * keeps the flat grid.
+ */
+export const GRAPHICS_SETTINGS = ["full", "simple"] as const;
+export type GraphicsSetting = (typeof GRAPHICS_SETTINGS)[number];
+
+/** `system` follows the browser's reduced-motion preference; `reduced` always reduces. */
+export const MOTION_SETTINGS = ["system", "reduced"] as const;
+export type MotionSetting = (typeof MOTION_SETTINGS)[number];
+
+const AudioChannelSchema = z.strictObject({
+  volume: z.number().min(0).max(1),
+  muted: z.boolean(),
+});
+export type AudioChannel = z.infer<typeof AudioChannelSchema>;
+
+const AudioSettingsSchema = z.strictObject({
+  music: AudioChannelSchema,
+  sfx: AudioChannelSchema,
+});
+export type AudioSettings = z.infer<typeof AudioSettingsSchema>;
+
+export const DEFAULT_AUDIO_SETTINGS: AudioSettings = {
+  music: { volume: 0.6, muted: false },
+  sfx: { volume: 0.8, muted: false },
+};
+
 // Fields are optional with defaults read through accessors, so adding one
 // needs no migration and older saves stay valid.
 export const SettingsSchema = z.strictObject({
   scaffold: z.enum(SCAFFOLD_SETTINGS).optional(),
+  graphics: z.enum(GRAPHICS_SETTINGS).optional(),
+  motion: z.enum(MOTION_SETTINGS).optional(),
+  audio: AudioSettingsSchema.optional(),
 });
 export type Settings = z.infer<typeof SettingsSchema>;
 
 export function scaffoldSetting(settings: Settings): ScaffoldSetting {
   return settings.scaffold ?? "adaptive";
+}
+
+export function graphicsSetting(settings: Settings): GraphicsSetting {
+  return settings.graphics ?? "full";
+}
+
+export function motionSetting(settings: Settings): MotionSetting {
+  return settings.motion ?? "system";
+}
+
+export function audioSettings(settings: Settings): AudioSettings {
+  return settings.audio ?? DEFAULT_AUDIO_SETTINGS;
 }
 
 export const PlayerStateSchema = z

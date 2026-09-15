@@ -53,3 +53,11 @@ a {
     transition-duration: 0ms !important;
   }
 }
+
+/* The in-game motion setting reduces motion even when the browser does not ask. */
+:root[data-motion="reduced"] *,
+:root[data-motion="reduced"] *::before,
+:root[data-motion="reduced"] *::after {
+  animation-duration: 0ms !important;
+  transition-duration: 0ms !important;
+}

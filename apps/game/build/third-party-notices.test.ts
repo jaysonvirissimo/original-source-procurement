@@ -144,6 +144,82 @@ describe("readPackageNotice", () => {
       "The bundled package unlicensed@1.0.0 has no license file",
     );
   });
+
+  describe("with vendored license texts", () => {
+    const entry = {
+      license: "MIT",
+      file: "bare.LICENSE",
+      source: "https://github.com/scope/bare/blob/v1.0.0/LICENSE",
+    };
+
+    async function vendoredDirectory(): Promise<string> {
+      const directory = join(workDir, "licenses");
+      await mkdir(directory, { recursive: true });
+      await writeFile(join(directory, "bare.LICENSE"), "Vendored MIT text\n");
+      return directory;
+    }
+
+    it("uses the text for a package that ships none, at its exact version", async () => {
+      const root = await installPackage(
+        "@scope/bare",
+        { name: "@scope/bare", version: "1.0.0", license: "MIT" },
+        { "README.md": "readme" },
+      );
+      const directory = await vendoredDirectory();
+
+      await expect(
+        readPackageNotice(root, {
+          directory,
+          entries: { "@scope/bare@1.0.0": entry },
+        }),
+      ).resolves.toEqual({
+        name: "@scope/bare",
+        version: "1.0.0",
+        license: "MIT",
+        licenseText: "Vendored MIT text\n",
+      });
+      await expect(
+        readPackageNotice(root, {
+          directory,
+          entries: { "@scope/bare@2.0.0": entry },
+        }),
+      ).rejects.toThrow(
+        "The bundled package @scope/bare@1.0.0 has no license file",
+      );
+    });
+
+    it("fails when the declared license differs from the vendored text's", async () => {
+      const root = await installPackage(
+        "@scope/bare",
+        { name: "@scope/bare", version: "1.0.0", license: "MIT" },
+        {},
+      );
+
+      await expect(
+        readPackageNotice(root, {
+          directory: await vendoredDirectory(),
+          entries: { "@scope/bare@1.0.0": { ...entry, license: "ISC" } },
+        }),
+      ).rejects.toThrow(
+        "The vendored license text for @scope/bare@1.0.0 is ISC, but the package declares MIT.",
+      );
+    });
+
+    it("prefers the package's own license file", async () => {
+      const root = await installPackage(
+        "@scope/bare",
+        { name: "@scope/bare", version: "1.0.0", license: "MIT" },
+        { LICENSE: "Shipped text\n" },
+      );
+
+      const notice = await readPackageNotice(root, {
+        directory: await vendoredDirectory(),
+        entries: { "@scope/bare@1.0.0": entry },
+      });
+
+      expect(notice.licenseText).toBe("Shipped text\n");
+    });
+  });
 });
 
 describe("renderNotices", () => {

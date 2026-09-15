@@ -121,12 +121,24 @@ export function progressReducer(
       return completeMission(state, event);
     case "settings-changed":
       // Storage writes settings only when their object changes.
-      return event.settings.scaffold === state.settings.scaffold
+      return sameSettings(event.settings, state.settings)
         ? state
         : { ...state, settings: event.settings };
     case "state-replaced":
       return event.state;
   }
+}
+
+function sameSettings(a: Settings, b: Settings): boolean {
+  return (
+    a.scaffold === b.scaffold &&
+    a.graphics === b.graphics &&
+    a.motion === b.motion &&
+    a.audio?.music.volume === b.audio?.music.volume &&
+    a.audio?.music.muted === b.audio?.music.muted &&
+    a.audio?.sfx.volume === b.audio?.sfx.volume &&
+    a.audio?.sfx.muted === b.audio?.sfx.muted
+  );
 }
 
 function newMission(ref: MissionRef, at: string): MissionProgress {

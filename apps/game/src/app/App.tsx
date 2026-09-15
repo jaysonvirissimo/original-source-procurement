@@ -11,6 +11,8 @@ import { openBrowserStorage } from "../features/persistence/indexedDbPersistence
 import { PersistenceProvider } from "../features/persistence/PersistenceProvider";
 import { SaveNotices } from "../features/persistence/SaveNotices";
 import type { BrowserStorage } from "../features/persistence/types";
+import { AudioSettingPanel } from "../features/settings/AudioSettingPanel";
+import { GraphicsSettingPanel } from "../features/settings/GraphicsSettingPanel";
 import { SaveDataPanel } from "../features/settings/SaveDataPanel";
 import { ScaffoldSettingPanel } from "../features/settings/ScaffoldSettingPanel";
 import { ToolchainPanel } from "../features/settings/ToolchainPanel";
@@ -24,6 +26,8 @@ import { MissionRoute } from "../routes/MissionRoute";
 import type { Route } from "../routes/parseRoute";
 import { RoutePanel } from "../routes/RoutePanel";
 import { useHashRoute } from "../routes/useHashRoute";
+import { PresentationProvider } from "../vr/PresentationProvider";
+import { PresentationLayer } from "../vr/PresentationLayer";
 import styles from "./App.module.css";
 
 // A stable function, so the provider opens storage once.
@@ -48,19 +52,25 @@ export function App({
     <ToolchainProvider createToolchain={createToolchain}>
       <MissionCatalogContext value={catalog}>
         <UpstreamContext value={upstream}>
-          <div className={styles.shell}>
-            <main className={styles.main}>
-              <PersistenceProvider openStorage={openStorage}>
-                <SaveNotices />
-                <RouteView route={route} />
-              </PersistenceProvider>
-            </main>
-            <footer className={styles.footer}>
-              <a className={styles.footerLink} href="./THIRD_PARTY_NOTICES.txt">
-                Third-party notices
-              </a>
-            </footer>
-          </div>
+          <PresentationProvider>
+            <div className={styles.shell}>
+              <main className={styles.main}>
+                <PersistenceProvider openStorage={openStorage}>
+                  <PresentationLayer />
+                  <SaveNotices />
+                  <RouteView route={route} />
+                </PersistenceProvider>
+              </main>
+              <footer className={styles.footer}>
+                <a
+                  className={styles.footerLink}
+                  href="./THIRD_PARTY_NOTICES.txt"
+                >
+                  Third-party notices
+                </a>
+              </footer>
+            </div>
+          </PresentationProvider>
         </UpstreamContext>
       </MissionCatalogContext>
     </ToolchainProvider>
@@ -92,6 +102,8 @@ export function RouteView({ route }: RouteViewProps): ReactElement {
           message="Save data stays in this browser. Export it to keep a copy or move it to another browser."
         >
           <ScaffoldSettingPanel />
+          <GraphicsSettingPanel />
+          <AudioSettingPanel />
           <SaveDataPanel />
           <ToolchainPanel />
         </RoutePanel>

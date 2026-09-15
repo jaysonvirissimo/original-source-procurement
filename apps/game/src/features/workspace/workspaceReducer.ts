@@ -47,6 +47,8 @@ export interface WorkspaceState {
   readonly latestBuildId: number;
   readonly compiling: BuildRequest | undefined;
   readonly result: MissionResult | undefined;
+  /** The score of the last comparison before `result`, if there was one. */
+  readonly previousScore: number | undefined;
   readonly attempts: number;
   readonly actions: RecordedActions;
   /** The highest hint stage revealed, or 0. */
@@ -101,6 +103,7 @@ export function initialWorkspaceState(
     latestBuildId: 0,
     compiling: undefined,
     result: undefined,
+    previousScore: undefined,
     attempts: 0,
     actions: {},
     hintStage: saved?.hintMaxStage ?? 0,
@@ -271,7 +274,15 @@ function resolveBuild(
   ) {
     return state;
   }
-  return { ...state, compiling: undefined, result };
+  return {
+    ...state,
+    compiling: undefined,
+    result,
+    previousScore:
+      state.result?.kind === "matched"
+        ? state.result.result.score
+        : state.previousScore,
+  };
 }
 
 function recordPrediction(

@@ -178,6 +178,7 @@ Decisions that change a locked choice go in `docs/adr/NNNN-short-title.md`, usin
 ## Accessibility, privacy, and copy
 
 - Never make 3D, motion, color, or audio necessary to play. Every control must be usable from the keyboard.
+- The decorative 3D layer in `apps/game/src/vr/` receives only presentation state: a phase, a mission tier, whether motion is reduced, and a quality. Never pass it source, target words, or match data, and show every state it reflects in the page as well.
 - Do not add analytics, telemetry, or any remote submission of player source.
 - Write short, concrete product copy. OSP assumes the player is intelligent: no mascots, tutorial chatter, or motivational filler.
 - Use only original art and audio.

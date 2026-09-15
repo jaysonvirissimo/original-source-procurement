@@ -299,6 +299,51 @@ describe("progressReducer", () => {
     ).toBe(minimal);
   });
 
+  it("changes presentation settings, and keeps state when none differ", () => {
+    const audio = {
+      music: { volume: 0.5, muted: false },
+      sfx: { volume: 0.5, muted: false },
+    };
+    const state = progressReducer(emptyPlayerState(), {
+      type: "settings-changed",
+      settings: { graphics: "simple", motion: "reduced", audio },
+    });
+    expect(state.settings).toEqual({
+      graphics: "simple",
+      motion: "reduced",
+      audio,
+    });
+
+    const same = {
+      graphics: "simple",
+      motion: "reduced",
+      audio: { music: { ...audio.music }, sfx: { ...audio.sfx } },
+    } as const;
+    expect(
+      progressReducer(state, { type: "settings-changed", settings: same }),
+    ).toBe(state);
+
+    for (const settings of [
+      { ...same, graphics: "full" },
+      { ...same, motion: "system" },
+      {
+        ...same,
+        audio: { ...same.audio, music: { volume: 0.4, muted: false } },
+      },
+      {
+        ...same,
+        audio: { ...same.audio, music: { volume: 0.5, muted: true } },
+      },
+      { ...same, audio: { ...same.audio, sfx: { volume: 0.4, muted: false } } },
+      { ...same, audio: { ...same.audio, sfx: { volume: 0.5, muted: true } } },
+      { graphics: "simple", motion: "reduced" },
+    ] as const) {
+      expect(
+        progressReducer(state, { type: "settings-changed", settings }).settings,
+      ).toBe(settings);
+    }
+  });
+
   it("replaces the whole state", () => {
     const replacement = samplePlayer();
     expect(

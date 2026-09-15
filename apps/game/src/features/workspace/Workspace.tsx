@@ -13,6 +13,8 @@ import {
 } from "react";
 import { classNames } from "../../styles/classNames";
 import controls from "../../styles/controls.module.css";
+import { useSoundCue } from "../audio/audioContext";
+import { buildCue } from "../audio/sounds";
 import { Briefing } from "../briefing/Briefing";
 import { createMissionContextResolver } from "../compiler/missionContextResolver";
 import { targetListing } from "../compiler/targetListing";
@@ -55,6 +57,8 @@ import {
   UPSTREAM_UNAVAILABLE,
 } from "../upstream/messages";
 import { useUpstream } from "../upstream/upstreamContext";
+import { missionTier, phaseFrom } from "../../vr/presentation";
+import { usePublishPresentation } from "../../vr/presentationContext";
 import { canAcknowledge } from "./completion";
 import { HintPanel } from "./HintPanel";
 import { HistoryPanel } from "./HistoryPanel";
@@ -104,6 +108,25 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
     { mission, saved },
     (initial) => initialWorkspaceState(initial.mission, initial.saved),
   );
+  usePublishPresentation(
+    phaseFrom({
+      compiling: state.compiling !== undefined,
+      result: state.result,
+      previousScore: state.previousScore,
+    }),
+    missionTier(mission.kind),
+  );
+  const playCue = useSoundCue();
+  useEffect(() => {
+    if (state.result !== undefined) {
+      playCue(buildCue(state.result));
+    }
+  }, [state.result, playCue]);
+  useEffect(() => {
+    if (state.completed) {
+      playCue("mission-complete");
+    }
+  }, [state.completed, playCue]);
   // Completions from this visit share it; a later visit records new ones.
   const [sessionId] = useState(newId);
   const [resolveRequest, setResolveRequest] = useState(0);
@@ -296,6 +319,7 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
       sourceSha256: await sha256Hex(source),
     };
     dispatch({ type: "compile-started", request });
+    playCue("compile");
     const outcome = await toolchain.service.build(
       { ...context.input, source },
       controller.signal,

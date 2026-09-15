@@ -44,6 +44,10 @@ export default defineConfig({
         // Browser bootstrap that mounts React into index.html. The browser
         // test suite exercises it; unit tests cannot meaningfully execute it.
         "apps/game/src/main.tsx",
+        // Declarative Three.js scene components: meshes, materials, and
+        // per-frame easing that jsdom cannot render. The logic that decides
+        // what they show (phase, tier, quality, motion) is unit tested.
+        "apps/game/src/vr/scene/**",
       ],
       thresholds: {
         statements: 99,

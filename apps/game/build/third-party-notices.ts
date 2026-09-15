@@ -1,6 +1,10 @@
 import { readdir, readFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import type { Plugin } from "vite";
+import {
+  VENDORED_LICENSES,
+  type VendoredLicenses,
+} from "./vendored-licenses.ts";
 
 export const NOTICES_FILE_NAME = "THIRD_PARTY_NOTICES.txt";
 
@@ -73,7 +77,15 @@ export function parseManifest(
   return { name, version, license };
 }
 
-export async function readPackageNotice(root: string): Promise<PackageNotice> {
+/**
+ * Reads a package's manifest and license text. A package that ships no
+ * license file uses its vendored text, but only for that exact version and
+ * declared license; otherwise it fails.
+ */
+export async function readPackageNotice(
+  root: string,
+  vendored?: VendoredLicenses,
+): Promise<PackageNotice> {
   const manifest: unknown = JSON.parse(
     await readFile(join(root, "package.json"), "utf8"),
   );
@@ -83,9 +95,22 @@ export async function readPackageNotice(root: string): Promise<PackageNotice> {
     .sort()[0];
 
   if (licenseFile === undefined) {
-    throw new Error(
-      `The bundled package ${name}@${version} has no license file in ${root}.`,
+    const entry = vendored?.entries[`${name}@${version}`];
+    if (vendored === undefined || entry === undefined) {
+      throw new Error(
+        `The bundled package ${name}@${version} has no license file in ${root}.`,
+      );
+    }
+    if (entry.license !== license) {
+      throw new Error(
+        `The vendored license text for ${name}@${version} is ${entry.license}, but the package declares ${license}.`,
+      );
+    }
+    const licenseText = await readFile(
+      join(vendored.directory, entry.file),
+      "utf8",
     );
+    return { name, version, license, licenseText };
   }
 
   const mainText = await readFile(join(root, licenseFile), "utf8");
@@ -160,6 +185,7 @@ export function renderNotices(notices: readonly PackageNotice[]): string {
  */
 export async function collectNotices(
   bundledFiles: Iterable<string>,
+  vendored?: VendoredLicenses,
 ): Promise<string> {
   const roots = new Set<string>();
   for (const file of bundledFiles) {
@@ -170,7 +196,9 @@ export async function collectNotices(
   }
 
   return renderNotices(
-    await Promise.all([...roots].map((root) => readPackageNotice(root))),
+    await Promise.all(
+      [...roots].map((root) => readPackageNotice(root, vendored)),
+    ),
   );
 }
 
@@ -179,8 +207,8 @@ export async function collectNotices(
  * build, with its exact version, license, and full license text. It covers
  * bundled JavaScript modules and emitted assets, because CSS imports such as
  * font packages reach the build only as assets. The build fails if a
- * distributed package has no license file. `appendix`, when given, follows
- * the package entries.
+ * distributed package has no license file and no vendored text in
+ * `build/licenses/`. `appendix`, when given, follows the package entries.
  */
 export function thirdPartyNotices(
   options: { readonly appendix?: string } = {},
@@ -200,10 +228,13 @@ export function thirdPartyNotices(
           : [],
       );
 
-      const notices = await collectNotices([
-        ...this.getModuleIds(),
-        ...assetSources,
-      ]);
+      const notices = await collectNotices(
+        [...this.getModuleIds(), ...assetSources],
+        {
+          directory: resolve(projectRoot, "build/licenses"),
+          entries: VENDORED_LICENSES,
+        },
+      );
 
       this.emitFile({
         type: "asset",
