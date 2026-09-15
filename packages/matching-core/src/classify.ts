@@ -2,6 +2,7 @@ import { decode, format, type Instruction } from "psyq-asm";
 import type { AlignedRow } from "./align.ts";
 import { at } from "./at.ts";
 import {
+  INSTRUCTION_CLASSES,
   LOAD_FORMS,
   STORE_BYTES,
   transfersControl,
@@ -28,7 +29,7 @@ export function mismatchId(
   return `${kind}@t${String(targetRange.start)}g${String(generatedRange.start)}`;
 }
 
-function draft(
+export function draft(
   kind: MismatchKind,
   targetRange: InstructionRange,
   generatedRange: InstructionRange,
@@ -58,14 +59,16 @@ interface OperandFields {
   readonly registers: readonly string[];
   readonly immediates: readonly number[];
   readonly offsets: readonly number[];
-  readonly displacements: readonly number[];
+  readonly branches: readonly number[];
+  readonly jumps: readonly number[];
 }
 
 function operandFields(instruction: Instruction): OperandFields {
   const registers: string[] = [];
   const immediates: number[] = [];
   const offsets: number[] = [];
-  const displacements: number[] = [];
+  const branches: number[] = [];
+  const jumps: number[] = [];
   for (const operand of instruction.operands) {
     switch (operand.kind) {
       case "gpr":
@@ -85,14 +88,14 @@ function operandFields(instruction: Instruction): OperandFields {
         offsets.push(operand.offset);
         break;
       case "branch":
-        displacements.push(operand.displacement);
+        branches.push(operand.displacement);
         break;
       case "target":
-        displacements.push(operand.index);
+        jumps.push(operand.index);
         break;
     }
   }
-  return { registers, immediates, offsets, displacements };
+  return { registers, immediates, offsets, branches, jumps };
 }
 
 function differs(first: readonly unknown[], second: readonly unknown[]) {
@@ -117,10 +120,21 @@ function operandKinds(
   if (differs(expected.offsets, actual.offsets)) {
     kinds.push(["MEMORY_OFFSET", `Memory offsets differ. ${shown}`]);
   }
-  if (differs(expected.displacements, actual.displacements)) {
-    kinds.push(["UNKNOWN", `Branch or jump targets differ. ${shown}`]);
+  if (differs(expected.branches, actual.branches)) {
+    kinds.push(["BRANCH_TARGET", `Branch targets differ. ${shown}`]);
+  }
+  if (differs(expected.jumps, actual.jumps)) {
+    kinds.push(
+      target.mnemonic === "jal"
+        ? ["CALL_TARGET", `Call targets differ. ${shown}`]
+        : ["BRANCH_TARGET", `Jump targets differ. ${shown}`],
+    );
   }
   return kinds;
+}
+
+function isBranch(instruction: Instruction): boolean {
+  return INSTRUCTION_CLASSES[instruction.mnemonic] === "branch";
 }
 
 function accessKind(
@@ -185,18 +199,34 @@ function pairMismatches(
   }
 
   const kinds: [MismatchKind, string][] = [];
+  let operands = operandKinds(expected, actual, shown);
   if (expected.mnemonic !== actual.mnemonic) {
-    const access = accessKind(expected, actual);
-    if (access === undefined) {
-      return [
-        // Only the formatted instructions name the operation, so aliases
-        // such as move for addu read the same as the listing.
-        make("OPCODE", [`The instructions differ. ${shown}`]),
-      ];
+    if (isBranch(expected) && isBranch(actual)) {
+      kinds.push([
+        "BRANCH_CONDITION",
+        `The branch conditions differ. ${shown}`,
+      ]);
+      // Conditions such as bgez and beq take different register counts; only
+      // same-shaped branches compare registers.
+      if (
+        operandFields(expected).registers.length !==
+        operandFields(actual).registers.length
+      ) {
+        operands = operands.filter(([kind]) => kind !== "REGISTER");
+      }
+    } else {
+      const access = accessKind(expected, actual);
+      if (access === undefined) {
+        return [
+          // Only the formatted instructions name the operation, so aliases
+          // such as move for addu read the same as the listing.
+          make("OPCODE", [`The instructions differ. ${shown}`]),
+        ];
+      }
+      kinds.push(access);
     }
-    kinds.push(access);
   }
-  kinds.push(...operandKinds(expected, actual, shown));
+  kinds.push(...operands);
   // Unreachable while decode rejects reserved bits, so equal operands mean
   // equal words. Kept so a decoder change can never drop a difference.
   if (kinds.length === 0) {
@@ -317,12 +347,16 @@ function relocationMismatch(
     word < length
       ? { start: word, end: word + 1 }
       : { start: length, end: length };
+  // Unlinked calls reach their callee through a relocation, so a different
+  // callee shows up only here.
+  const call =
+    rowInstruction(at(rows, row), target, generated).mnemonic === "jal";
   return draft(
-    "RELOCATION_TARGET",
+    call ? "CALL_TARGET" : "RELOCATION_TARGET",
     range(target.length),
     range(generated.length),
     [row],
-    finding.evidence,
+    call ? ["Call targets differ.", ...finding.evidence] : finding.evidence,
   );
 }
 

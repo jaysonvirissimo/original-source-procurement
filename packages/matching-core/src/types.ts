@@ -1,9 +1,8 @@
 import type { RelocationKind, WordOrigin } from "psyq-asm";
 
 /**
- * Base mismatch kinds. Kinds without a classification rule yet
- * (`INSTRUCTION_ORDER`, `BRANCH_CONDITION`, `BRANCH_TARGET`, `CALL_TARGET`,
- * `GP_RELATIVE`) are reported as `UNKNOWN` until their rules exist.
+ * Base mismatch kinds. Each states only what the instruction evidence proves.
+ * `UNKNOWN` is the fallback for a difference no other rule explains.
  */
 export const MISMATCH_KINDS = [
   "OPCODE",

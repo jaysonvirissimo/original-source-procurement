@@ -1,5 +1,5 @@
 import { missions } from "@osp/curriculum";
-import type { MatchResult } from "@osp/matching-core";
+import { teachingHypotheses, type MatchResult } from "@osp/matching-core";
 import type { Mission } from "@osp/mission-schema";
 import { assemble } from "psyq-asm";
 import { createCompiler } from "psyq-wasm";
@@ -94,5 +94,28 @@ describe("shipped missions with the real toolchain", () => {
     expect(result.mismatches.map((mismatch) => mismatch.kind)).toEqual([
       "LOAD_SIGNEDNESS",
     ]);
+    expect(
+      teachingHypotheses(result).map((hypothesis) => hypothesis.kind),
+    ).toContain("LIKELY_SIGNEDNESS");
+  });
+
+  it("mission 007: returning the pointer instead of its value suggests a missing dereference", async () => {
+    const mission = missions.find((entry) => entry.id === "007");
+    if (mission?.solution === undefined) {
+      throw new Error("The curriculum has no mission 007 with a solution.");
+    }
+    const addressReturned = mission.solution.replace(
+      /return \*(\w+);/,
+      "return (int)$1;",
+    );
+    expect(addressReturned).not.toBe(mission.solution);
+
+    const hypotheses = teachingHypotheses(
+      await compare(mission, addressReturned),
+    );
+
+    expect(hypotheses.map((hypothesis) => hypothesis.kind)).toContain(
+      "LIKELY_EXPRESSION_SHAPE",
+    );
   });
 });

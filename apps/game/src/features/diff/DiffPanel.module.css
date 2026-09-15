@@ -102,6 +102,51 @@
   letter-spacing: 0.04em;
 }
 
+.kindButton {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+
+.kindButton:focus-visible {
+  outline: var(--osp-border) solid var(--osp-info);
+  outline-offset: 2px;
+}
+
+.mismatch[data-selected="true"] {
+  border-left-color: var(--osp-info);
+}
+
+.selected td {
+  box-shadow: inset var(--osp-border-strong) 0 0 var(--osp-info);
+}
+
 .evidence {
   color: var(--osp-text-dim);
+}
+
+.details {
+  display: grid;
+  gap: var(--osp-space-1);
+}
+
+.hypotheses {
+  display: grid;
+  gap: var(--osp-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hypothesisLabel {
+  font-family: var(--osp-font-code);
+  font-size: var(--osp-font-size-label);
+  letter-spacing: 0.12em;
+  color: var(--osp-warning);
 }

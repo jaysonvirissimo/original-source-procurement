@@ -258,6 +258,20 @@ function checkHints(mission: MissionShape, report: Report): void {
       }
     }
 
+    const uncertain =
+      mission.kind === "real-partial" || mission.kind === "live";
+    if (uncertain && hint.verified === undefined) {
+      report(
+        at("verified"),
+        "A real-partial or live hint says whether it is verified or a hypothesis.",
+      );
+    } else if (!uncertain && hint.verified !== undefined) {
+      report(
+        at("verified"),
+        "Only real-partial and live hints are marked verified or hypothesis.",
+      );
+    }
+
     if (hint.revealSolution !== undefined && (real || hint.stage !== 9)) {
       report(
         at("revealSolution"),

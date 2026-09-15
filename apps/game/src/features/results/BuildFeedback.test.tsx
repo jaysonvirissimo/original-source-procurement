@@ -61,6 +61,39 @@ describe("BuildFeedback", () => {
     );
   });
 
+  it("keeps each compiler message verbatim and adds guidance it recognizes", () => {
+    render(
+      <BuildFeedback
+        result={failed({
+          kind: "compiler-failure",
+          diagnostics: [
+            {
+              severity: "error",
+              file: "store_word.c",
+              line: 4,
+              message: "parse error before `}'",
+            },
+            {
+              severity: "error",
+              file: "store_word.c",
+              line: 4,
+              message: "something unfamiliar",
+            },
+          ],
+        })}
+        stale={false}
+      />,
+    );
+
+    const items = screen
+      .getAllByRole("listitem")
+      .map((item) => item.textContent);
+    expect(items).toEqual([
+      "store_word.c:4: error: parse error before `}'The compiler did not expect } on line 4. Check the statement before it, on line 3 or earlier; a missing semicolon is a common cause.",
+      "store_word.c:4: error: something unfamiliar",
+    ]);
+  });
+
   it("omits an empty diagnostics list and labels a stale build", () => {
     render(
       <BuildFeedback

@@ -14,6 +14,8 @@ export interface AttemptFacts {
   readonly match: MatchResult;
   readonly info: ToolchainInfo;
   readonly aspsxVersion: Attempt["aspsxVersion"];
+  /** The highest hint stage opened when the build ran, or 0. */
+  readonly hintStage: number;
 }
 
 export function attemptFrom(facts: AttemptFacts): Attempt {
@@ -40,6 +42,7 @@ export function attemptFrom(facts: AttemptFacts): Attempt {
     psyqAsmVersion: facts.info.psyqAsmVersion,
     aspsxVersion: facts.aspsxVersion,
     pinned: false,
+    hintStage: facts.hintStage,
   };
 }
 

@@ -10,6 +10,13 @@ export {
   extractFunction,
   functionFromWords,
 } from "./extract.ts";
+export {
+  HYPOTHESIS_HEDGE,
+  TEACHING_HYPOTHESIS_KINDS,
+  teachingHypotheses,
+  type TeachingHypothesis,
+  type TeachingHypothesisKind,
+} from "./hypotheses.ts";
 export { compareFunction, matchFunction } from "./match.ts";
 export {
   usesStack,

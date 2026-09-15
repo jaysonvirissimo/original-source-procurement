@@ -1,5 +1,5 @@
 import type { MatchResult } from "@osp/matching-core";
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { DiffPanel } from "./DiffPanel";
 
@@ -202,5 +202,105 @@ describe("DiffPanel", () => {
     expect(rows[1]?.textContent).toBe(
       "≈Equal outside relocated fieldslw $v1,0x20($a0)lw $v1,0x20($a0)branch delay nop",
     );
+  });
+
+  it("opens a mismatch on request: marks its rows, explains its kind, and shows hypotheses", () => {
+    const { rerender } = render(
+      <DiffPanel
+        result={result}
+        stale={false}
+        highlight={undefined}
+        annotations={[]}
+        hypotheses={[
+          {
+            kind: "LIKELY_EXPRESSION_SHAPE",
+            confidence: 0.6,
+            message: "The source may use another register. Check it.",
+            evidenceMismatchIds: ["REGISTER@t1g2"],
+          },
+        ]}
+      />,
+    );
+    // Only the mismatches themselves, not the hypotheses listed inside one.
+    const items = () => {
+      const list = screen.getByRole("list", { name: "Mismatches" });
+      return within(list)
+        .getAllByRole("listitem")
+        .filter((entry) => entry.parentElement === list);
+    };
+    const item = (index: number) => {
+      const found = items()[index];
+      if (found === undefined) {
+        throw new Error(`No mismatch at ${String(index)}.`);
+      }
+      return found;
+    };
+    const table = () =>
+      within(
+        screen.getByRole("table", {
+          name: "Target and generated instructions",
+        }),
+      ).getAllByRole("row");
+
+    expect(screen.queryByText("HYPOTHESIS")).toBeNull();
+    expect(table().some((row) => row.textContent.includes("SELECTED"))).toBe(
+      false,
+    );
+
+    const register = within(item(0)).getByRole("button", {
+      name: "Register",
+    });
+    expect(register.getAttribute("aria-expanded")).toBe("false");
+    fireEvent.click(register);
+    expect(register.getAttribute("aria-expanded")).toBe("true");
+    expect(items()[0]?.textContent).toContain(
+      "The same operation uses different registers.",
+    );
+    expect(
+      within(screen.getByRole("list", { name: "Hypotheses" })).getByRole(
+        "listitem",
+      ).textContent,
+    ).toBe("HYPOTHESIS The source may use another register. Check it.");
+    expect(table()[3]?.textContent).toContain("SELECTED");
+    expect(table()[3]?.getAttribute("data-selected")).toBe("true");
+
+    fireEvent.click(
+      within(item(1)).getByRole("button", { name: "Extra instruction" }),
+    );
+    expect(items()[1]?.textContent).toContain(
+      "Your output has instructions the target lacks.",
+    );
+    expect(screen.queryByRole("list", { name: "Hypotheses" })).toBeNull();
+    expect(table()[2]?.textContent).toContain("SELECTED");
+
+    fireEvent.click(within(item(1)).getByRole("button", { name: "Register" }));
+    expect(register.getAttribute("aria-expanded")).toBe("true");
+
+    fireEvent.click(register);
+    expect(register.getAttribute("aria-expanded")).toBe("false");
+    expect(table().some((row) => row.textContent.includes("SELECTED"))).toBe(
+      false,
+    );
+
+    fireEvent.click(register);
+    rerender(
+      <DiffPanel
+        result={{
+          ...result,
+          mismatches: result.mismatches.map((mismatch) => ({
+            ...mismatch,
+            id: `${mismatch.id}-next`,
+          })),
+        }}
+        stale={false}
+        highlight={undefined}
+        annotations={[]}
+      />,
+    );
+    expect(
+      within(item(0))
+        .getByRole("button", { name: "Register" })
+        .getAttribute("aria-expanded"),
+    ).toBe("false");
   });
 });

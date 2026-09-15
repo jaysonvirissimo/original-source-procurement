@@ -1,19 +1,13 @@
-import type { MatchResult } from "@osp/matching-core";
+import type { MatchResult, TeachingHypothesis } from "@osp/matching-core";
 import type { InstructionRange } from "@osp/mission-schema";
-import type { ReactElement } from "react";
+import { useState, type ReactElement } from "react";
 import { classNames } from "../../styles/classNames";
 import controls from "../../styles/controls.module.css";
 import { AnnotationList } from "./AnnotationList";
 import { annotationLabels, type ShownAnnotation } from "./annotations";
-import {
-  inRange,
-  mismatchKindOf,
-  mismatchLabel,
-  noteText,
-  provenanceLabel,
-  rowMarker,
-} from "./diffLabels";
+import { inRange, noteText, provenanceLabel, rowMarker } from "./diffLabels";
 import styles from "./DiffPanel.module.css";
+import { MismatchEvidence } from "./MismatchEvidence";
 
 interface DiffPanelProps {
   readonly result: MatchResult;
@@ -23,6 +17,8 @@ interface DiffPanelProps {
   readonly highlight: InstructionRange | undefined;
   /** Teaching notes the current help level shows. */
   readonly annotations: readonly ShownAnnotation[];
+  /** Possible causes, shown only when the player opens a mismatch. */
+  readonly hypotheses?: readonly TeachingHypothesis[];
 }
 
 /** Target and generated instructions side by side, with their mismatches. */
@@ -31,7 +27,13 @@ export function DiffPanel({
   stale,
   highlight,
   annotations,
+  hypotheses = [],
 }: DiffPanelProps): ReactElement {
+  const [chosen, setChosen] = useState<string | undefined>(undefined);
+  // A selection from an earlier result does not carry over to this one.
+  const selected = result.mismatches.some((mismatch) => mismatch.id === chosen)
+    ? chosen
+    : undefined;
   return (
     <div className={styles.diff}>
       {stale ? (
@@ -67,15 +69,19 @@ export function DiffPanel({
                   : result.generated[row.generated];
               const marker = rowMarker(row.status);
               const highlighted = inRange(row.target, highlight);
+              const rowSelected =
+                selected !== undefined && row.mismatchIds.includes(selected);
               return (
                 <tr
                   key={index}
                   className={classNames(
                     styles[row.status],
                     highlighted && styles.highlighted,
+                    rowSelected && styles.selected,
                   )}
                   data-status={row.status}
                   data-highlighted={highlighted}
+                  data-selected={rowSelected}
                 >
                   <td className={styles.marker}>
                     <span aria-hidden="true">{marker.symbol}</span>
@@ -94,6 +100,7 @@ export function DiffPanel({
                       provenanceLabel(generated?.origin),
                       ...annotationLabels(annotations, row.target),
                       highlighted && "HINT",
+                      rowSelected && "SELECTED",
                     ])}
                   </td>
                 </tr>
@@ -103,25 +110,12 @@ export function DiffPanel({
         </table>
       </div>
       <AnnotationList annotations={annotations} />
-      {result.mismatches.length === 0 ? null : (
-        <ul className={styles.mismatches} aria-label="Mismatches">
-          {result.mismatches.map((mismatch) => (
-            <li className={styles.mismatch} key={mismatch.id}>
-              <p className={styles.kind}>
-                {mismatchLabel(mismatch.kind)}
-                {mismatch.consequenceOf === undefined
-                  ? null
-                  : ` · caused by ${mismatchLabel(mismatchKindOf(mismatch.consequenceOf))}`}
-              </p>
-              {mismatch.evidence.map((line, index) => (
-                <p className={styles.evidence} key={index}>
-                  {line}
-                </p>
-              ))}
-            </li>
-          ))}
-        </ul>
-      )}
+      <MismatchEvidence
+        mismatches={result.mismatches}
+        hypotheses={hypotheses}
+        selected={selected}
+        onSelect={setChosen}
+      />
     </div>
   );
 }

@@ -605,7 +605,14 @@ describe("hints", () => {
         issues({
           ...base,
           kind,
-          hints: [{ stage: 5, text: "A reveal.", reveal: upstreamReference }],
+          hints: [
+            {
+              stage: 5,
+              text: "A reveal.",
+              reveal: upstreamReference,
+              ...(kind === "training" ? {} : { verified: true }),
+            },
+          ],
         }),
       ).toEqual([
         issue(
@@ -671,7 +678,7 @@ describe("hints", () => {
       issues(
         realMission({
           kind: "live",
-          hints: [{ stage: 9, text: "There is no answer." }],
+          hints: [{ stage: 9, text: "There is no answer.", verified: false }],
         }),
       ),
     ).toEqual([
@@ -687,7 +694,14 @@ describe("hints", () => {
       issues(
         realMission({
           kind: "real-partial",
-          hints: [{ stage: 4, text: "Solution.", revealSolution: true }],
+          hints: [
+            {
+              stage: 4,
+              text: "Solution.",
+              revealSolution: true,
+              verified: true,
+            },
+          ],
         }),
       ),
     ).toEqual([
@@ -725,6 +739,48 @@ describe("hints", () => {
         "A synthetic stage 9 hint reveals the mission solution.",
       ),
     ]);
+  });
+
+  it.each(["real-partial", "live"] as const)(
+    "requires each %s hint to say whether it is verified",
+    (kind) => {
+      expect(
+        issues(
+          realMission({
+            kind,
+            hints: [
+              { stage: 1, text: "A known fact.", verified: true },
+              { stage: 2, text: "A guess.", verified: false },
+              { stage: 3, text: "Unmarked." },
+            ],
+          }),
+        ),
+      ).toEqual([
+        issue(
+          "hints.2.verified",
+          "A real-partial or live hint says whether it is verified or a hypothesis.",
+        ),
+      ]);
+    },
+  );
+
+  it("rejects a verified mark on a synthetic or real-solved hint", () => {
+    const message =
+      "Only real-partial and live hints are marked verified or hypothesis.";
+    expect(
+      issues(
+        syntheticMission({
+          hints: [{ stage: 1, text: "Marked.", verified: true }],
+        }),
+      ),
+    ).toContainEqual(issue("hints.0.verified", message));
+    expect(
+      issues(
+        realMission({
+          hints: [{ stage: 1, text: "Marked.", verified: false }],
+        }),
+      ),
+    ).toEqual([issue("hints.0.verified", message)]);
   });
 
   it("accepts a synthetic mission with no hints and no solution", () => {

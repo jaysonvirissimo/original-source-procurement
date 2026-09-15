@@ -62,6 +62,7 @@ Mission and skill behavior comes from validated curriculum data, never from rule
 - a synthetic mission whose `solution` or words do not match their recorded hashes;
 - a mission annotation that points past its target's words, sits on a mission without an inline target, or links an unknown manual entry;
 - an annotation or example tied to a skill the mission neither teaches nor practices;
+- a real-partial or live hint that does not say whether it is verified, or a hint on any other mission that does;
 - example values on a mission without an inline target, or whose registers or region labels repeat, whose cells overlap or do not fit their size or alignment, or whose pointer cell does not hold the address of a region in the same example;
 - a real-function pointer whose provenance, solution reference, compiler input, or header keys do not follow upstream's default build.
 
@@ -83,6 +84,9 @@ Package sources that `pnpm curriculum:validate` loads run directly on Node.js wi
 - A **linked** target is real game code. Its relocated fields hold final addresses, so only bits outside the generated relocation masks decide exactness.
 - An **unlinked** target is synthetic output of the same toolchain. Its relocations are also compared by offset, kind, and target, including the addend.
 - Alignment and mismatch classification run only after exactness is decided, and only to teach. Their costs and rules are locked by tests; change a test only together with the rule it covers.
+- Two passes regroup base findings. Data reached through `$gp` on one side only becomes one `GP_RELATIVE`. The same instructions in a different place become one `INSTRUCTION_ORDER`. Every changed row must still carry a mismatch.
+- Teaching hypotheses from `teachingHypotheses()` are suggestions, not findings. Every message says "check", "may", or "likely", cites the mismatches it rests on, and never contains source to type. A property test enforces the wording. The game shows hypotheses only when a player opens a mismatch.
+- Guidance for compiler messages follows the same rule: the compiler's message stays verbatim, and guidance is phrased as something to check.
 
 ### Compiler artifact distribution
 

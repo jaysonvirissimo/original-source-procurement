@@ -308,15 +308,17 @@ describe("Workspace", () => {
     enter();
 
     await compileWhenReady();
+    const guidance =
+      "The compiler did not expect ; on line 3. Check the statement before it, on line 2 or earlier; a missing semicolon is a common cause.";
     expect(
       (await screen.findByRole("list", { name: "Diagnostics" })).textContent,
-    ).toBe(`add_immediate.c:3:12: error: ${message}`);
+    ).toBe(`add_immediate.c:3:12: error: ${message}${guidance}`);
     expect(statusText()).toBe("BUILD FAILED");
     const marks: string[] = [];
     forEachDiagnostic(editorView().state, (diagnostic) => {
       marks.push(diagnostic.message);
     });
-    expect(marks).toEqual([message]);
+    expect(marks).toEqual([`${message}\n${guidance}`]);
     expect(
       screen.getByRole("table", { name: "Target instructions" }),
     ).toBeTruthy();

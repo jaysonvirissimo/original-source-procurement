@@ -180,6 +180,87 @@ test("compiler errors and missing functions stay in the workspace and complete n
   await missionComplete(page);
 });
 
+test("hints climb from a weak hint to the solution, and completion still works", async ({
+  page,
+}) => {
+  await openMission(page, "003", "ADD IMMEDIATE");
+
+  // The unchanged starting source gets a plain explanation, not a fix.
+  await compile(page);
+  const starter = page.getByRole("note", { name: "About the starting source" });
+  await expect(starter).toContainText(
+    "This is the starting source, unchanged",
+    {
+      timeout: 30_000,
+    },
+  );
+  const summary = page.getByLabel("Match summary");
+  await expect(summary).toContainText("HINTSNone");
+
+  await page.getByRole("button", { name: "Hint" }).click();
+  const hints = page.getByRole("region", { name: "Hints" });
+  await hints.getByRole("button", { name: "Reveal next hint" }).click();
+  await expect(hints.getByText("Stage 1 · Skill")).toBeVisible();
+  for (let stage = 0; stage < 3; stage += 1) {
+    await hints.getByRole("button", { name: "Reveal next hint" }).click();
+  }
+  await expect(hints.getByLabel("Solution")).toHaveCount(0);
+  await hints.getByRole("button", { name: "Reveal the solution" }).click();
+  await expect(hints.getByText("Stage 9 · Solution")).toBeVisible();
+  await expect(hints.getByLabel("Solution")).toContainText("return a + 5;");
+  await expect(
+    hints.getByRole("button", { name: "No more hints" }),
+  ).toBeDisabled();
+  await page.keyboard.press("Escape");
+  await expect(summary).toContainText("HINTS5 of 5 · stage 9");
+
+  await setSource(page, addImmediate(5));
+  await compile(page);
+  await missionComplete(page);
+  await expect(
+    page.getByRole("region", { name: "Mission complete" }),
+  ).toContainText("HINTS5 of 5 · stage 9");
+});
+
+test("a mismatch opens on request with a hypothesis about its cause", async ({
+  page,
+}) => {
+  await openMission(page, "011", "WRONG SIGN");
+  await compile(page);
+
+  const mismatches = page.getByRole("list", { name: "Mismatches" });
+  const signedness = mismatches.getByRole("button", {
+    name: "Load signedness",
+  });
+  await expect(signedness).toBeVisible({ timeout: 30_000 });
+  await expect(mismatches.getByText("HYPOTHESIS")).toHaveCount(0);
+
+  await signedness.click();
+  await expect(signedness).toHaveAttribute("aria-expanded", "true");
+  const hypotheses = mismatches.getByRole("list", { name: "Hypotheses" });
+  await expect(hypotheses).toContainText("HYPOTHESIS");
+  await expect(hypotheses).toContainText("plain char is unsigned");
+  await expect(
+    page
+      .getByRole("table", { name: "Target and generated instructions" })
+      .getByText("SELECTED"),
+  ).not.toHaveCount(0);
+});
+
+test("a missing semicolon gets guidance beside the compiler's message", async ({
+  page,
+}) => {
+  await openMission(page, "008", "STORE WORD");
+
+  await setSource(page, "void store_word(int *p, int v)\n{\n    *p = v\n}\n");
+  await compile(page);
+  const diagnostics = page.getByRole("list", { name: "Diagnostics" });
+  await expect(diagnostics).toContainText("parse error before", {
+    timeout: 30_000,
+  });
+  await expect(diagnostics).toContainText("missing semicolon");
+});
+
 test("the primary flow works from the keyboard alone", async ({
   page,
   browserName,

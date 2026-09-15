@@ -38,6 +38,7 @@ describe("attemptFrom", () => {
       match,
       info: FAKE_TOOLCHAIN_INFO,
       aspsxVersion: "2.77",
+      hintStage: 4,
     });
 
     expect(recorded).toEqual({
@@ -58,6 +59,7 @@ describe("attemptFrom", () => {
       psyqAsmVersion: "0.2.0",
       aspsxVersion: "2.77",
       pinned: false,
+      hintStage: 4,
     });
     expect(Object.keys(recorded.mismatchSummary.byKind)).not.toHaveLength(0);
   });
@@ -71,6 +73,7 @@ describe("attemptFrom", () => {
       match: matchOf(true),
       info: FAKE_TOOLCHAIN_INFO,
       aspsxVersion: "2.77",
+      hintStage: 0,
     });
     expect(recorded.exact).toBe(true);
     expect(recorded.mismatchSummary.byKind).toEqual({});

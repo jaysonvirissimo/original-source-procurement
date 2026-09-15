@@ -43,7 +43,9 @@ export {
   type MissionAnnotation,
 } from "./annotation.ts";
 export {
+  HINT_STAGE_PURPOSES,
   HintSchema,
+  hintStagePurpose,
   InstructionRangeSchema,
   type Hint,
   type InstructionRange,

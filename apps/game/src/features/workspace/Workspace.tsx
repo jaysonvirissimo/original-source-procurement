@@ -1,5 +1,5 @@
 import { sha256Hex } from "@osp/curriculum/hash";
-import { wordFacts } from "@osp/matching-core";
+import { teachingHypotheses, wordFacts } from "@osp/matching-core";
 import type { Mission } from "@osp/mission-schema";
 import {
   useCallback,
@@ -50,6 +50,10 @@ import { MissionComplete } from "../results/MissionComplete";
 import { MemoryLayer } from "../scan/MemoryLayer";
 import scan from "../scan/Scan.module.css";
 import { ScanPanel } from "../scan/ScanPanel";
+import {
+  UPSTREAM_CONTENT_MISMATCH,
+  UPSTREAM_UNAVAILABLE,
+} from "../upstream/messages";
 import { useUpstream } from "../upstream/upstreamContext";
 import { canAcknowledge } from "./completion";
 import { HintPanel } from "./HintPanel";
@@ -63,11 +67,12 @@ import {
 } from "./missionResult";
 import { PredictionPanel } from "./PredictionPanel";
 import { SplitHandle } from "./SplitHandle";
+import { starterExplanation } from "./starterExplanation";
 import { useSourceAutosave } from "./useSourceAutosave";
 import styles from "./Workspace.module.css";
 import {
   completionState,
-  hintsUsed,
+  hintUsage,
   initialWorkspaceState,
   isStale,
   workspaceReducer,
@@ -76,11 +81,6 @@ import {
 
 const NO_DIAGNOSTICS: readonly CompilerDiagnostic[] = [];
 const NO_ATTEMPTS: readonly Attempt[] = [];
-
-const UPSTREAM_UNAVAILABLE =
-  "Field missions load their targets from the mgs_reversing project on GitHub, and OSP couldn't reach it. Training missions still work. Check your connection and try again.";
-const UPSTREAM_CONTENT_MISMATCH =
-  "The game data OSP downloaded for this mission didn't match what it expected, so it wasn't used. Try again later.";
 
 interface WorkspaceProps {
   readonly mission: Mission;
@@ -169,6 +169,10 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
 
   const { entered, source, context, result, hintStage, completed } = state;
   const unsupported = context.kind === "unsupported-target";
+  const hypotheses = useMemo(
+    () => (result?.kind === "matched" ? teachingHypotheses(result.result) : []),
+    [result],
+  );
 
   // The briefing does not need the compiler, so it starts on entry.
   useEffect(() => {
@@ -317,6 +321,7 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
           match: missionResult.result,
           info: toolchain.service.info,
           aspsxVersion: context.input.aspsxVersion,
+          hintStage,
         }),
       });
     }
@@ -420,12 +425,24 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
           <>
             {result?.kind === "matched" ? (
               <>
-                <MatchSummary result={result.result} />
+                <MatchSummary result={result.result} hints={hintUsage(state)} />
+                {stale || source !== mission.starterSource ? null : (
+                  <div
+                    className={styles.notice}
+                    aria-label="About the starting source"
+                    role="note"
+                  >
+                    {starterExplanation(result.result).map((line) => (
+                      <p key={line}>{line}</p>
+                    ))}
+                  </div>
+                )}
                 <DiffPanel
                   result={result.result}
                   stale={stale}
                   highlight={highlight}
                   annotations={shown}
+                  hypotheses={hypotheses}
                 />
               </>
             ) : (
@@ -470,7 +487,7 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
         <MissionComplete
           exact={result?.kind === "matched" && result.result.exact}
           attempts={state.attempts}
-          hints={hintsUsed(state)}
+          hints={hintUsage(state)}
           prediction={predictionOutcome}
           skillChanges={completionSkillChanges(
             progress.state.skills,
