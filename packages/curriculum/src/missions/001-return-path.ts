@@ -20,7 +20,8 @@ export const returnPath: MissionDraft = {
   completion: "acknowledge-evidence",
   compiler: trainingCompiler("return_path.c"),
   briefing: {
-    objective: "Find where an integer return value appears.",
+    objective:
+      "Compile, then acknowledge the evidence: the instruction that puts the return value in $v0.",
     newTechnique: "A function returns an int in $v0.",
   },
   starterSource: SOURCE,
@@ -31,6 +32,7 @@ export const returnPath: MissionDraft = {
       range: { start: 1, end: 2 },
       text: "The constant 42 lands in $v0, the register that carries the return value.",
       manualEntry: "abi.return-values",
+      skill: "ABI.RETURN",
     },
   ],
   hints: [

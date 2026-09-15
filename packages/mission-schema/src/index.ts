@@ -21,6 +21,15 @@ export {
   type DifficultyProfile,
 } from "./difficulty.ts";
 export {
+  ExampleCellSchema,
+  ExampleRegionSchema,
+  MissionExampleSchema,
+  RegisterNameSchema,
+  type ExampleCell,
+  type ExampleRegion,
+  type MissionExample,
+} from "./example.ts";
+export {
   FEASIBILITY_POINTER_SCHEMA_VERSION,
   directoryOf,
   FeasibilityPointerSchema,

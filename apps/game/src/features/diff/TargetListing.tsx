@@ -2,15 +2,15 @@ import type { InstructionRange } from "@osp/mission-schema";
 import type { ReactElement } from "react";
 import { classNames } from "../../styles/classNames";
 import { AnnotationList } from "./AnnotationList";
-import { annotationLabels, type WordAnnotation } from "./annotations";
-import { inRange } from "./diffLabels";
+import { annotationLabels, type ShownAnnotation } from "./annotations";
+import { inRange, noteText } from "./diffLabels";
 import styles from "./DiffPanel.module.css";
 
 interface TargetListingProps {
   readonly lines: readonly string[];
   readonly highlight: InstructionRange | undefined;
-  /** Teaching notes on target words. */
-  readonly annotations: readonly WordAnnotation[];
+  /** Teaching notes the current help level shows. */
+  readonly annotations: readonly ShownAnnotation[];
 }
 
 /** The target instructions, shown before there is a build to compare. */
@@ -47,12 +47,10 @@ export function TargetListing({
                     <code>{line}</code>
                   </td>
                   <td className={styles.note}>
-                    {[
+                    {noteText([
                       ...annotationLabels(annotations, index),
                       highlighted && "HINT",
-                    ]
-                      .filter(Boolean)
-                      .join(" · ")}
+                    ])}
                   </td>
                 </tr>
               );

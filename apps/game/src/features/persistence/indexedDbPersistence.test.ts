@@ -224,6 +224,20 @@ describe("IndexedDB persistence", () => {
     });
   });
 
+  it("saves and reloads the scaffold setting", async () => {
+    const factory = new IDBFactory();
+    const { storage, saved } = await savedStorage(factory);
+    await storage.persistence.save({
+      ...saved,
+      settings: { scaffold: "minimal" },
+    });
+
+    const reopened = await openBrowserStorage({ factory });
+    expect((await reopened.persistence.load()).settings).toEqual({
+      scaffold: "minimal",
+    });
+  });
+
   it("deletes a mission and its attempts once they leave the state", async () => {
     const factory = new IDBFactory();
     const { storage, saved } = await savedStorage(factory);

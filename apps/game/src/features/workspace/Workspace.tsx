@@ -1,4 +1,5 @@
 import { sha256Hex } from "@osp/curriculum/hash";
+import { wordFacts } from "@osp/matching-core";
 import type { Mission } from "@osp/mission-schema";
 import {
   useCallback,
@@ -18,7 +19,11 @@ import { targetListing } from "../compiler/targetListing";
 import { useToolchain } from "../compiler/toolchainContext";
 import type { CompilerDiagnostic } from "../compiler/types";
 import { nextMission, useMissionCatalog } from "../curriculum/missionCatalog";
-import { missionAnnotations } from "../diff/annotations";
+import {
+  manualLinks,
+  missionAnnotations,
+  shownAnnotations,
+} from "../diff/annotations";
 import { DiffPanel } from "../diff/DiffPanel";
 import { TargetListing } from "../diff/TargetListing";
 import { CEditor } from "../editor/CEditor";
@@ -26,12 +31,25 @@ import {
   usePlayerProgress,
   type SaveStatus,
 } from "../persistence/progressContext";
-import type { Attempt, MissionProgress } from "../persistence/schema";
+import {
+  scaffoldSetting,
+  type Attempt,
+  type MissionProgress,
+} from "../persistence/schema";
 import { attemptFrom } from "../progress/attempts";
 import { completionEvidence } from "../progress/evidence";
+import { presentationFor, selectScaffold } from "../progress/scaffold";
+import {
+  completionSkillChanges,
+  skillStateOf,
+  type SkillState,
+} from "../progress/skillState";
 import { BuildFeedback } from "../results/BuildFeedback";
 import { MatchSummary } from "../results/MatchSummary";
 import { MissionComplete } from "../results/MissionComplete";
+import { MemoryLayer } from "../scan/MemoryLayer";
+import scan from "../scan/Scan.module.css";
+import { ScanPanel } from "../scan/ScanPanel";
 import { useUpstream } from "../upstream/upstreamContext";
 import { canAcknowledge } from "./completion";
 import { HintPanel } from "./HintPanel";
@@ -97,14 +115,49 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
     () => (target === undefined ? [] : targetListing(target.words)),
     [target],
   );
-  const annotations = useMemo(() => missionAnnotations(mission), [mission]);
-  const linkedEntries = useMemo(
-    () =>
-      annotations.flatMap(({ manualEntry }) =>
-        manualEntry === undefined ? [] : [manualEntry],
-      ),
-    [annotations],
+  const facts = useMemo(
+    () => (target === undefined ? undefined : wordFacts(target.words)),
+    [target],
   );
+  // Help is chosen once per visit, so evidence recorded when the mission
+  // completes does not take notes away while the player is still looking.
+  const [{ plan, skillStates }] = useState(() => {
+    const states = new Map(
+      [
+        ...new Set([
+          ...mission.requires,
+          ...mission.teaches,
+          ...mission.practices,
+        ]),
+      ].map((skill): [string, SkillState] => [
+        skill,
+        skillStateOf(progress.state.skills, skill),
+      ]),
+    );
+    return {
+      skillStates: states,
+      plan: selectScaffold(
+        mission,
+        (skill) => states.get(skill) ?? "NEW",
+        scaffoldSetting(progress.state.settings),
+      ),
+    };
+  });
+  const annotations = useMemo(() => missionAnnotations(mission), [mission]);
+  const shown = useMemo(
+    () => shownAnnotations(annotations, plan),
+    [annotations, plan],
+  );
+  // The manual keeps every linked entry, whatever the notes show.
+  const linkedEntries = useMemo(() => manualLinks(annotations), [annotations]);
+  const { example } = mission;
+  // A diagram tied to a skill fades with it, like that skill's notes.
+  const showDiagram = presentationFor(
+    (example?.skill === undefined
+      ? undefined
+      : plan.skills.get(example.skill)) ?? plan.layout,
+    plan.automaticTeaching,
+  ).diagrams;
   const skillNames = useMemo(
     () => new Map(catalog.skills.map((skill) => [skill.id, skill.name])),
     [catalog],
@@ -178,11 +231,11 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
 
   const predictionChoice = state.actions.prediction?.choice;
   const { completedBuildId } = state;
+  const completionId = `${sessionId}:${String(completedBuildId)}`;
   useEffect(() => {
     if (!completed) {
       return;
     }
-    const completionId = `${sessionId}:${String(completedBuildId)}`;
     const at = now();
     const facts = { completionId, hintStage, completedAt: at };
     const evidence = completionEvidence(
@@ -204,8 +257,7 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
     );
   }, [
     completed,
-    completedBuildId,
-    sessionId,
+    completionId,
     hintStage,
     predictionChoice,
     mission,
@@ -301,6 +353,8 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
       <Briefing
         mission={mission}
         skillNames={skillNames}
+        skillStates={skillStates}
+        plan={plan}
         onEnter={() => {
           dispatch({ type: "entered" });
           record({ type: "mission-started", mission: missionRef, at: now() });
@@ -309,22 +363,9 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
     );
   }
 
-  if (completed && !state.reviewing) {
-    return (
-      <MissionComplete
-        mission={mission}
-        exact={result?.kind === "matched" && result.result.exact}
-        attempts={state.attempts}
-        hints={hintsUsed(state)}
-        skillNames={skillNames}
-        next={nextMission(catalog, mission.id)}
-        onReview={() => {
-          dispatch({ type: "review-requested" });
-        }}
-      />
-    );
-  }
-
+  // Completion shows above the workspace rather than replacing it, so the
+  // comparison and any prediction correction stay in view.
+  const showCompletion = completed && !state.reviewing;
   const stale = isStale(state);
   const canCompile =
     toolchain.status === "ready" &&
@@ -334,6 +375,14 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
     (hint) => hint.stage <= state.hintStage && hint.highlight !== undefined,
   )?.highlight;
   const { prediction } = state.actions;
+  const predictionOutcome =
+    mission.prediction === undefined || prediction === undefined
+      ? undefined
+      : {
+          chosen: mission.prediction.choices[prediction.choice] ?? "",
+          answer: mission.prediction.choices[mission.prediction.answer] ?? "",
+          correct: prediction.choice === mission.prediction.answer,
+        };
 
   const renderAssembly = (): ReactElement => {
     switch (context.kind) {
@@ -367,28 +416,44 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
         );
       case "resolving":
       case "ready":
-        return result?.kind === "matched" ? (
+        return (
           <>
-            <MatchSummary result={result.result} />
-            <DiffPanel
-              result={result.result}
-              stale={stale}
-              highlight={highlight}
-              annotations={annotations}
-            />
+            {result?.kind === "matched" ? (
+              <>
+                <MatchSummary result={result.result} />
+                <DiffPanel
+                  result={result.result}
+                  stale={stale}
+                  highlight={highlight}
+                  annotations={shown}
+                />
+              </>
+            ) : (
+              <TargetListing
+                lines={listing}
+                highlight={highlight}
+                annotations={shown}
+              />
+            )}
+            {showDiagram && example !== undefined && facts !== undefined ? (
+              <section className={scan.inline} aria-label="Machine diagram">
+                <h3 className={controls.label}>MEMORY</h3>
+                <MemoryLayer example={example} facts={facts} />
+              </section>
+            ) : null}
           </>
-        ) : (
-          <TargetListing
-            lines={listing}
-            highlight={highlight}
-            annotations={annotations}
-          />
         );
     }
   };
 
   return (
-    <div className={styles.workspace} onKeyDown={onKeyDown}>
+    <div
+      className={classNames(
+        styles.workspace,
+        showCompletion && styles.completing,
+      )}
+      onKeyDown={onKeyDown}
+    >
       <header className={styles.header}>
         <p className={controls.label}>OSP {mission.id}</p>
         <h1 className={styles.title}>{mission.title}</h1>
@@ -396,7 +461,28 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
         <p className={styles.status} role="status">
           {matchStatus(state, stale)}
         </p>
+        <a className={styles.mapLink} href="#/">
+          Mission map
+        </a>
       </header>
+
+      {showCompletion ? (
+        <MissionComplete
+          exact={result?.kind === "matched" && result.result.exact}
+          attempts={state.attempts}
+          hints={hintsUsed(state)}
+          prediction={predictionOutcome}
+          skillChanges={completionSkillChanges(
+            progress.state.skills,
+            completionId,
+          )}
+          skillNames={skillNames}
+          next={nextMission(catalog, mission.id)}
+          onContinue={() => {
+            dispatch({ type: "review-requested" });
+          }}
+        />
+      ) : null}
 
       <div
         className={styles.split}
@@ -456,6 +542,16 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
         </section>
       </div>
 
+      {state.overlay === "scan" ? (
+        <ScanPanel
+          annotations={annotations}
+          facts={facts}
+          example={example}
+          onClose={() => {
+            setOverlay("none");
+          }}
+        />
+      ) : null}
       {state.overlay === "hint" ? (
         <HintPanel
           mission={mission}
@@ -538,6 +634,16 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
             Acknowledge evidence
           </button>
         ) : null}
+        <button
+          className={controls.button}
+          type="button"
+          aria-pressed={state.overlay === "scan"}
+          onClick={() => {
+            toggleOverlay("scan");
+          }}
+        >
+          Scan
+        </button>
         <button
           className={controls.button}
           type="button"

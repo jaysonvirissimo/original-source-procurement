@@ -87,7 +87,19 @@ test("a training mission goes from a classified mismatch to an exact match", asy
   await page.keyboard.press("ControlOrMeta+Enter");
 
   await missionComplete(page);
-  await expect(page.getByText("EXACT MATCH", { exact: true })).toBeVisible();
+  const completion = page.getByRole("region", { name: "Mission complete" });
+  await expect(
+    completion.getByText("EXACT MATCH", { exact: true }),
+  ).toBeVisible();
+  await expect(completion.getByText("YES", { exact: true })).toBeVisible();
+  // Completion leaves the source and the comparison in view.
+  for (const locator of [
+    page.getByRole("textbox", { name: "C source" }),
+    page.getByRole("table", { name: "Target and generated instructions" }),
+    compileButton(page),
+  ]) {
+    await expect(locator).toBeInViewport();
+  }
 });
 
 test("a demonstration completes after a build and an acknowledgement", async ({
@@ -121,10 +133,17 @@ test("a prediction mission completes after a wrong prediction and one build", as
   await compile(page);
 
   await missionComplete(page);
-  await page.getByRole("button", { name: "Return to workspace" }).click();
+  // The correction stays in view with completion, before Continue.
   await expect(page.getByRole("region", { name: "Prediction" })).toContainText(
     "Answer: $a0.",
   );
+  await expect(
+    page.getByText("Not correct: you chose $v0; the answer is $a0."),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Continue" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Mission complete" }),
+  ).toHaveCount(0);
 });
 
 test("compiler errors and missing functions stay in the workspace and complete nothing", async ({
@@ -189,7 +208,7 @@ test("the primary flow works from the keyboard alone", async ({
 
   const heading = await missionComplete(page);
   await expect(heading).toBeFocused();
-  await tab(page.getByRole("button", { name: "Return to workspace" }));
+  await tab(page.getByRole("button", { name: "Continue" }));
   await page.keyboard.press("Enter");
   await expect(status(page)).toHaveText("EXACT MATCH");
 });

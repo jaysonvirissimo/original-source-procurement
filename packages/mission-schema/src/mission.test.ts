@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { PSYQ_WASM_DEFAULT_CPP_FLAGS } from "./compiler.ts";
+import type { MissionExample } from "./example.ts";
 import { isRealMissionKind, MISSION_KINDS, MissionSchema } from "./mission.ts";
 import {
   inlineTarget,
@@ -34,6 +35,201 @@ function issues(value: unknown) {
 function issue(path: string, message: string) {
   return { path, message };
 }
+
+describe("example values", () => {
+  const pointer: MissionExample = {
+    caption: "p holds address 0x1000; memory there holds 42.",
+    registers: [{ register: "$a0", value: 0x1000 }],
+    regions: [
+      {
+        label: "int at p",
+        address: 0x1000,
+        cells: [{ offset: 0, size: 4, label: "*p", value: 42 }],
+      },
+    ],
+  };
+
+  it("accepts a consistent example, including a pointer between regions", () => {
+    expect(
+      issues(
+        syntheticMission({
+          example: {
+            ...pointer,
+            skill: "ABI.RETURN",
+            regions: [
+              {
+                label: "struct Holder",
+                address: 0x3000,
+                cells: [
+                  {
+                    offset: 0x20,
+                    size: 4,
+                    label: "inner",
+                    value: 0x4000,
+                    pointsTo: "struct Inner",
+                  },
+                ],
+              },
+              {
+                label: "struct Inner",
+                address: 0x4000,
+                cells: [
+                  { offset: 0, size: 4, label: "x", value: 7 },
+                  { offset: 4, size: 1, label: "level", value: -3 },
+                  { offset: 5, size: 1, label: "count", value: 255 },
+                ],
+              },
+            ],
+          },
+        }),
+      ),
+    ).toEqual([]);
+  });
+
+  it.each<[string, MissionExample, string, string]>([
+    [
+      "an unlisted skill",
+      { ...pointer, skill: "MIPS.LOAD.WORD" },
+      "example.skill",
+      "An example's skill must be one the mission teaches or practices.",
+    ],
+    [
+      "a repeated register",
+      {
+        ...pointer,
+        registers: [
+          { register: "$a0", value: 1 },
+          { register: "$a0", value: 2 },
+        ],
+      },
+      "example.registers",
+      "Each register appears once.",
+    ],
+    [
+      "a repeated region label",
+      { ...pointer, regions: [...pointer.regions, ...pointer.regions] },
+      "example.regions",
+      "Each region has its own label.",
+    ],
+    [
+      "overlapping cells",
+      {
+        ...pointer,
+        regions: [
+          {
+            label: "int at p",
+            address: 0x1000,
+            cells: [
+              { offset: 0, size: 4, label: "a", value: 1 },
+              { offset: 2, size: 2, label: "b", value: 2 },
+            ],
+          },
+        ],
+      },
+      "example.regions.0.cells.1",
+      "Cells are listed by offset and must not overlap the cell before.",
+    ],
+    [
+      "a value too big for its size",
+      {
+        ...pointer,
+        regions: [
+          {
+            label: "byte",
+            address: 0x1000,
+            cells: [{ offset: 0, size: 1, label: "b", value: 256 }],
+          },
+        ],
+      },
+      "example.regions.0.cells.0.value",
+      "A cell's value must fit in its size.",
+    ],
+    [
+      "a misaligned cell",
+      {
+        ...pointer,
+        regions: [
+          {
+            label: "int",
+            address: 0x1001,
+            cells: [{ offset: 0, size: 4, label: "i", value: 1 }],
+          },
+        ],
+      },
+      "example.regions.0.cells.0.offset",
+      "A cell's address must be aligned to its size.",
+    ],
+    [
+      "a pointer to an unknown region",
+      {
+        ...pointer,
+        regions: [
+          {
+            label: "int at p",
+            address: 0x1000,
+            cells: [
+              {
+                offset: 0,
+                size: 4,
+                label: "next",
+                value: 0x2000,
+                pointsTo: "missing",
+              },
+            ],
+          },
+        ],
+      },
+      "example.regions.0.cells.0.pointsTo",
+      "A pointer cell is 4 bytes and holds the address of a region in the example.",
+    ],
+    [
+      "a pointer that does not hold its region's address",
+      {
+        ...pointer,
+        regions: [
+          {
+            label: "int at p",
+            address: 0x1000,
+            cells: [
+              {
+                offset: 0,
+                size: 4,
+                label: "self",
+                value: 0x2000,
+                pointsTo: "int at p",
+              },
+            ],
+          },
+        ],
+      },
+      "example.regions.0.cells.0.pointsTo",
+      "A pointer cell is 4 bytes and holds the address of a region in the example.",
+    ],
+  ])("rejects %s", (_name, example, path, message) => {
+    expect(issues(syntheticMission({ example }))).toEqual([
+      issue(path, message),
+    ]);
+  });
+
+  it("rejects a register that is not an ABI name", () => {
+    expect(
+      issues(
+        syntheticMission({
+          example: { ...pointer, registers: [{ register: "$4", value: 1 }] },
+        }),
+      ).map(({ path }) => path),
+    ).toEqual(["example.registers.0.register"]);
+  });
+
+  it("rejects an example on a mission with a remote target", () => {
+    expect(issues(realMission({ example: pointer }))).toContainEqual(
+      issue(
+        "example",
+        "Only missions with an inline target carry example values.",
+      ),
+    );
+  });
+});
 
 describe("valid missions", () => {
   it("accepts the synthetic and real builders", () => {
@@ -341,6 +537,34 @@ describe("hints", () => {
         "An annotation must stay inside the target function.",
       ),
     ]);
+  });
+
+  it("ties an annotation only to a skill the mission teaches or practices", () => {
+    const message =
+      "An annotation's skill must be one the mission teaches or practices.";
+    const found = issues(
+      syntheticMission({
+        teaches: ["ABI.RETURN"],
+        practices: ["ABI.ARGUMENT"],
+        annotations: [
+          { range: { start: 0, end: 1 }, text: "Taught.", skill: "ABI.RETURN" },
+          {
+            range: { start: 0, end: 1 },
+            text: "Practiced.",
+            skill: "ABI.ARGUMENT",
+          },
+          {
+            range: { start: 0, end: 1 },
+            text: "Unlisted.",
+            skill: "MIPS.LOAD.WORD",
+          },
+        ],
+      }),
+    );
+
+    expect(found).toContainEqual(issue("annotations.2.skill", message));
+    expect(found).not.toContainEqual(issue("annotations.0.skill", message));
+    expect(found).not.toContainEqual(issue("annotations.1.skill", message));
   });
 
   it("rejects annotations on a mission with a remote target", () => {

@@ -10,6 +10,10 @@
   min-height: 520px;
 }
 
+.completing {
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+}
+
 .header {
   display: flex;
   flex-wrap: wrap;
@@ -31,6 +35,12 @@
 }
 
 .status {
+  font-family: var(--osp-font-code);
+  font-size: var(--osp-font-size-label);
+  letter-spacing: 0.12em;
+}
+
+.mapLink {
   font-family: var(--osp-font-code);
   font-size: var(--osp-font-size-label);
   letter-spacing: 0.12em;

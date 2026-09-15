@@ -35,8 +35,26 @@ export const wrongSign: MissionDraft = {
       range: { start: 0, end: 1 },
       text: "This load follows the declared type of delta.",
       manualEntry: "matching.signedness",
+      skill: "MATCH.SIGNEDNESS",
     },
   ],
+  example: {
+    caption:
+      "delta's byte is 0xFD. The target loads it with lb, giving -3. Declared as plain char, which is unsigned in PsyQ, the same byte loads with lbu and gives 253. Only the declaration differs.",
+    skill: "MATCH.SIGNEDNESS",
+    registers: [{ register: "$a0", value: 0x2000, note: "r" }],
+    regions: [
+      {
+        label: "struct Rec",
+        address: 0x2000,
+        cells: [
+          { offset: 0, size: 4, label: "id", value: 5 },
+          { offset: 4, size: 1, label: "delta", value: -3 },
+          { offset: 5, size: 1, label: "count", value: 200 },
+        ],
+      },
+    ],
+  },
   hints: [
     {
       stage: 1,

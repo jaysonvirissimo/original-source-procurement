@@ -3,6 +3,7 @@ import { MissionAnnotationSchema } from "./annotation.ts";
 import { checkUpstreamBuild, CompilerSettingsSchema } from "./compiler.ts";
 import { CompletionRuleSchema } from "./completion.ts";
 import { DifficultyProfileSchema } from "./difficulty.ts";
+import { checkExample, MissionExampleSchema } from "./example.ts";
 import { HintSchema } from "./hint.ts";
 import { PredictionPromptSchema } from "./prediction.ts";
 import {
@@ -80,6 +81,8 @@ const MissionObjectSchema = z.strictObject({
   hints: z.array(HintSchema),
   // Synthetic missions only: notes on target words for guided play.
   annotations: z.array(MissionAnnotationSchema).optional(),
+  // Synthetic missions only: made-up values for machine diagrams.
+  example: MissionExampleSchema.optional(),
   difficulty: DifficultyProfileSchema,
 });
 type MissionShape = z.infer<typeof MissionObjectSchema>;
@@ -93,6 +96,20 @@ export const MissionSchema = MissionObjectSchema.superRefine((mission, ctx) => {
   checkTaughtSkills(mission, report);
   checkHints(mission, report);
   checkAnnotations(mission, report);
+  if (mission.example !== undefined) {
+    if (mission.target.kind === "inline") {
+      checkExample(
+        mission.example,
+        new Set([...mission.teaches, ...mission.practices]),
+        report,
+      );
+    } else {
+      report(
+        ["example"],
+        "Only missions with an inline target carry example values.",
+      );
+    }
+  }
   if (
     (mission.kind === "prediction" ||
       mission.completion === "prediction-recorded") &&
@@ -120,11 +137,18 @@ function checkAnnotations(mission: MissionShape, report: Report): void {
     return;
   }
   const wordCount = mission.target.words.length;
+  const listed = new Set([...mission.teaches, ...mission.practices]);
   mission.annotations.forEach((annotation, index) => {
     if (annotation.range.end > wordCount) {
       report(
         ["annotations", index, "range"],
         "An annotation must stay inside the target function.",
+      );
+    }
+    if (annotation.skill !== undefined && !listed.has(annotation.skill)) {
+      report(
+        ["annotations", index, "skill"],
+        "An annotation's skill must be one the mission teaches or practices.",
       );
     }
   });

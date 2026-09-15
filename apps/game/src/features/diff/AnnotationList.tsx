@@ -1,27 +1,23 @@
 import type { ReactElement } from "react";
-import type { WordAnnotation } from "./annotations";
+import type { ShownAnnotation } from "./annotations";
+import { wordsLabel } from "./diffLabels";
 import styles from "./DiffPanel.module.css";
 
 interface AnnotationListProps {
-  readonly annotations: readonly WordAnnotation[];
+  readonly annotations: readonly ShownAnnotation[];
 }
 
-function wordsLabel({ start, end }: WordAnnotation["range"]): string {
-  return end - start === 1
-    ? `Word ${String(start)}`
-    : `Words ${String(start)}–${String(end - 1)}`;
-}
-
-/** The full text of the notes labelled in the Note column. */
+/** The full text of the labelled notes the current help level explains. */
 export function AnnotationList({
   annotations,
 }: AnnotationListProps): ReactElement | null {
-  if (annotations.length === 0) {
+  const explained = annotations.filter((annotation) => annotation.explained);
+  if (explained.length === 0) {
     return null;
   }
   return (
     <ul className={styles.mismatches} aria-label="Annotations">
-      {annotations.map((annotation, index) => (
+      {explained.map((annotation, index) => (
         <li className={styles.mismatch} key={index}>
           <p className={styles.kind}>
             {wordsLabel(annotation.range)} · {annotation.label}

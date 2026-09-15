@@ -12,6 +12,12 @@ export {
 } from "./extract.ts";
 export { compareFunction, matchFunction } from "./match.ts";
 export {
+  usesStack,
+  wordFacts,
+  type MemoryAccess,
+  type WordFacts,
+} from "./scan.ts";
+export {
   MISMATCH_KINDS,
   type AlignmentRow,
   type AlignmentStatus,

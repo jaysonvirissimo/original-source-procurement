@@ -215,6 +215,23 @@ describe("load and store classification", () => {
     ]);
 
     expect(kinds(result.mismatches)).toEqual(["OPCODE"]);
+    expect(result.mismatches[0]?.evidence).toEqual([
+      expect.stringMatching(
+        /^The instructions differ\. Target: lw .*; yours: sw .*\.$/,
+      ),
+    ]);
+  });
+
+  it("names an aliased instruction in OPCODE evidence as the listing shows it", () => {
+    const result = compare(linkedTarget(["addiu $2,$4,5", ...RETURN]), [
+      "addu $2,$4,$0",
+      ...RETURN,
+    ]);
+
+    expect(kinds(result.mismatches)).toEqual(["OPCODE"]);
+    const [evidence] = result.mismatches[0]?.evidence ?? [];
+    expect(evidence).toContain("yours: move $v0,$a0");
+    expect(evidence).not.toContain("addu");
   });
 });
 

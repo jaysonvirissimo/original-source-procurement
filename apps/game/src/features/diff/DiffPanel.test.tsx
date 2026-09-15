@@ -140,11 +140,13 @@ describe("DiffPanel", () => {
             range: { start: 1, end: 2 },
             label: "delay slot",
             text: "Runs before the jump takes effect.",
+            explained: true,
           },
           {
             range: { start: 0, end: 2 },
             label: "note",
             text: "The whole function.",
+            explained: true,
           },
         ]}
       />,
@@ -167,5 +169,38 @@ describe("DiffPanel", () => {
       "Word 1 · delay slotRuns before the jump takes effect.",
       "Words 0–1 · noteThe whole function.",
     ]);
+  });
+
+  it("labels an inserted nop once when an annotation names it too", () => {
+    const nopFirst: MatchResult = {
+      ...result,
+      generated: result.generated.map((word) =>
+        word.index === 0
+          ? { ...word, origin: { line: 1, kind: "branch-delay-nop" } }
+          : word,
+      ),
+    };
+    render(
+      <DiffPanel
+        result={nopFirst}
+        stale={false}
+        highlight={undefined}
+        annotations={[
+          {
+            range: { start: 0, end: 1 },
+            label: "branch delay nop",
+            text: "The assembler inserted this nop.",
+            explained: true,
+          },
+        ]}
+      />,
+    );
+
+    const rows = within(
+      screen.getByRole("table", { name: "Target and generated instructions" }),
+    ).getAllByRole("row");
+    expect(rows[1]?.textContent).toBe(
+      "≈Equal outside relocated fieldslw $v1,0x20($a0)lw $v1,0x20($a0)branch delay nop",
+    );
   });
 });

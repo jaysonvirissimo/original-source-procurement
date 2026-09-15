@@ -31,10 +31,17 @@ export function PredictionPanel({
           Your prediction: <code>{prompt.choices[recorded.choice]}</code>
         </p>
         {revealed ? (
-          <p>
-            Answer: <code>{prompt.choices[prompt.answer]}</code>.{" "}
-            {prompt.revealedBy}
-          </p>
+          <>
+            <p>
+              {recorded.choice === prompt.answer
+                ? "Your prediction was correct."
+                : "Your prediction was not correct."}
+            </p>
+            <p>
+              Answer: <code>{prompt.choices[prompt.answer]}</code>.{" "}
+              {prompt.revealedBy}
+            </p>
+          </>
         ) : (
           <p className={styles.dim}>
             Compile to check it against the assembled output.

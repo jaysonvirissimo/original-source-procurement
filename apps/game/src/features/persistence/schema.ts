@@ -120,8 +120,23 @@ export const SkillProgressSchema = z.strictObject({
 });
 export type SkillProgress = z.infer<typeof SkillProgressSchema>;
 
-export const SettingsSchema = z.strictObject({});
+/**
+ * How teaching help is chosen: `adaptive` fades it per skill, `full` always
+ * gives each mission's most help, and `minimal` turns automatic overlays off.
+ */
+export const SCAFFOLD_SETTINGS = ["adaptive", "full", "minimal"] as const;
+export type ScaffoldSetting = (typeof SCAFFOLD_SETTINGS)[number];
+
+// Fields are optional with defaults read through accessors, so adding one
+// needs no migration and older saves stay valid.
+export const SettingsSchema = z.strictObject({
+  scaffold: z.enum(SCAFFOLD_SETTINGS).optional(),
+});
 export type Settings = z.infer<typeof SettingsSchema>;
+
+export function scaffoldSetting(settings: Settings): ScaffoldSetting {
+  return settings.scaffold ?? "adaptive";
+}
 
 export const PlayerStateSchema = z
   .strictObject({

@@ -282,6 +282,23 @@ describe("progressReducer", () => {
     expect(next.skills).toBe(state.skills);
   });
 
+  it("changes settings, keeping the state object when nothing changed", () => {
+    const state = samplePlayer();
+    const minimal = progressReducer(state, {
+      type: "settings-changed",
+      settings: { scaffold: "minimal" },
+    });
+
+    expect(minimal.settings).toEqual({ scaffold: "minimal" });
+    expect(minimal.missions).toBe(state.missions);
+    expect(
+      progressReducer(minimal, {
+        type: "settings-changed",
+        settings: { scaffold: "minimal" },
+      }),
+    ).toBe(minimal);
+  });
+
   it("replaces the whole state", () => {
     const replacement = samplePlayer();
     expect(

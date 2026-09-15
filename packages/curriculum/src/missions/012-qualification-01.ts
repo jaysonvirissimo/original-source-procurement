@@ -32,6 +32,34 @@ export const qualification01: MissionDraft = {
   starterSource: `${STRUCTS}void qualification(struct Holder *h)\n{\n}\n`,
   solution: `${STRUCTS}void qualification(struct Holder *h)\n{\n    h->inner->x = h->inner->level;\n}\n`,
   symbol: "qualification",
+  example: {
+    caption:
+      "h holds 0x3000. pad fills offsets 0 to 0x1F, eight 4-byte ints, so inner sits at +0x20. inner holds another address, 0x4000, where a struct Inner starts. Its x is at +0 and level at +4.",
+    registers: [{ register: "$a0", value: 0x3000, note: "h" }],
+    regions: [
+      {
+        label: "struct Holder",
+        address: 0x3000,
+        cells: [
+          {
+            offset: 0x20,
+            size: 4,
+            label: "inner",
+            value: 0x4000,
+            pointsTo: "struct Inner",
+          },
+        ],
+      },
+      {
+        label: "struct Inner",
+        address: 0x4000,
+        cells: [
+          { offset: 0, size: 4, label: "x", value: 7 },
+          { offset: 4, size: 1, label: "level", value: -3 },
+        ],
+      },
+    ],
+  },
   hints: [
     {
       stage: 1,

@@ -24,6 +24,22 @@ export const storeWord: MissionDraft = {
   starterSource: "void store_word(int *p, int v)\n{\n}\n",
   solution: "void store_word(int *p, int v)\n{\n    *p = v;\n}\n",
   symbol: "store_word",
+  example: {
+    caption:
+      "p is 0x1000 and v is 7. Before the call, the int at 0x1000 is 42. sw copies the 7 from $a1 into that memory, so afterwards *p is 7. Nothing is returned.",
+    skill: "MIPS.STORE.WORD",
+    registers: [
+      { register: "$a0", value: 0x1000, note: "p" },
+      { register: "$a1", value: 7, note: "v" },
+    ],
+    regions: [
+      {
+        label: "int at p",
+        address: 0x1000,
+        cells: [{ offset: 0, size: 4, label: "*p", value: 42 }],
+      },
+    ],
+  },
   hints: [
     {
       stage: 1,

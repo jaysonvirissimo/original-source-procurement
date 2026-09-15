@@ -1,27 +1,49 @@
 import type { Mission } from "@osp/mission-schema";
 import { useEffect, useId, useRef, type ReactElement } from "react";
 import controls from "../../styles/controls.module.css";
+import { SKILL_STATE_LABELS, type SkillChange } from "../progress/skillState";
 import styles from "./MissionComplete.module.css";
 
+export interface PredictionOutcome {
+  readonly chosen: string;
+  readonly answer: string;
+  readonly correct: boolean;
+}
+
 interface MissionCompleteProps {
-  readonly mission: Pick<Mission, "id" | "title" | "teaches">;
   readonly exact: boolean;
   readonly attempts: number;
   readonly hints: number;
+  /** The prediction recorded before the completing build, if any. */
+  readonly prediction: PredictionOutcome | undefined;
+  /** Each skill this completion recorded, before and after it. */
+  readonly skillChanges: readonly SkillChange[];
   readonly skillNames: ReadonlyMap<string, string>;
   /** The next mission on the recommended path, if there is one. */
   readonly next: Pick<Mission, "id" | "title"> | undefined;
-  readonly onReview: () => void;
+  readonly onContinue: () => void;
 }
 
+function skillLine(change: SkillChange, name: string): string {
+  const state = SKILL_STATE_LABELS[change.after];
+  return change.before === change.after
+    ? `${name}: still ${state}`
+    : `${name}: now ${state}`;
+}
+
+/**
+ * Shown above the workspace, so the comparison and any prediction
+ * correction stay in view until the player continues.
+ */
 export function MissionComplete({
-  mission,
   exact,
   attempts,
   hints,
+  prediction,
+  skillChanges,
   skillNames,
   next,
-  onReview,
+  onContinue,
 }: MissionCompleteProps): ReactElement {
   const heading = useRef<HTMLHeadingElement>(null);
   const titleId = useId();
@@ -32,12 +54,9 @@ export function MissionComplete({
 
   return (
     <section className={styles.panel} aria-labelledby={titleId}>
-      <p className={controls.label}>
-        OSP {mission.id} · {mission.title}
-      </p>
-      <h1 className={styles.title} id={titleId} ref={heading} tabIndex={-1}>
+      <h2 className={styles.title} id={titleId} ref={heading} tabIndex={-1}>
         Mission complete
-      </h1>
+      </h2>
       <dl className={styles.facts}>
         <dt>EXACT MATCH</dt>
         <dd>{exact ? "YES" : "NO"}</dd>
@@ -45,33 +64,54 @@ export function MissionComplete({
         <dd>{attempts}</dd>
         <dt>HINTS</dt>
         <dd>{hints}</dd>
+        {prediction === undefined ? null : (
+          <>
+            <dt>PREDICTION</dt>
+            <dd>
+              {prediction.correct ? (
+                <>
+                  Correct: <code>{prediction.answer}</code>
+                </>
+              ) : (
+                <>
+                  Not correct: you chose <code>{prediction.chosen}</code>; the
+                  answer is <code>{prediction.answer}</code>.
+                </>
+              )}
+            </dd>
+          </>
+        )}
       </dl>
-      {mission.teaches.length === 0 ? (
-        <p className={styles.note}>
-          No new skill: this mission practices skills taught earlier.
-        </p>
-      ) : (
+      {skillChanges.length === 0 ? null : (
         <div className={styles.skills}>
-          <h2 className={controls.label}>Skill verified</h2>
+          <h3 className={controls.label}>Skills</h3>
           <ul className={styles.skillList}>
-            {mission.teaches.map((skill) => (
-              <li key={skill}>
-                <code>{skill}</code> {skillNames.get(skill)}
+            {skillChanges.map((change) => (
+              <li key={change.skill}>
+                {skillLine(
+                  change,
+                  skillNames.get(change.skill) ?? change.skill,
+                )}
               </li>
             ))}
           </ul>
+          {skillChanges.some((change) => change.solutionRevealed) ? (
+            <p className={styles.note}>
+              The solution was revealed, so this completion does not advance
+              skills.
+            </p>
+          ) : null}
         </div>
       )}
       <div className={styles.actions}>
-        <button className={controls.button} type="button" onClick={onReview}>
-          Return to workspace
+        <button className={controls.button} type="button" onClick={onContinue}>
+          Continue
         </button>
         {next === undefined ? null : (
           <a href={`#/mission/${encodeURIComponent(next.id)}`}>
             Next mission · {next.id} {next.title}
           </a>
         )}
-        <a href="#/">Mission map</a>
       </div>
     </section>
   );

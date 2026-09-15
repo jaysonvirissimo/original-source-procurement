@@ -12,6 +12,7 @@ import { PersistenceProvider } from "../features/persistence/PersistenceProvider
 import { SaveNotices } from "../features/persistence/SaveNotices";
 import type { BrowserStorage } from "../features/persistence/types";
 import { SaveDataPanel } from "../features/settings/SaveDataPanel";
+import { ScaffoldSettingPanel } from "../features/settings/ScaffoldSettingPanel";
 import { ToolchainPanel } from "../features/settings/ToolchainPanel";
 import type { UpstreamService } from "../features/upstream/types";
 import {
@@ -90,6 +91,7 @@ export function RouteView({ route }: RouteViewProps): ReactElement {
           title="Settings"
           message="Save data stays in this browser. Export it to keep a copy or move it to another browser."
         >
+          <ScaffoldSettingPanel />
           <SaveDataPanel />
           <ToolchainPanel />
         </RoutePanel>
