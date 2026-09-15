@@ -6,7 +6,7 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
-import { useEffect, type ReactElement } from "react";
+import { useLayoutEffect, type ReactElement } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { deferred } from "../../test/fakeToolchain";
 import { saveDataError } from "./errors";
@@ -44,7 +44,9 @@ afterEach(() => {
 function Probe(): ReactElement {
   const progress = usePlayerProgress();
   const saveData = useSaveData();
-  useEffect(() => {
+  // A layout effect runs as the render commits, so the captured value is
+  // current by the time a test can find the probe's text.
+  useLayoutEffect(() => {
     captured = { progress, saveData };
   });
   return (
