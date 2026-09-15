@@ -7,6 +7,9 @@
   background: var(--osp-surface-2);
   color: var(--osp-text);
   cursor: pointer;
+  transition:
+    border-color var(--osp-fast),
+    color var(--osp-fast);
 }
 
 .button:hover:not(:disabled) {

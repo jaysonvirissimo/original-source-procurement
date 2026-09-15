@@ -7,7 +7,7 @@
   border: var(--osp-border) solid var(--osp-line);
   border-left: var(--osp-border-strong) solid var(--osp-grid);
   border-radius: var(--osp-radius);
-  background: var(--osp-surface-0);
+  background: var(--osp-frame-ticks), var(--osp-surface-0);
 }
 
 .title {
@@ -16,11 +16,15 @@
   letter-spacing: 0.08em;
 }
 
+/* An instrument readout under the title: a rule, then label and value columns. */
 .facts {
   display: grid;
   grid-template-columns: max-content 1fr;
   gap: var(--osp-space-2) var(--osp-space-4);
+  justify-self: stretch;
   margin: 0;
+  padding-top: var(--osp-space-4);
+  border-top: var(--osp-border) solid var(--osp-line);
 }
 
 .facts dt {

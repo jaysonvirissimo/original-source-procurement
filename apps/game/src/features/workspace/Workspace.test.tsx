@@ -18,6 +18,8 @@ import type { ReactElement } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { deferred, fakeToolchain } from "../../test/fakeToolchain";
 import { memoryProgress } from "../../test/progressStorage";
+import { AudioServiceContext } from "../audio/audioContext";
+import { silentAudio, type AudioService } from "../audio/sounds";
 import { ToolchainProvider } from "../compiler/ToolchainProvider";
 import type { BuildOutcome, ToolchainService } from "../compiler/types";
 import { saveDataError } from "../persistence/errors";
@@ -57,6 +59,7 @@ interface RenderOptions {
   readonly createToolchain?: () => Promise<ToolchainService>;
   readonly upstream?: UpstreamService;
   readonly player?: PlayerState;
+  readonly audio?: AudioService;
 }
 
 /** Renders the workspace inside memory-backed progress, once it has loaded. */
@@ -65,17 +68,21 @@ async function renderWorkspace(mission: Mission, options: RenderOptions = {}) {
   const progress = memoryProgress(options.player);
   const tree = (content: ReactElement) =>
     progress.wrap(
-      <ToolchainProvider
-        createToolchain={
-          options.createToolchain ?? (() => Promise.resolve(service))
-        }
-      >
-        {options.upstream === undefined ? (
-          content
-        ) : (
-          <UpstreamContext value={options.upstream}>{content}</UpstreamContext>
-        )}
-      </ToolchainProvider>,
+      <AudioServiceContext value={options.audio ?? silentAudio}>
+        <ToolchainProvider
+          createToolchain={
+            options.createToolchain ?? (() => Promise.resolve(service))
+          }
+        >
+          {options.upstream === undefined ? (
+            content
+          ) : (
+            <UpstreamContext value={options.upstream}>
+              {content}
+            </UpstreamContext>
+          )}
+        </ToolchainProvider>
+      </AudioServiceContext>,
     );
   const workspace = (key: string) => (
     <Workspace
@@ -168,6 +175,25 @@ describe("Workspace", () => {
     expect(screen.getByText("ATTEMPT 00")).toBeTruthy();
     await whenEnabled(compileButton);
     expect(service.build).not.toHaveBeenCalled();
+  });
+
+  it("plays cues for compiling, the build's result, and completion", async () => {
+    const audio = { play: vi.fn() };
+    await renderWorkspace(addImmediate, {
+      service: fakeToolchain(exact003),
+      audio,
+    });
+    enter();
+
+    await compileWhenReady();
+    await waitFor(() => {
+      expect(audio.play).toHaveBeenCalledWith("mission-complete", 0.8);
+    });
+    expect(audio.play.mock.calls.map(([cue]) => cue as string)).toEqual([
+      "compile",
+      "exact-match",
+      "mission-complete",
+    ]);
   });
 
   it("classifies a mismatch, marks it stale after an edit, and completes on an exact match", async () => {

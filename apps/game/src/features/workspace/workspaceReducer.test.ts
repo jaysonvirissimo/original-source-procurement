@@ -153,6 +153,29 @@ describe("builds", () => {
     expect(isStale(state)).toBe(false);
   });
 
+  it("remembers the score of the comparison before the latest one", () => {
+    const first = compileAndResolve(
+      hashed(),
+      matchedResult(exactMission, request(exactMission, 1, SOURCE), false),
+    );
+    expect(first.previousScore).toBeUndefined();
+    const firstScore =
+      first.result?.kind === "matched" ? first.result.result.score : -1;
+    expect(firstScore).toBeLessThan(1);
+
+    const second = compileAndResolve(
+      first,
+      matchedResult(exactMission, request(exactMission, 2, SOURCE)),
+    );
+    expect(second.previousScore).toBe(firstScore);
+
+    const third = compileAndResolve(
+      second,
+      matchedResult(exactMission, request(exactMission, 3, SOURCE), false),
+    );
+    expect(third.previousScore).toBe(1);
+  });
+
   it("drops a result for an older request or another mission", () => {
     const started = run(
       hashed(),

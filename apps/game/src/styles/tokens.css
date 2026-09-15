@@ -47,4 +47,16 @@
 
   --osp-content-width: 720px;
   --osp-grid-cell: 48px;
+
+  /* Thin corner ticks for in-world technical panels, layered over a surface. */
+  --osp-frame-tick: var(--osp-space-3);
+  --osp-frame-ticks:
+    linear-gradient(var(--osp-grid), var(--osp-grid)) top right /
+      var(--osp-frame-tick) var(--osp-border-strong) no-repeat,
+    linear-gradient(var(--osp-grid), var(--osp-grid)) top right /
+      var(--osp-border-strong) var(--osp-frame-tick) no-repeat,
+    linear-gradient(var(--osp-grid), var(--osp-grid)) bottom right /
+      var(--osp-frame-tick) var(--osp-border-strong) no-repeat,
+    linear-gradient(var(--osp-grid), var(--osp-grid)) bottom right /
+      var(--osp-border-strong) var(--osp-frame-tick) no-repeat;
 }

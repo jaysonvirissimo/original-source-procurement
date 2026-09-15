@@ -16,7 +16,8 @@
   border: var(--osp-border) solid var(--osp-line);
   border-left: var(--osp-border-strong) solid var(--osp-grid);
   border-radius: var(--osp-radius);
-  background: var(--osp-surface-0);
+  /* The corner ticks stay on the panel's frame while its content scrolls. */
+  background: var(--osp-frame-ticks), var(--osp-surface-0);
 }
 
 .header {

@@ -7,7 +7,13 @@ import {
 } from "./persistence.test-helpers";
 import {
   AttemptSchema,
+  audioSettings,
+  DEFAULT_AUDIO_SETTINGS,
   emptyPlayerState,
+  GRAPHICS_SETTINGS,
+  graphicsSetting,
+  MOTION_SETTINGS,
+  motionSetting,
   PlayerStateSchema,
   SCAFFOLD_SETTINGS,
   scaffoldSetting,
@@ -24,6 +30,39 @@ describe("SettingsSchema", () => {
     expect(scaffoldSetting(SettingsSchema.parse({}))).toBe("adaptive");
     expect(SettingsSchema.safeParse({ scaffold: "loud" }).success).toBe(false);
     expect(SettingsSchema.safeParse({ theme: "dark" }).success).toBe(false);
+  });
+
+  it.each(GRAPHICS_SETTINGS)("accepts the %s graphics setting", (graphics) => {
+    expect(graphicsSetting(SettingsSchema.parse({ graphics }))).toBe(graphics);
+  });
+
+  it.each(MOTION_SETTINGS)("accepts the %s motion setting", (motion) => {
+    expect(motionSetting(SettingsSchema.parse({ motion }))).toBe(motion);
+  });
+
+  it("reads saves without presentation settings as full graphics, system motion, and default audio", () => {
+    const settings = SettingsSchema.parse({});
+    expect(graphicsSetting(settings)).toBe("full");
+    expect(motionSetting(settings)).toBe("system");
+    expect(audioSettings(settings)).toEqual(DEFAULT_AUDIO_SETTINGS);
+  });
+
+  it("keeps audio channels independent and bounded", () => {
+    const audio = {
+      music: { volume: 0, muted: true },
+      sfx: { volume: 1, muted: false },
+    };
+    expect(audioSettings(SettingsSchema.parse({ audio }))).toEqual(audio);
+    expect(
+      SettingsSchema.safeParse({
+        audio: { ...audio, sfx: { volume: 1.5, muted: false } },
+      }).success,
+    ).toBe(false);
+    expect(
+      SettingsSchema.safeParse({ audio: { music: audio.music } }).success,
+    ).toBe(false);
+    expect(SettingsSchema.safeParse({ graphics: "ultra" }).success).toBe(false);
+    expect(SettingsSchema.safeParse({ motion: "none" }).success).toBe(false);
   });
 });
 
