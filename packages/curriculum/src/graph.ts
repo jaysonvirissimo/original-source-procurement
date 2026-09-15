@@ -1,3 +1,26 @@
+import type { Mission, Skill } from "@osp/mission-schema";
+
+/**
+ * The skills a mission expects the player to have been taught already: what
+ * it requires, what it practices without teaching, and the prerequisites of
+ * what it teaches. Each skill appears once, in that order. Prerequisites of a
+ * skill missing from `skillsById` are not known and are left out.
+ */
+export function missionNeeds(
+  mission: Pick<Mission, "requires" | "teaches" | "practices">,
+  skillsById: ReadonlyMap<string, Pick<Skill, "prerequisites">>,
+): readonly string[] {
+  return [
+    ...new Set([
+      ...mission.requires,
+      ...mission.practices.filter((skill) => !mission.teaches.includes(skill)),
+      ...mission.teaches.flatMap(
+        (skill) => skillsById.get(skill)?.prerequisites ?? [],
+      ),
+    ]),
+  ];
+}
+
 /**
  * Finds a cycle in a graph given as node → outgoing edges. Edges to nodes
  * outside the graph are ignored. Nodes are visited in sorted order, so the

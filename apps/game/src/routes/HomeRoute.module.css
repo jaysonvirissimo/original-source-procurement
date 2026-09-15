@@ -1,7 +1,7 @@
 .home {
   display: grid;
   gap: var(--osp-space-6);
-  width: min(100%, var(--osp-content-width));
+  width: min(100%, calc(var(--osp-grid-cell) * 24));
 }
 
 .heading {
@@ -27,66 +27,5 @@
 .name {
   font-size: var(--osp-font-size-title);
   letter-spacing: 0.04em;
-  color: var(--osp-text-dim);
-}
-
-.map {
-  display: grid;
-  gap: var(--osp-space-2);
-  padding: var(--osp-space-5);
-  border: var(--osp-border) solid var(--osp-line);
-  border-left: var(--osp-border-strong) solid var(--osp-grid);
-  border-radius: var(--osp-radius);
-  background: var(--osp-surface-0);
-}
-
-.mapLabel {
-  font-size: var(--osp-font-size-label);
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--osp-grid);
-}
-
-.missions {
-  display: grid;
-  gap: var(--osp-space-1);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.row {
-  display: flex;
-  align-items: baseline;
-  gap: var(--osp-space-3);
-}
-
-.started,
-.complete {
-  font-family: var(--osp-font-code);
-  font-size: var(--osp-font-size-label);
-  letter-spacing: 0.12em;
-  color: var(--osp-text-dim);
-}
-
-.complete {
-  color: var(--osp-grid);
-}
-
-.mission {
-  display: inline-flex;
-  gap: var(--osp-space-3);
-  color: var(--osp-text);
-  text-decoration: none;
-  letter-spacing: 0.06em;
-}
-
-.mission:hover {
-  color: var(--osp-grid);
-}
-
-.missionId {
-  font-family: var(--osp-font-code);
   color: var(--osp-text-dim);
 }

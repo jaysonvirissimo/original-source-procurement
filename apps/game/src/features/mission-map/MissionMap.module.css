@@ -1,0 +1,275 @@
+.map {
+  display: grid;
+  gap: var(--osp-space-4);
+  padding: var(--osp-space-5);
+  border: var(--osp-border) solid var(--osp-line);
+  border-left: var(--osp-border-strong) solid var(--osp-grid);
+  border-radius: var(--osp-radius);
+  background: var(--osp-frame-ticks), var(--osp-surface-0);
+}
+
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--osp-space-2) var(--osp-space-5);
+}
+
+.title {
+  font-size: var(--osp-font-size-label);
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--osp-grid);
+}
+
+.readout {
+  font-family: var(--osp-font-code);
+  font-size: var(--osp-font-size-label);
+  color: var(--osp-text-dim);
+}
+
+.views {
+  display: flex;
+  gap: var(--osp-space-1);
+  margin-left: auto;
+}
+
+.next {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--osp-space-2) var(--osp-space-5);
+  color: var(--osp-text-dim);
+}
+
+.next a {
+  color: var(--osp-text);
+}
+
+.next a:hover {
+  color: var(--osp-grid);
+}
+
+/* Map view: one lane per training phase, then the field and live regions. */
+.lanes {
+  display: grid;
+  gap: var(--osp-space-3);
+}
+
+.lane {
+  display: grid;
+  grid-template-columns: calc(var(--osp-grid-cell) * 4) 1fr;
+  gap: var(--osp-space-4);
+  align-items: start;
+  padding-top: var(--osp-space-3);
+  border-top: var(--osp-border) solid var(--osp-grid-dim);
+}
+
+/*
+ * On the map, a missing-skill warning opens with its node so the lanes stay
+ * quiet. It stays in the accessibility tree, and the list view shows it inline.
+ */
+.nodes .warning {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1;
+  display: none;
+  width: 100%;
+  margin-top: var(--osp-space-1);
+  padding: var(--osp-space-2);
+  border: var(--osp-border) solid var(--osp-warning);
+  border-radius: var(--osp-radius);
+  background: var(--osp-surface-2);
+}
+
+.nodes .node:hover .warning,
+.nodes .node:focus-within .warning {
+  display: block;
+}
+
+.tierRegion {
+  padding: var(--osp-space-3);
+  border: var(--osp-border) dashed var(--osp-grid-dim);
+  background: var(--osp-void);
+}
+
+.laneHeading {
+  display: grid;
+  gap: var(--osp-space-1);
+}
+
+.laneTitle {
+  font-family: var(--osp-font-code);
+  font-size: var(--osp-font-size-label);
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--osp-grid);
+}
+
+.tierRegion .laneTitle {
+  color: var(--osp-text-dim);
+}
+
+.laneDetail,
+.empty,
+.count {
+  font-size: var(--osp-font-size-label);
+  color: var(--osp-text-faint);
+}
+
+.nodes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--osp-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* A short grid line joins each node to the one before it in its lane. */
+.nodes > .node + .node::before {
+  content: "";
+  position: absolute;
+  top: calc(var(--osp-space-3) + 0.5em);
+  right: 100%;
+  width: var(--osp-space-3);
+  border-top: var(--osp-border) solid var(--osp-grid-dim);
+}
+
+.node {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: var(--osp-space-1);
+  width: calc(var(--osp-grid-cell) * 3.5);
+  padding: var(--osp-space-2) var(--osp-space-3);
+  border: var(--osp-border) solid var(--osp-line);
+  border-radius: var(--osp-radius);
+  background: var(--osp-surface-1);
+}
+
+.node:focus-within {
+  border-color: var(--osp-focus);
+}
+
+.nodeLink {
+  display: inline-flex;
+  gap: var(--osp-space-2);
+  color: var(--osp-text);
+  text-decoration: none;
+  letter-spacing: 0.06em;
+}
+
+/* The whole node is the link's click target. */
+.nodeLink::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.nodeLink:hover {
+  color: var(--osp-grid);
+}
+
+.nodeId {
+  font-family: var(--osp-font-code);
+  color: var(--osp-text-dim);
+}
+
+.marks {
+  font-family: var(--osp-font-code);
+  font-size: var(--osp-font-size-label);
+  letter-spacing: 0.12em;
+  color: var(--osp-text-dim);
+}
+
+.warning {
+  font-size: var(--osp-font-size-label);
+  color: var(--osp-warning);
+}
+
+.complete {
+  border-left: var(--osp-border-strong) solid var(--osp-grid);
+}
+
+.complete .marks {
+  color: var(--osp-grid);
+}
+
+.recommended {
+  border-color: var(--osp-grid);
+  background: var(--osp-frame-ticks), var(--osp-surface-2);
+}
+
+.recommended .marks {
+  color: var(--osp-match);
+}
+
+.unready {
+  border-style: dashed;
+}
+
+/* List view: a search over the same nodes, one per row. */
+.list {
+  display: grid;
+  gap: var(--osp-space-3);
+}
+
+.search {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--osp-space-2) var(--osp-space-3);
+}
+
+.searchLabel {
+  font-family: var(--osp-font-code);
+  font-size: var(--osp-font-size-label);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--osp-grid);
+}
+
+.searchInput {
+  flex: 1 1 calc(var(--osp-grid-cell) * 5);
+  font: inherit;
+  padding: var(--osp-space-1) var(--osp-space-2);
+  border: var(--osp-border) solid var(--osp-grid-dim);
+  border-radius: var(--osp-radius);
+  background: var(--osp-surface-1);
+  color: var(--osp-text);
+}
+
+.rows {
+  display: grid;
+  gap: var(--osp-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rows .node {
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  width: auto;
+}
+
+.rows .warning {
+  grid-column: 1 / -1;
+}
+
+/* Below the serious-play width, lanes stack their heading above the nodes. */
+@media (width < 1024px) {
+  .lane {
+    grid-template-columns: 1fr;
+  }
+
+  .node {
+    width: 100%;
+  }
+
+  .rows .node {
+    grid-template-columns: 1fr;
+  }
+}

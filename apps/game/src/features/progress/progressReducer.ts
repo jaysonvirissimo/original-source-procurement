@@ -134,6 +134,7 @@ function sameSettings(a: Settings, b: Settings): boolean {
     a.scaffold === b.scaffold &&
     a.graphics === b.graphics &&
     a.motion === b.motion &&
+    a.mapView === b.mapView &&
     a.audio?.music.volume === b.audio?.music.volume &&
     a.audio?.music.muted === b.audio?.music.muted &&
     a.audio?.sfx.volume === b.audio?.sfx.volume &&

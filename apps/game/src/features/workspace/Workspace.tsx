@@ -21,6 +21,7 @@ import { targetListing } from "../compiler/targetListing";
 import { useToolchain } from "../compiler/toolchainContext";
 import type { CompilerDiagnostic } from "../compiler/types";
 import { nextMission, useMissionCatalog } from "../curriculum/missionCatalog";
+import { missingSkills } from "../mission-map/mapModel";
 import {
   manualLinks,
   missionAnnotations,
@@ -383,6 +384,7 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
         mission={mission}
         skillNames={skillNames}
         skillStates={skillStates}
+        missing={missingSkills(mission, catalog, progress.state.skills)}
         plan={plan}
         onEnter={() => {
           dispatch({ type: "entered" });

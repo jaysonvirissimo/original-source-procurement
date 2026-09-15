@@ -20,7 +20,7 @@ export const AMBIENT_SHAPES: readonly AmbientShape[] = [
   { position: [-5, 4.5, -14], radius: 1 },
   { position: [11, 0.5, -4], radius: 0.8 },
   { position: [3, 5, -16], radius: 1.4 },
-  { position: [-12, 2.5, -11], radius: 1.1 },
+  { position: [-13, 5.5, -12], radius: 1.1 },
 ];
 
 /**

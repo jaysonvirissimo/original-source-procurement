@@ -326,6 +326,7 @@ describe("progressReducer", () => {
     for (const settings of [
       { ...same, graphics: "full" },
       { ...same, motion: "system" },
+      { ...same, mapView: "list" },
       {
         ...same,
         audio: { ...same.audio, music: { volume: 0.4, muted: false } },

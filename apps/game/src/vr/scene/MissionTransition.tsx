@@ -22,7 +22,8 @@ export function MissionTransition({
 }: MissionTransitionProps): ReactElement {
   const frame = useRef<LineSegments>(null);
   const edges = useMemo(() => {
-    const box = new BoxGeometry(16, 7, 16);
+    // Small and far enough back that its edges stay behind the panels.
+    const box = new BoxGeometry(10, 4.5, 6);
     const outline = new EdgesGeometry(box);
     box.dispose();
     return outline;
@@ -52,7 +53,7 @@ export function MissionTransition({
     <lineSegments
       ref={frame}
       geometry={edges}
-      position={[0, 1.5, -6]}
+      position={[0, 1.5, -12]}
       scale={HIDDEN_SCALE}
       visible={false}
     >

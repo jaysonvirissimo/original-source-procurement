@@ -38,6 +38,11 @@
   margin: 0;
 }
 
+.warning {
+  margin-top: var(--osp-space-2);
+  color: var(--osp-warning);
+}
+
 .skills {
   display: grid;
   gap: var(--osp-space-1);

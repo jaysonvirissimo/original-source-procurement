@@ -141,6 +141,10 @@ export type GraphicsSetting = (typeof GRAPHICS_SETTINGS)[number];
 export const MOTION_SETTINGS = ["system", "reduced"] as const;
 export type MotionSetting = (typeof MOTION_SETTINGS)[number];
 
+/** The home screen shows missions as phase lanes (`map`) or a searchable `list`. */
+export const MAP_VIEW_SETTINGS = ["map", "list"] as const;
+export type MapViewSetting = (typeof MAP_VIEW_SETTINGS)[number];
+
 const AudioChannelSchema = z.strictObject({
   volume: z.number().min(0).max(1),
   muted: z.boolean(),
@@ -165,8 +169,13 @@ export const SettingsSchema = z.strictObject({
   graphics: z.enum(GRAPHICS_SETTINGS).optional(),
   motion: z.enum(MOTION_SETTINGS).optional(),
   audio: AudioSettingsSchema.optional(),
+  mapView: z.enum(MAP_VIEW_SETTINGS).optional(),
 });
 export type Settings = z.infer<typeof SettingsSchema>;
+
+export function mapViewSetting(settings: Settings): MapViewSetting {
+  return settings.mapView ?? "map";
+}
 
 export function scaffoldSetting(settings: Settings): ScaffoldSetting {
   return settings.scaffold ?? "adaptive";
