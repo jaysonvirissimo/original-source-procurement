@@ -121,7 +121,10 @@ describe("PresentationLayer", () => {
 
     expect(layer()?.dataset.vrMotion).toBe("reduced");
     expect(layer()?.dataset.vrFrameloop).toBe("demand");
-    expect(document.documentElement.dataset.motion).toBe("reduced");
+    // The page attribute is set in an effect, which can run after the first paint.
+    await waitFor(() => {
+      expect(document.documentElement.dataset.motion).toBe("reduced");
+    });
 
     view.unmount();
     expect(document.documentElement.dataset.motion).toBeUndefined();
@@ -138,7 +141,11 @@ describe("PresentationLayer", () => {
       });
       document.dispatchEvent(new Event("visibilitychange"));
     });
-    expect(layer()?.dataset.vrFrameloop).toBe("never");
+    // The visibility subscription starts in an effect, so under load it can
+    // attach after the event; it then reads the hidden state when it starts.
+    await waitFor(() => {
+      expect(layer()?.dataset.vrFrameloop).toBe("never");
+    });
   });
 
   it("removes the canvas when the renderer fails, keeping the page", async () => {
