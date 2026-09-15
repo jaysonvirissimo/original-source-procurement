@@ -21,7 +21,11 @@ import { memoryProgress } from "../../test/progressStorage";
 import { ToolchainProvider } from "../compiler/ToolchainProvider";
 import type { BuildOutcome, ToolchainService } from "../compiler/types";
 import { saveDataError } from "../persistence/errors";
-import { missionProgress } from "../persistence/persistence.test-helpers";
+import {
+  missionProgress,
+  skillEvidence,
+  timestamp,
+} from "../persistence/persistence.test-helpers";
 import { emptyPlayerState, type PlayerState } from "../persistence/schema";
 import type { UpstreamService } from "../upstream/types";
 import { offlineUpstream, UpstreamContext } from "../upstream/upstreamContext";
@@ -150,10 +154,13 @@ describe("Workspace", () => {
     expect(
       screen.getByRole("heading", { level: 1, name: "ADD IMMEDIATE" }),
     ).toBeTruthy();
-    expect(screen.getByText("Arguments")).toBeTruthy();
+    expect(screen.getByText("Arguments · New")).toBeTruthy();
     enter();
 
     expect(screen.getByText("Starting the compiler.")).toBeTruthy();
+    expect(
+      screen.getByRole("link", { name: "Mission map" }).getAttribute("href"),
+    ).toBe("#/");
     expect(
       screen.getByRole("table", { name: "Target instructions" }).textContent,
     ).toContain("addiu $v0,$a0,0x5");
@@ -200,7 +207,18 @@ describe("Workspace", () => {
       expect.any(AbortSignal),
     );
 
-    fireEvent.click(button("Return to workspace"));
+    // Completion shows above the comparison and names what changed.
+    expect(
+      await screen.findByText("Add immediate: now Introduced"),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("table", { name: "Target and generated instructions" }),
+    ).toBeTruthy();
+
+    fireEvent.click(button("Continue"));
+    expect(
+      screen.queryByRole("heading", { name: "Mission complete" }),
+    ).toBeNull();
     expect(statusText()).toBe("EXACT MATCH");
     expect(editorView().state.doc.toString()).toBe(addImmediate.solution);
   });
@@ -324,7 +342,12 @@ describe("Workspace", () => {
     expect(
       await screen.findByRole("heading", { name: "Mission complete" }),
     ).toBeTruthy();
-    expect(screen.getByText("NO")).toBeTruthy();
+    // The workspace's match summary stays visible beside the completion panel.
+    expect(
+      within(
+        screen.getByRole("region", { name: "Mission complete" }),
+      ).getByText("NO"),
+    ).toBeTruthy();
   });
 
   it("completes a prediction mission after a wrong prediction and a matched build, recording the prediction", async () => {
@@ -359,7 +382,15 @@ describe("Workspace", () => {
       ]);
     });
 
-    fireEvent.click(button("Return to workspace"));
+    // The correction shows alongside completion, before the player continues.
+    expect(screen.getByText("PREDICTION").nextElementSibling?.textContent).toBe(
+      "Not correct: you chose $v0; the answer is $a0.",
+    );
+    expect(
+      screen.getByRole("region", { name: "Prediction" }).textContent,
+    ).toContain("Your prediction was not correct.");
+
+    fireEvent.click(button("Continue"));
     expect(
       screen.getByRole("region", { name: "Prediction" }).textContent,
     ).toContain("Answer: $a0.");
@@ -643,6 +674,177 @@ describe("Workspace", () => {
   });
 });
 
+describe("Workspace teaching support", () => {
+  const qualification = shippedMission("012");
+  const loadWord: Mission = {
+    ...shippedMission("006"),
+    example: {
+      caption: "p holds address 0x1000; memory there holds 42.",
+      registers: [{ register: "$a0", value: 0x1000 }],
+      regions: [
+        {
+          label: "int at p",
+          address: 0x1000,
+          cells: [{ offset: 0, size: 4, label: "*p", value: 42 }],
+        },
+      ],
+    },
+  };
+
+  /** A skill introduced by one mission and practiced by another. */
+  function practicedSkill(skill: string): PlayerState {
+    return {
+      ...emptyPlayerState(),
+      skills: {
+        [skill]: {
+          evidence: [
+            skillEvidence({ id: `c1:${skill}`, completionId: "c1", skill }),
+            skillEvidence({
+              id: `c2:${skill}`,
+              completionId: "c2",
+              skill,
+              missionId: "900",
+              kind: "practiced",
+              completedAt: timestamp(1),
+            }),
+          ],
+        },
+      },
+    };
+  }
+
+  /** 001's skill, practiced: introduced by 001, then practiced elsewhere. */
+  function practicedReturn(
+    settings: PlayerState["settings"] = {},
+  ): PlayerState {
+    return {
+      ...emptyPlayerState(),
+      skills: {
+        "ABI.RETURN": {
+          evidence: [
+            skillEvidence(),
+            skillEvidence({
+              id: "completion-2:ABI.RETURN",
+              completionId: "completion-2",
+              missionId: "005",
+              kind: "practiced",
+              completedAt: timestamp(1),
+            }),
+          ],
+        },
+      },
+      settings,
+    };
+  }
+
+  /** The Note column, header included; a cell joins every label on its row. */
+  function targetNotes(): (string | undefined)[] {
+    return within(screen.getByRole("table", { name: "Target instructions" }))
+      .getAllByRole("row")
+      .map((row) => row.lastElementChild?.textContent);
+  }
+
+  function scanNotes(): string[] {
+    fireEvent.click(button("Scan"));
+    const scan = screen.getByRole("region", { name: "Scan" });
+    return within(scan)
+      .getAllByRole("listitem")
+      .map((item) => item.textContent);
+  }
+
+  it("guides a first exposure with labelled and explained notes", async () => {
+    await renderWorkspace(returnPath);
+
+    expect(
+      screen.getByText(
+        "Guided: notes and their explanations appear on their own.",
+      ),
+    ).toBeTruthy();
+    enter();
+    expect(targetNotes().join(" · ")).toContain("delay slot");
+    expect(screen.getByRole("list", { name: "Annotations" })).toBeTruthy();
+    expect(scanNotes().length).toBeGreaterThan(0);
+  });
+
+  it("leaves explanations to Scan once the skill is practiced", async () => {
+    await renderWorkspace(returnPath, { player: practicedReturn() });
+
+    expect(
+      screen.getByText("Assisted: short labels appear; Scan explains them."),
+    ).toBeTruthy();
+    enter();
+    expect(targetNotes().join(" · ")).toContain("delay slot");
+    expect(screen.queryByRole("list", { name: "Annotations" })).toBeNull();
+    expect(scanNotes().join("\n")).toContain("delay slot");
+  });
+
+  it("shows no notes under the minimal setting, keeping Scan, hints, and the manual", async () => {
+    await renderWorkspace(returnPath, {
+      player: { ...emptyPlayerState(), settings: { scaffold: "minimal" } },
+    });
+    enter();
+
+    expect(targetNotes().filter(Boolean)).toEqual(["Note"]);
+    expect(screen.queryByRole("list", { name: "Annotations" })).toBeNull();
+    expect(button("Hint")).toBeTruthy();
+    expect(button("Manual")).toBeTruthy();
+    expect(scanNotes().join("\n")).toContain("delay slot");
+  });
+
+  it("gives the mission's full help under the full setting, whatever the evidence", async () => {
+    await renderWorkspace(returnPath, {
+      player: practicedReturn({ scaffold: "full" }),
+    });
+    enter();
+
+    expect(screen.getByRole("list", { name: "Annotations" })).toBeTruthy();
+  });
+
+  it("shows a guided memory diagram inline, with its caption in words", async () => {
+    await renderWorkspace(loadWord);
+    enter();
+
+    const diagram = screen.getByRole("region", { name: "Machine diagram" });
+    expect(
+      within(diagram).getByText(loadWord.example?.caption ?? ""),
+    ).toBeTruthy();
+    expect(
+      within(diagram).getByRole("table", { name: "Memory: int at p" })
+        .textContent,
+    ).toContain("Word 0 loads 4 bytes into $v0");
+  });
+
+  it("moves the memory diagram to Scan once the skill is practiced", async () => {
+    await renderWorkspace(loadWord, {
+      player: practicedSkill("MIPS.LOAD.WORD"),
+    });
+    enter();
+
+    expect(
+      screen.queryByRole("region", { name: "Machine diagram" }),
+    ).toBeNull();
+    fireEvent.click(button("Scan"));
+    fireEvent.click(screen.getByRole("radio", { name: "Memory" }));
+    expect(
+      screen.getByRole("table", { name: "Memory: int at p" }).textContent,
+    ).toContain("0x1000");
+  });
+
+  it("keeps linked manual entries when an independent mission shows no notes", async () => {
+    await renderWorkspace(qualification);
+
+    // A synthesis mission's practiced skills are its prerequisites.
+    expect(screen.getByText("Pointer dereference · New")).toBeTruthy();
+    enter();
+    expect(targetNotes().filter(Boolean)).toEqual(["Note"]);
+    fireEvent.click(button("Manual"));
+    const manual = screen.getByRole("region", { name: "Manual" });
+    expect(
+      within(manual).getByRole("heading", { name: "Assembler-inserted nops" }),
+    ).toBeTruthy();
+  });
+});
+
 describe("Workspace progress", () => {
   const edited = (addend: number) =>
     `int add_immediate(int a) { return a + ${String(addend)}; }\n`;
@@ -794,7 +996,7 @@ describe("Workspace progress", () => {
       }),
     ]);
 
-    fireEvent.click(button("Return to workspace"));
+    fireEvent.click(button("Continue"));
     fireEvent.click(button("Hint"));
     fireEvent.click(
       within(screen.getByRole("region", { name: "Hints" })).getByRole(

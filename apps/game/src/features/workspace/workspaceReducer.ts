@@ -34,7 +34,7 @@ export type ContextState =
   /** The mission's target is not an inline target. */
   | { readonly kind: "unsupported-target" };
 
-export type Overlay = "none" | "manual" | "hint" | "history";
+export type Overlay = "none" | "scan" | "manual" | "hint" | "history";
 
 export interface WorkspaceState {
   readonly mission: WorkspaceMission;

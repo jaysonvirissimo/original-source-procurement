@@ -4,11 +4,12 @@ import type { ReactElement } from "react";
 import { classNames } from "../../styles/classNames";
 import controls from "../../styles/controls.module.css";
 import { AnnotationList } from "./AnnotationList";
-import { annotationLabels, type WordAnnotation } from "./annotations";
+import { annotationLabels, type ShownAnnotation } from "./annotations";
 import {
   inRange,
   mismatchKindOf,
   mismatchLabel,
+  noteText,
   provenanceLabel,
   rowMarker,
 } from "./diffLabels";
@@ -20,8 +21,8 @@ interface DiffPanelProps {
   readonly stale: boolean;
   /** Target words a revealed hint points at. */
   readonly highlight: InstructionRange | undefined;
-  /** Teaching notes on target words. */
-  readonly annotations: readonly WordAnnotation[];
+  /** Teaching notes the current help level shows. */
+  readonly annotations: readonly ShownAnnotation[];
 }
 
 /** Target and generated instructions side by side, with their mismatches. */
@@ -89,13 +90,11 @@ export function DiffPanel({
                     <code>{generated?.text}</code>
                   </td>
                   <td className={styles.note} title={generated?.origin?.note}>
-                    {[
+                    {noteText([
                       provenanceLabel(generated?.origin),
                       ...annotationLabels(annotations, row.target),
                       highlighted && "HINT",
-                    ]
-                      .filter(Boolean)
-                      .join(" · ")}
+                    ])}
                   </td>
                 </tr>
               );

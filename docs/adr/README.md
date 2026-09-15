@@ -19,6 +19,8 @@ Changing a locked decision requires a new record. Accepted records are never rew
 | [0009](0009-mission-completion.md)              | Mission completion              | Accepted |
 | [0010](0010-compiler-artifact-distribution.md)  | Compiler artifact distribution  | Accepted |
 | [0011](0011-save-data.md)                       | Save data                       | Accepted |
+| [0012](0012-skill-state-and-fading-help.md)     | Skill state and fading help     | Accepted |
+| [0013](0013-machine-diagrams.md)                | Machine diagrams                | Accepted |
 
 ## Template
 

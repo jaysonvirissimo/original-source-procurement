@@ -27,6 +27,23 @@ export const fieldOffset: MissionDraft = {
   starterSource: `${STRUCT}int field_offset(struct Obj *o)\n{\n    return o->a;\n}\n`,
   solution: `${STRUCT}int field_offset(struct Obj *o)\n{\n    return o->c;\n}\n`,
   symbol: "field_offset",
+  example: {
+    caption:
+      "o holds the address of a struct Obj, here 0x2000. Its three ints sit back to back, 4 bytes each: a at +0, b at +4, c at +8. o->c reads address 0x2000 + 8.",
+    skill: "C.STRUCT.FIELD",
+    registers: [{ register: "$a0", value: 0x2000, note: "o" }],
+    regions: [
+      {
+        label: "struct Obj",
+        address: 0x2000,
+        cells: [
+          { offset: 0, size: 4, label: "a", value: 1 },
+          { offset: 4, size: 4, label: "b", value: 2 },
+          { offset: 8, size: 4, label: "c", value: 3 },
+        ],
+      },
+    ],
+  },
   hints: [
     {
       stage: 1,

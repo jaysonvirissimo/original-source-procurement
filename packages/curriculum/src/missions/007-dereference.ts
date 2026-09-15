@@ -24,6 +24,19 @@ export const dereference: MissionDraft = {
   starterSource: "int dereference(int *p)\n{\n    return 0;\n}\n",
   solution: "int dereference(int *p)\n{\n    return *p;\n}\n",
   symbol: "dereference",
+  example: {
+    caption:
+      "In a declaration, int *p says p holds an address. In an expression, *p reads what is stored there. Here p is 0x1000, so *p is 42, and returning p itself would return 0x1000.",
+    skill: "C.POINTER.DEREFERENCE",
+    registers: [{ register: "$a0", value: 0x1000, note: "p" }],
+    regions: [
+      {
+        label: "int at p",
+        address: 0x1000,
+        cells: [{ offset: 0, size: 4, label: "*p", value: 42 }],
+      },
+    ],
+  },
   hints: [
     {
       stage: 1,

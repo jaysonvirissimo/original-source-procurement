@@ -20,12 +20,26 @@ export const loadWord: MissionDraft = {
   completion: "acknowledge-evidence",
   compiler: trainingCompiler("load_word.c"),
   briefing: {
-    objective: "Find the instruction that reads a 32-bit value from memory.",
+    objective:
+      "Compile, then acknowledge the evidence: the lw that reads a 32-bit value from memory.",
     newTechnique: "lw reads 32 bits from a base register plus an offset.",
   },
   starterSource: SOURCE,
   solution: SOURCE,
   symbol: "load_word",
+  example: {
+    caption:
+      "p holds an address, not an int: here 0x1000. The int stored at address 0x1000 is 42. lw uses the address in $a0 to copy that 42 into $v0.",
+    skill: "MIPS.LOAD.WORD",
+    registers: [{ register: "$a0", value: 0x1000, note: "p" }],
+    regions: [
+      {
+        label: "int at p",
+        address: 0x1000,
+        cells: [{ offset: 0, size: 4, label: "*p", value: 42 }],
+      },
+    ],
+  },
   hints: [
     {
       stage: 1,

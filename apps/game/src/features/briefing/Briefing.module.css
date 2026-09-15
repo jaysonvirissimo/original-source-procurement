@@ -33,3 +33,11 @@
 .facts dd {
   margin: 0;
 }
+
+.skills {
+  display: grid;
+  gap: var(--osp-space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}

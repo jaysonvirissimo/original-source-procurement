@@ -5,7 +5,27 @@ import {
   samplePlayer,
   skillEvidence,
 } from "./persistence.test-helpers";
-import { AttemptSchema, emptyPlayerState, PlayerStateSchema } from "./schema";
+import {
+  AttemptSchema,
+  emptyPlayerState,
+  PlayerStateSchema,
+  SCAFFOLD_SETTINGS,
+  scaffoldSetting,
+  SettingsSchema,
+} from "./schema";
+
+describe("SettingsSchema", () => {
+  it.each(SCAFFOLD_SETTINGS)("accepts the %s scaffold setting", (scaffold) => {
+    expect(SettingsSchema.parse({ scaffold })).toEqual({ scaffold });
+    expect(scaffoldSetting({ scaffold })).toBe(scaffold);
+  });
+
+  it("defaults to adaptive, and rejects settings it does not know", () => {
+    expect(scaffoldSetting(SettingsSchema.parse({}))).toBe("adaptive");
+    expect(SettingsSchema.safeParse({ scaffold: "loud" }).success).toBe(false);
+    expect(SettingsSchema.safeParse({ theme: "dark" }).success).toBe(false);
+  });
+});
 
 function issuePaths(value: unknown): string[] {
   const parsed = PlayerStateSchema.safeParse(value);

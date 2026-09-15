@@ -33,8 +33,26 @@ export const signedByte: MissionDraft = {
       range: { start: 0, end: 1 },
       text: "Reading count instead would load offset 5 with lbu, because count is unsigned char. A plain char field also loads with lbu.",
       manualEntry: "mips.loads-and-stores",
+      skill: "MIPS.LOAD.BYTE",
     },
   ],
+  example: {
+    caption:
+      "Here char is a 1-byte integer, not a string. delta's byte is 0xFD. Read as signed, that is -3, and lb sign-extends it to a 32-bit -3. Read as unsigned, the same byte is 253, which is how lbu would load it.",
+    skill: "MIPS.LOAD.BYTE",
+    registers: [{ register: "$a0", value: 0x2000, note: "r" }],
+    regions: [
+      {
+        label: "struct Rec",
+        address: 0x2000,
+        cells: [
+          { offset: 0, size: 4, label: "id", value: 5 },
+          { offset: 4, size: 1, label: "delta", value: -3 },
+          { offset: 5, size: 1, label: "count", value: 200 },
+        ],
+      },
+    ],
+  },
   hints: [
     {
       stage: 1,

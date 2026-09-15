@@ -3,6 +3,7 @@ import {
   inRange,
   mismatchKindOf,
   mismatchLabel,
+  noteText,
   provenanceLabel,
   rowMarker,
 } from "./diffLabels";
@@ -30,6 +31,22 @@ describe("provenanceLabel", () => {
     );
     expect(provenanceLabel({ kind: "instruction" })).toBe("");
     expect(provenanceLabel(undefined)).toBe("");
+  });
+});
+
+describe("noteText", () => {
+  it("joins labels once each, in order, skipping empty ones", () => {
+    expect(
+      noteText([
+        "branch delay nop",
+        "branch delay nop",
+        "",
+        undefined,
+        false,
+        "HINT",
+      ]),
+    ).toBe("branch delay nop · HINT");
+    expect(noteText([])).toBe("");
   });
 });
 

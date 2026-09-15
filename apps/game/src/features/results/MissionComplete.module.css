@@ -1,8 +1,11 @@
+/* Sits above the workspace, so it stays compact and leaves the comparison in
+   view. */
 .panel {
-  display: grid;
-  gap: var(--osp-space-4);
-  width: min(100%, var(--osp-content-width));
-  padding: var(--osp-space-5);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--osp-space-2) var(--osp-space-6);
+  padding: var(--osp-space-3) var(--osp-space-4);
   border: var(--osp-border) solid var(--osp-line);
   border-left: var(--osp-border-strong) solid var(--osp-match);
   border-radius: var(--osp-radius);
@@ -10,19 +13,21 @@
 }
 
 .title {
-  font-size: var(--osp-font-size-title);
+  flex-basis: 100%;
+  font-size: var(--osp-font-size-base);
   font-weight: 600;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--osp-match);
 }
 
 .facts {
   display: grid;
-  grid-template-columns: 16ch 1fr;
-  gap: var(--osp-space-1) var(--osp-space-4);
+  grid-template-columns: max-content auto;
+  gap: 0 var(--osp-space-3);
   margin: 0;
   font-family: var(--osp-font-code);
+  font-size: var(--osp-font-size-label);
   letter-spacing: 0.08em;
 }
 
@@ -35,6 +40,7 @@
 }
 
 .note {
+  max-width: 48ch;
   color: var(--osp-text-dim);
 }
 
@@ -52,5 +58,7 @@
 .actions {
   display: flex;
   align-items: center;
+  align-self: center;
   gap: var(--osp-space-4);
+  margin-left: auto;
 }

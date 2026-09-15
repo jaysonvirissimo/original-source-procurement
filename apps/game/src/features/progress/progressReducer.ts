@@ -3,6 +3,7 @@ import type {
   MissionProgress,
   PlayerState,
   PredictionEvidence,
+  Settings,
   SkillEvidence,
 } from "../persistence/schema";
 import { betterMatch, pruneAttempts } from "./attempts";
@@ -52,6 +53,7 @@ export type ProgressEvent =
       readonly skills: readonly SkillEvidence[];
       readonly prediction?: PredictionEvidence;
     }
+  | { readonly type: "settings-changed"; readonly settings: Settings }
   | { readonly type: "state-replaced"; readonly state: PlayerState };
 
 export type MissionStatus = "new" | "in-progress" | "complete";
@@ -117,6 +119,11 @@ export function progressReducer(
       });
     case "mission-completed":
       return completeMission(state, event);
+    case "settings-changed":
+      // Storage writes settings only when their object changes.
+      return event.settings.scaffold === state.settings.scaffold
+        ? state
+        : { ...state, settings: event.settings };
     case "state-replaced":
       return event.state;
   }

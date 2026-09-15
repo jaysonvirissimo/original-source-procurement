@@ -38,6 +38,16 @@ export function provenanceLabel(
   return (origin && NOP_LABELS[origin.kind]) ?? "";
 }
 
+/**
+ * Joins a row's note labels, skipping empty ones and repeats: an inserted
+ * nop can be labeled by both its provenance and a teaching annotation.
+ */
+export function noteText(
+  labels: readonly (string | false | undefined)[],
+): string {
+  return [...new Set(labels.filter(Boolean))].join(" · ");
+}
+
 /** `LOAD_SIGNEDNESS` becomes `Load signedness`. */
 export function mismatchLabel(kind: string): string {
   const words = kind.toLowerCase().replaceAll("_", " ");
@@ -48,6 +58,13 @@ export function mismatchLabel(kind: string): string {
 export function mismatchKindOf(id: string): string {
   const at = id.indexOf("@");
   return at === -1 ? id : id.slice(0, at);
+}
+
+/** `Word 3`, or `Words 0–2` for a longer range. */
+export function wordsLabel({ start, end }: InstructionRange): string {
+  return end - start === 1
+    ? `Word ${String(start)}`
+    : `Words ${String(start)}–${String(end - 1)}`;
 }
 
 export function inRange(

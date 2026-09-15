@@ -189,9 +189,9 @@ function pairMismatches(
     const access = accessKind(expected, actual);
     if (access === undefined) {
       return [
-        make("OPCODE", [
-          `Target uses ${expected.mnemonic}; your output uses ${actual.mnemonic}. ${shown}`,
-        ]),
+        // Only the formatted instructions name the operation, so aliases
+        // such as move for addu read the same as the listing.
+        make("OPCODE", [`The instructions differ. ${shown}`]),
       ];
     }
     kinds.push(access);
