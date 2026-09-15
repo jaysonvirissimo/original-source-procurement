@@ -8,7 +8,7 @@ export { manualEntries } from "./manual.ts";
 export { defaultPath, missions } from "./missions.ts";
 export { feasibilityPointers } from "./real/feasibility.ts";
 export { skills } from "./skills.ts";
-export { findCycle } from "./graph.ts";
+export { findCycle, missionNeeds } from "./graph.ts";
 export { sha256Hex, wordsSha256 } from "./hash.ts";
 export { runValidation, type ValidationOutput } from "./cli.ts";
 export {

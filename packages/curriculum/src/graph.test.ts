@@ -1,7 +1,32 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
-import { findCycle } from "./graph.ts";
+import { findCycle, missionNeeds } from "./graph.ts";
 import { dagArbitrary } from "./test-graphs.test-helpers.ts";
+
+describe("missionNeeds", () => {
+  const skills = new Map([
+    ["B", { prerequisites: ["A"] }],
+    ["C", { prerequisites: ["A", "B"] }],
+  ]);
+
+  it("lists required, practiced-but-not-taught, and taught prerequisites once, in that order", () => {
+    expect(
+      missionNeeds(
+        { requires: ["X", "A"], teaches: ["C"], practices: ["C", "Y", "X"] },
+        skills,
+      ),
+    ).toEqual(["X", "A", "Y", "B"]);
+  });
+
+  it("needs nothing for a first mission and leaves out an unknown skill's prerequisites", () => {
+    expect(
+      missionNeeds({ requires: [], teaches: ["A"], practices: [] }, skills),
+    ).toEqual([]);
+    expect(
+      missionNeeds({ requires: [], teaches: ["Z"], practices: [] }, skills),
+    ).toEqual([]);
+  });
+});
 
 function graphOf(
   entries: readonly { node: string; edges: readonly string[] }[],

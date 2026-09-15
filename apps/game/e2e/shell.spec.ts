@@ -26,9 +26,10 @@ test("the home route shows the OSP name", async ({ page }) => {
   await expect(page.getByRole("region", { name: "Mission map" })).toBeVisible();
 });
 
-// Settings starts the compiler worker. Reloading while the worker is still
-// importing its modules makes WebKit log the cancelled imports as console
-// errors, so the test waits until the route has settled on both loads.
+// Settings starts the compiler worker, and every route may lazily load the
+// chamber. Reloading while either is still importing its modules makes WebKit
+// log the cancelled imports as console errors, so the test waits until the
+// route has settled and the network is idle before reloading.
 for (const [hash, heading, settled] of [
   ["#/settings", "Settings", "Compiler build"],
   ["#/mission/001", "RETURN PATH", undefined],
@@ -44,6 +45,7 @@ for (const [hash, heading, settled] of [
 
     await page.goto(`./${hash}`);
     await expectSettled();
+    await page.waitForLoadState("networkidle");
 
     await page.reload();
 

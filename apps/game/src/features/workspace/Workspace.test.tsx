@@ -340,11 +340,14 @@ describe("Workspace", () => {
       (await screen.findByRole("list", { name: "Diagnostics" })).textContent,
     ).toBe(`add_immediate.c:3:12: error: ${message}${guidance}`);
     expect(statusText()).toBe("BUILD FAILED");
-    const marks: string[] = [];
-    forEachDiagnostic(editorView().state, (diagnostic) => {
-      marks.push(diagnostic.message);
+    // The editor receives its lint marks in an effect after the panel renders.
+    await waitFor(() => {
+      const marks: string[] = [];
+      forEachDiagnostic(editorView().state, (diagnostic) => {
+        marks.push(diagnostic.message);
+      });
+      expect(marks).toEqual([`${message}\n${guidance}`]);
     });
-    expect(marks).toEqual([`${message}\n${guidance}`]);
     expect(
       screen.getByRole("table", { name: "Target instructions" }),
     ).toBeTruthy();

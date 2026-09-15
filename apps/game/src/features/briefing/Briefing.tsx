@@ -2,6 +2,7 @@ import type { Mission } from "@osp/mission-schema";
 import { useId, type ReactElement } from "react";
 import { classNames } from "../../styles/classNames";
 import controls from "../../styles/controls.module.css";
+import { missingSkillsText, type NamedSkill } from "../mission-map/mapModel";
 import { supportLabel, type ScaffoldPlan } from "../progress/scaffold";
 import { SKILL_STATE_LABELS, type SkillState } from "../progress/skillState";
 import styles from "./Briefing.module.css";
@@ -14,6 +15,8 @@ interface BriefingProps {
   readonly skillNames: ReadonlyMap<string, string>;
   /** The player's state for each skill; a skill not listed is new. */
   readonly skillStates: ReadonlyMap<string, SkillState>;
+  /** Expected skills the player has not been introduced to. Entering stays allowed. */
+  readonly missing?: readonly NamedSkill[];
   readonly plan: ScaffoldPlan;
   readonly onEnter: () => void;
 }
@@ -22,6 +25,7 @@ export function Briefing({
   mission,
   skillNames,
   skillStates,
+  missing = [],
   plan,
   onEnter,
 }: BriefingProps): ReactElement {
@@ -30,6 +34,7 @@ export function Briefing({
   const prerequisites = [
     ...new Set([...mission.requires, ...mission.practices]),
   ];
+  const warning = missingSkillsText(missing);
   return (
     <section className={styles.briefing} aria-labelledby={titleId}>
       <p className={controls.label}>
@@ -60,6 +65,9 @@ export function Briefing({
                 </li>
               ))}
             </ul>
+          )}
+          {warning === undefined ? null : (
+            <p className={styles.warning}>{warning}</p>
           )}
         </dd>
         <dt>Teaching support</dt>

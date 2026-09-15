@@ -77,6 +77,36 @@ describe("Briefing", () => {
     ).toBeTruthy();
   });
 
+  it("warns about expected skills not yet introduced, and still enters", () => {
+    const onEnter = vi.fn();
+    render(
+      <Briefing
+        mission={{
+          id: "909",
+          phase: "Memory",
+          title: "SKIPPED AHEAD",
+          briefing: { objective: "Read a field." },
+          requires: ["C.POINTER.DEREFERENCE"],
+          practices: [],
+        }}
+        skillNames={new Map([["C.POINTER.DEREFERENCE", "Dereference"]])}
+        skillStates={new Map()}
+        missing={[
+          { id: "C.POINTER.DEREFERENCE", name: "Dereference" },
+          { id: "MIPS.LOAD.WORD", name: "Load word" },
+        ]}
+        plan={guided}
+        onEnter={onEnter}
+      />,
+    );
+
+    expect(
+      screen.getByText("Not yet introduced: Dereference, Load word."),
+    ).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Enter" }));
+    expect(onEnter).toHaveBeenCalledOnce();
+  });
+
   it("says None when a mission lists no prerequisite skills", () => {
     render(
       <Briefing

@@ -7,7 +7,7 @@ import {
   type Mission,
   type Skill,
 } from "@osp/mission-schema";
-import { findCycle } from "./graph.ts";
+import { findCycle, missionNeeds } from "./graph.ts";
 import { sha256Hex, wordsSha256 } from "./hash.ts";
 
 export type CurriculumIssueCode =
@@ -232,6 +232,9 @@ function checkDefaultPath(
 ): void {
   const taught = new Set<string>();
   const seen = new Set<string>();
+  const skillValues = new Map(
+    [...skills].map(([id, { value }]) => [id, value] as const),
+  );
 
   defaultPath.forEach((id, index) => {
     const at = ["defaultPath", index];
@@ -250,14 +253,7 @@ function checkDefaultPath(
     }
     seen.add(id);
 
-    const needed = new Set([
-      ...mission.requires,
-      ...mission.practices.filter((skill) => !mission.teaches.includes(skill)),
-      ...mission.teaches.flatMap(
-        (skill) => skills.get(skill)?.value.prerequisites ?? [],
-      ),
-    ]);
-    for (const skill of needed) {
+    for (const skill of missionNeeds(mission, skillValues)) {
       if (!taught.has(skill)) {
         report(
           "unreachable-prerequisite",

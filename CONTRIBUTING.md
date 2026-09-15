@@ -179,6 +179,7 @@ Decisions that change a locked choice go in `docs/adr/NNNN-short-title.md`, usin
 
 - Never make 3D, motion, color, or audio necessary to play. Every control must be usable from the keyboard.
 - The decorative 3D layer in `apps/game/src/vr/` receives only presentation state: a phase, a mission tier, whether motion is reduced, and a quality. Never pass it source, target words, or match data, and show every state it reflects in the page as well.
+- Mission map rules (recommendation, Resume, missing-skill warnings, and search) live as pure functions in `apps/game/src/features/mission-map/mapModel.ts`. The needed-skills rule is `missionNeeds` in `packages/curriculum`, shared with curriculum validation. A missing skill is a warning; never lock a mission.
 - Do not add analytics, telemetry, or any remote submission of player source.
 - Write short, concrete product copy. OSP assumes the player is intelligent: no mascots, tutorial chatter, or motivational filler.
 - Use only original art and audio.

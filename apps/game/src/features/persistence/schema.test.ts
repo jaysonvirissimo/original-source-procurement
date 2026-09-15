@@ -12,6 +12,8 @@ import {
   emptyPlayerState,
   GRAPHICS_SETTINGS,
   graphicsSetting,
+  MAP_VIEW_SETTINGS,
+  mapViewSetting,
   MOTION_SETTINGS,
   motionSetting,
   PlayerStateSchema,
@@ -38,6 +40,15 @@ describe("SettingsSchema", () => {
 
   it.each(MOTION_SETTINGS)("accepts the %s motion setting", (motion) => {
     expect(motionSetting(SettingsSchema.parse({ motion }))).toBe(motion);
+  });
+
+  it.each(MAP_VIEW_SETTINGS)("accepts the %s map view setting", (mapView) => {
+    expect(mapViewSetting(SettingsSchema.parse({ mapView }))).toBe(mapView);
+  });
+
+  it("reads saves without a map view as the map, and rejects unknown views", () => {
+    expect(mapViewSetting(SettingsSchema.parse({}))).toBe("map");
+    expect(SettingsSchema.safeParse({ mapView: "grid" }).success).toBe(false);
   });
 
   it("reads saves without presentation settings as full graphics, system motion, and default audio", () => {
