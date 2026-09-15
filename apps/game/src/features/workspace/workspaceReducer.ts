@@ -137,6 +137,22 @@ export function hintsUsed(state: WorkspaceState): number {
     .length;
 }
 
+/** How much of the hint ladder the player has opened. */
+export interface HintUsage {
+  readonly opened: number;
+  readonly available: number;
+  /** The highest stage opened, or 0. */
+  readonly stage: number;
+}
+
+export function hintUsage(state: WorkspaceState): HintUsage {
+  return {
+    opened: hintsUsed(state),
+    available: state.mission.hints.length,
+    stage: state.hintStage,
+  };
+}
+
 /**
  * Applies one workspace action. Completion is re-evaluated after every
  * change and, once reached, stays reached.

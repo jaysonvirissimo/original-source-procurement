@@ -4,6 +4,7 @@ import { at } from "./at.ts";
 import { classify, text } from "./classify.ts";
 import { definedFunctions, extractFunction } from "./extract.ts";
 import { linkConsequences } from "./nops.ts";
+import { gpRelative, instructionOrder } from "./regroup.ts";
 import { compareRelocations } from "./relocations.ts";
 import type {
   FieldDifference,
@@ -30,12 +31,19 @@ export function compareFunction(
     target.kind === "unlinked"
       ? compareRelocations(generated.relocations, target.relocations)
       : [];
-  const drafts = linkConsequences(
-    classify(rows, targetWords, generatedWords, relocationFindings),
+  const classified = classify(
+    rows,
+    targetWords,
+    generatedWords,
+    relocationFindings,
+  );
+  const regrouped = instructionOrder(
+    gpRelative(classified, rows, targetWords, generatedWords),
     rows,
     targetWords,
     generatedWords,
   );
+  const drafts = linkConsequences(regrouped, rows, targetWords, generatedWords);
 
   const wordsExact =
     targetWords.length === generatedWords.length &&

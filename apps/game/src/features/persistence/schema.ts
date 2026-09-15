@@ -50,6 +50,9 @@ export const AttemptSchema = z.strictObject({
   psyqAsmVersion: z.string(),
   aspsxVersion: z.enum(ASPSX_VERSIONS),
   pinned: z.boolean(),
+  // The highest hint stage opened when this build ran. Optional, so saves
+  // from before it was recorded still load.
+  hintStage: HintStageSchema.optional(),
 });
 export type Attempt = z.infer<typeof AttemptSchema>;
 

@@ -49,6 +49,19 @@ describe("HistoryPanel", () => {
     expect(rows()[3]?.textContent).toContain("1 of 2 words match");
   });
 
+  it("notes the hint stage an attempt was built with, when there was one", () => {
+    renderPanel([
+      attempt({ id: "helped", createdAt: timestamp(2), hintStage: 4 }),
+      attempt({ id: "unhelped", createdAt: timestamp(1), hintStage: 0 }),
+      attempt({ id: "older-save", createdAt: timestamp(0) }),
+    ]);
+
+    expect(
+      rows().map((row) => row.textContent.includes("Hints opened")),
+    ).toEqual([true, false, false]);
+    expect(rows()[0]?.textContent).toContain("Hints opened to stage 4");
+  });
+
   it("pins, unpins, and restores an attempt", () => {
     const pinned = attempt({
       id: "pinned",

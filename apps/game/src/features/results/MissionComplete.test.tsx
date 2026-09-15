@@ -9,7 +9,7 @@ describe("MissionComplete", () => {
       <MissionComplete
         exact
         attempts={11}
-        hints={1}
+        hints={{ opened: 1, available: 3, stage: 2 }}
         prediction={{ chosen: "$v0", answer: "$a0", correct: false }}
         skillChanges={[
           {
@@ -42,6 +42,9 @@ describe("MissionComplete", () => {
       "EXACT MATCH",
     );
     expect(screen.getByText("11")).toBeTruthy();
+    expect(screen.getByText("HINTS").nextElementSibling?.textContent).toBe(
+      "1 of 3 · stage 2",
+    );
     expect(screen.getByText("PREDICTION").nextElementSibling?.textContent).toBe(
       "Not correct: you chose $v0; the answer is $a0.",
     );
@@ -68,7 +71,7 @@ describe("MissionComplete", () => {
       <MissionComplete
         exact={false}
         attempts={1}
-        hints={3}
+        hints={{ opened: 3, available: 3, stage: 9 }}
         prediction={{ chosen: "$a0", answer: "$a0", correct: true }}
         skillChanges={[
           {
@@ -98,7 +101,7 @@ describe("MissionComplete", () => {
       <MissionComplete
         exact
         attempts={2}
-        hints={0}
+        hints={{ opened: 0, available: 3, stage: 0 }}
         prediction={undefined}
         skillChanges={[]}
         skillNames={new Map()}

@@ -48,6 +48,30 @@ describe("editorDiagnostics", () => {
     expect(before).toMatchObject({ from: 0, to: doc.line(1).to });
   });
 
+  it("marks the whole line before a parse error noticed at the next token, with guidance", () => {
+    const [marked] = editorDiagnostics(
+      doc,
+      [
+        {
+          severity: "error",
+          file: "f.c",
+          line: 4,
+          column: 1,
+          message: "parse error before `}'",
+        },
+      ],
+      "f.c",
+    );
+
+    expect(marked).toEqual({
+      from: doc.line(3).from,
+      to: doc.line(3).to,
+      severity: "error",
+      message:
+        "parse error before `}'\nThe compiler did not expect } on line 4. Check the statement before it, on line 3 or earlier; a missing semicolon is a common cause.",
+    });
+  });
+
   it("leaves out diagnostics without a line or for another file", () => {
     expect(
       editorDiagnostics(

@@ -1,6 +1,7 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import { functionFromWords } from "./extract.ts";
+import { HYPOTHESIS_HEDGE, teachingHypotheses } from "./hypotheses.ts";
 import { compareFunction } from "./match.ts";
 import type { FunctionRelocation } from "./types.ts";
 
@@ -22,6 +23,12 @@ const INSTRUCTION_WORD = fc.oneof(
     0x00851021,
     0x00851023,
     0x10850002,
+    0x00801021,
+    0x8c820000,
+    0x80820004,
+    0x90820004,
+    0x94820004,
+    0x84820004,
   ),
   WORD,
 );
@@ -137,6 +144,26 @@ describe("matching properties", () => {
           }
         }
         expect(result.exact).toBe(result.mismatches.length === 0);
+      }),
+    );
+  });
+
+  it("hedges every teaching hypothesis and cites only reported mismatches", () => {
+    fc.assert(
+      fc.property(WORDS, WORDS, (target, generated) => {
+        const result = compareFunction(functionFromWords("f", generated), {
+          kind: "linked",
+          words: target,
+        });
+        const ids = result.mismatches.map((mismatch) => mismatch.id);
+
+        for (const hypothesis of teachingHypotheses(result)) {
+          expect(hypothesis.message).toMatch(HYPOTHESIS_HEDGE);
+          expect(hypothesis.evidenceMismatchIds.length).toBeGreaterThan(0);
+          for (const id of hypothesis.evidenceMismatchIds) {
+            expect(ids).toContain(id);
+          }
+        }
       }),
     );
   });

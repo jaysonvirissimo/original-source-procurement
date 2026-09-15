@@ -1,6 +1,7 @@
 import {
   extractFunction,
   matchFunction,
+  teachingHypotheses,
   type MatchResult,
   type MatchTarget,
 } from "@osp/matching-core";
@@ -30,14 +31,17 @@ describe("matching real compiler output", () => {
     service.dispose();
   });
 
-  async function build(source: string): Promise<AssembledObject> {
+  async function build(
+    source: string,
+    gpSize: 0 | 8 = 0,
+  ): Promise<AssembledObject> {
     const outcome = await service.build({
       filename: "mission.c",
       source,
       headers: {},
       cppFlags: PSYQ_WASM_DEFAULT_CPP_FLAGS,
       rawFlags: ["-O2", "-g0", "-Wall"],
-      gpSize: 0,
+      gpSize,
       aspsxVersion: "2.77",
       encoding: "utf8",
     });
@@ -47,8 +51,11 @@ describe("matching real compiler output", () => {
     return outcome.object;
   }
 
-  async function unlinkedTarget(solution: string): Promise<MatchTarget> {
-    const generated = extractFunction(await build(solution), "f");
+  async function unlinkedTarget(
+    solution: string,
+    gpSize: 0 | 8 = 0,
+  ): Promise<MatchTarget> {
+    const generated = extractFunction(await build(solution, gpSize), "f");
     if (generated === undefined) {
       throw new Error("The solution defines no function f.");
     }
@@ -59,11 +66,18 @@ describe("matching real compiler output", () => {
     };
   }
 
-  async function match(solution: string, source: string): Promise<MatchResult> {
+  async function match(
+    solution: string,
+    source: string,
+    gpSizes: { readonly target: 0 | 8; readonly source: 0 | 8 } = {
+      target: 0,
+      source: 0,
+    },
+  ): Promise<MatchResult> {
     const outcome = matchFunction(
-      await build(source),
+      await build(source, gpSizes.source),
       "f",
-      await unlinkedTarget(solution),
+      await unlinkedTarget(solution, gpSizes.target),
     );
     if (outcome.kind !== "matched") {
       throw new Error("The source defines no function f.");
@@ -94,6 +108,58 @@ describe("matching real compiler output", () => {
 
     expect(result.exact).toBe(false);
     expect(kinds(result)).toEqual(["LOAD_SIGNEDNESS"]);
+    expect(
+      teachingHypotheses(result).map((hypothesis) => hypothesis.kind),
+    ).toEqual(["LIKELY_SIGNEDNESS", "LIKELY_STRUCT_FIELD_TYPE"]);
+  });
+
+  it("classifies == against != as BRANCH_CONDITION", async () => {
+    const branch = (test: string) =>
+      `int f(int a, int b) { if (a ${test} b) { return 1; } return 2; }\n`;
+    const result = await match(branch("=="), branch("!="));
+
+    expect(kinds(result)).toContain("BRANCH_CONDITION");
+  });
+
+  it("classifies a call to a different function as CALL_TARGET", async () => {
+    const call = (callee: string) =>
+      `extern int g(int);\nextern int h(int);\nint f(int a) { return ${callee}(a) + 1; }\n`;
+    const result = await match(call("g"), call("h"));
+
+    expect(result.exact).toBe(false);
+    expect(kinds(result)).toEqual(["CALL_TARGET"]);
+  });
+
+  it("classifies two stores in the opposite order as INSTRUCTION_ORDER", async () => {
+    // The return stays last, so the stores never move into the delay slot.
+    const stores = (first: string, second: string) =>
+      `int f(int *p, int *q, int a, int b) { ${first} ${second} return a; }\n`;
+    const result = await match(
+      stores("*p = a;", "*q = b;"),
+      stores("*q = b;", "*p = a;"),
+    );
+
+    expect(result.exact).toBe(false);
+    expect(kinds(result)).toEqual(["INSTRUCTION_ORDER"]);
+  });
+
+  it("classifies small data read through $gp against an absolute address as GP_RELATIVE", async () => {
+    const source = "int g;\nint f(void) { return g; }\n";
+    const result = await match(source, source, { target: 8, source: 0 });
+
+    expect(result.exact).toBe(false);
+    expect(kinds(result)).toEqual(["GP_RELATIVE"]);
+  });
+
+  it("suggests a missing dereference when a pointer is returned instead of its value", async () => {
+    const result = await match(
+      "int f(int *p) { return *p; }\n",
+      "int f(int *p) { return (int)p; }\n",
+    );
+
+    expect(
+      teachingHypotheses(result).map((hypothesis) => hypothesis.kind),
+    ).toContain("LIKELY_EXPRESSION_SHAPE");
   });
 
   it("classifies an int field target (lw) against a signed char field source (lb) as LOAD_WIDTH", async () => {

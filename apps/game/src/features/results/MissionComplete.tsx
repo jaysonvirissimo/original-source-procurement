@@ -2,6 +2,8 @@ import type { Mission } from "@osp/mission-schema";
 import { useEffect, useId, useRef, type ReactElement } from "react";
 import controls from "../../styles/controls.module.css";
 import { SKILL_STATE_LABELS, type SkillChange } from "../progress/skillState";
+import type { HintUsage } from "../workspace/workspaceReducer";
+import { hintUsageText } from "./hintUsageText";
 import styles from "./MissionComplete.module.css";
 
 export interface PredictionOutcome {
@@ -13,7 +15,7 @@ export interface PredictionOutcome {
 interface MissionCompleteProps {
   readonly exact: boolean;
   readonly attempts: number;
-  readonly hints: number;
+  readonly hints: HintUsage;
   /** The prediction recorded before the completing build, if any. */
   readonly prediction: PredictionOutcome | undefined;
   /** Each skill this completion recorded, before and after it. */
@@ -63,7 +65,7 @@ export function MissionComplete({
         <dt>ATTEMPTS</dt>
         <dd>{attempts}</dd>
         <dt>HINTS</dt>
-        <dd>{hints}</dd>
+        <dd>{hintUsageText(hints)}</dd>
         {prediction === undefined ? null : (
           <>
             <dt>PREDICTION</dt>

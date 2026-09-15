@@ -16,11 +16,12 @@ export function functionSource(name: string, lines: readonly string[]) {
   ].join("\n");
 }
 
-export function assembleObject(
-  ...functions: readonly string[]
+export function assembleAt(
+  gpSize: number,
+  functions: readonly string[],
 ): AssembledObject {
   const result = assemble(`\t.text\n${functions.join("")}`, {
-    gpSize: 0,
+    gpSize,
     aspsxVersion: "2.77",
   });
   if (!result.success) {
@@ -29,9 +30,18 @@ export function assembleObject(
   return result.object;
 }
 
-export function generatedFrom(lines: readonly string[]): GeneratedFunction {
+export function assembleObject(
+  ...functions: readonly string[]
+): AssembledObject {
+  return assembleAt(0, functions);
+}
+
+export function generatedFrom(
+  lines: readonly string[],
+  gpSize = 0,
+): GeneratedFunction {
   const generated = extractFunction(
-    assembleObject(functionSource("f", lines)),
+    assembleAt(gpSize, [functionSource("f", lines)]),
     "f",
   );
   if (generated === undefined) {
@@ -40,16 +50,22 @@ export function generatedFrom(lines: readonly string[]): GeneratedFunction {
   return generated;
 }
 
-export function wordsOf(lines: readonly string[]): number[] {
-  return generatedFrom(lines).words.map((word) => word.word);
+export function wordsOf(lines: readonly string[], gpSize = 0): number[] {
+  return generatedFrom(lines, gpSize).words.map((word) => word.word);
 }
 
-export function linkedTarget(lines: readonly string[]): MatchTarget {
-  return { kind: "linked", words: wordsOf(lines) };
+export function linkedTarget(
+  lines: readonly string[],
+  gpSize = 0,
+): MatchTarget {
+  return { kind: "linked", words: wordsOf(lines, gpSize) };
 }
 
-export function unlinkedTarget(lines: readonly string[]): MatchTarget {
-  const generated = generatedFrom(lines);
+export function unlinkedTarget(
+  lines: readonly string[],
+  gpSize = 0,
+): MatchTarget {
+  const generated = generatedFrom(lines, gpSize);
   return {
     kind: "unlinked",
     words: generated.words.map((word) => word.word),

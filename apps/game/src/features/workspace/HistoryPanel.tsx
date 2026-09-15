@@ -55,6 +55,11 @@ export function HistoryPanel({
                   ? "EXACT MATCH"
                   : `${String(attempt.mismatchSummary.equalWords)} of ${String(attempt.mismatchSummary.targetWords)} words match`}
               </p>
+              {(attempt.hintStage ?? 0) === 0 ? null : (
+                <p className={styles.dim}>
+                  Hints opened to stage {attempt.hintStage}
+                </p>
+              )}
               <div className={history.actions}>
                 <button
                   className={controls.button}

@@ -1,5 +1,6 @@
 import type { ReactElement } from "react";
 import { formatDiagnostic } from "../compiler/describeOutcome";
+import { diagnosticGuidance } from "../compiler/diagnosticGuidance";
 import type {
   AssemblerDiagnostic,
   CompilerDiagnostic,
@@ -122,9 +123,17 @@ function Diagnostics({
   }
   return (
     <ul className={styles.diagnostics} aria-label="Diagnostics">
-      {diagnostics.map((diagnostic, index) => (
-        <li key={index}>{formatDiagnostic(diagnostic)}</li>
-      ))}
+      {diagnostics.map((diagnostic, index) => {
+        const guidance = diagnosticGuidance(diagnostic);
+        return (
+          <li key={index}>
+            {formatDiagnostic(diagnostic)}
+            {guidance === undefined ? null : (
+              <p className={styles.neutral}>{guidance}</p>
+            )}
+          </li>
+        );
+      })}
     </ul>
   );
 }

@@ -15,6 +15,27 @@ export const InstructionRangeSchema = z
 export type InstructionRange = z.infer<typeof InstructionRangeSchema>;
 
 /**
+ * What each hint stage gives away, from stage 1 to stage 9. Each stage
+ * reveals more than the one before it.
+ */
+export const HINT_STAGE_PURPOSES = [
+  "Skill",
+  "Where to look",
+  "Machine behavior",
+  "C category",
+  "Type or declaration",
+  "Expression shape",
+  "Source skeleton",
+  "Most of the source",
+  "Solution",
+] as const;
+
+/** The purpose of a stage from 1 to 9. */
+export function hintStagePurpose(stage: number): string {
+  return HINT_STAGE_PURPOSES[stage - 1] ?? "";
+}
+
+/**
  * One rung of the hint ladder, from naming the skill (stage 1) to showing
  * the known solution (stage 9).
  */
@@ -27,6 +48,9 @@ export const HintSchema = z
     reveal: RemoteCReferenceSchema.optional(),
     // Synthetic missions only: shows the mission's OSP-authored solution.
     revealSolution: z.literal(true).optional(),
+    // Real-partial and live missions only: true for a verified fact, false
+    // for a hypothesis.
+    verified: z.boolean().optional(),
   })
   .refine(
     (hint) => hint.reveal === undefined || hint.revealSolution === undefined,
