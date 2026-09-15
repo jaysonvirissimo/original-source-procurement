@@ -106,4 +106,29 @@ describe("usePrefersReducedMotion", () => {
     view.unmount();
     expect(listeners.size).toBe(0);
   });
+
+  it("reads and listens to the same media query list", () => {
+    const listened = new Set<object>();
+    const read = new Set<object>();
+    const matchMedia = vi.fn((query: string) => {
+      const list = {
+        media: query,
+        get matches() {
+          read.add(list);
+          return true;
+        },
+        addEventListener: () => {
+          listened.add(list);
+        },
+        removeEventListener: () => undefined,
+      };
+      return list;
+    });
+    vi.stubGlobal("matchMedia", matchMedia);
+
+    render(<MotionProbe />);
+    expect(screen.getByTestId("motion").textContent).toBe("true");
+    expect(matchMedia).toHaveBeenCalledTimes(1);
+    expect([...read]).toEqual([...listened]);
+  });
 });
