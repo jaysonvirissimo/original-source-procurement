@@ -216,7 +216,7 @@ describe("mapRegions", () => {
 
     expect(
       regions.find((region) => region.kind === "field")?.entries.map(idOf),
-    ).toEqual(["001"]);
+    ).toEqual(["001", "F01"]);
     expect(
       regions.find((region) => region.kind === "live")?.entries.map(idOf),
     ).toEqual(["002"]);

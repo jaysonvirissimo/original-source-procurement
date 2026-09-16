@@ -294,17 +294,23 @@ test("the primary flow works from the keyboard alone", async ({
   await expect(status(page)).toHaveText("EXACT MATCH");
 });
 
-test("a fresh session plays the default path from the mission map to the last mission", async ({
+test("a fresh session plays the training missions on the default path, then points to the field", async ({
   page,
 }) => {
   test.setTimeout(300_000);
-  const path = defaultPath.map((id) => {
+  const fullPath = defaultPath.map((id) => {
     const mission = missions.find((entry) => entry.id === id);
     if (mission === undefined) {
       throw new Error(`The curriculum has no mission ${id}.`);
     }
     return mission;
   });
+  // Field missions load from upstream, which this suite blocks; their own
+  // spec serves them from fixtures.
+  const path = fullPath.filter(
+    (mission) => mission.source.kind === "synthetic",
+  );
+  const field = fullPath[path.length];
 
   await page.goto("./");
   const [first] = path;
@@ -350,11 +356,17 @@ test("a fresh session plays the default path from the mission map to the last mi
     }
     await missionComplete(page);
 
-    const next = path[position + 1];
+    const next = path[position + 1] ?? field;
     if (next === undefined) {
       await expect(
         page.getByRole("link", { name: /Next mission/ }),
       ).toHaveCount(0);
+    } else if (position === path.length - 1) {
+      await expect(
+        page.getByRole("link", {
+          name: `Next mission · ${next.id} ${next.title}`,
+        }),
+      ).toBeVisible();
     } else {
       await page
         .getByRole("link", { name: `Next mission · ${next.id} ${next.title}` })

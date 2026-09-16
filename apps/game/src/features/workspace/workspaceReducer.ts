@@ -1,5 +1,5 @@
 import type { Mission } from "@osp/mission-schema";
-import type { ResolveOutcome } from "../compiler/missionContextResolver";
+import type { MatchTarget } from "@osp/matching-core";
 import type { CompilationInput } from "../compiler/types";
 import type { EditorReplacement } from "../editor/CEditor";
 import type { MissionProgress } from "../persistence/schema";
@@ -10,11 +10,8 @@ import {
   type CompletionState,
   type RecordedActions,
 } from "./completion";
-import {
-  missionMatchTarget,
-  type BuildRequest,
-  type MissionResult,
-} from "./missionResult";
+import type { MissionContextOutcome } from "./missionContext";
+import type { BuildRequest, MissionResult } from "./missionResult";
 
 export type WorkspaceMission = Pick<
   Mission,
@@ -26,13 +23,15 @@ export type SavedWorkspace = Pick<MissionProgress, "source" | "hintMaxStage">;
 
 export type ContextState =
   | { readonly kind: "resolving" }
-  | { readonly kind: "ready"; readonly input: CompilationInput }
+  | {
+      readonly kind: "ready";
+      readonly input: CompilationInput;
+      readonly target: MatchTarget;
+    }
   | {
       readonly kind: "unavailable" | "content-mismatch";
       readonly path: string;
-    }
-  /** The mission's target is not an inline target. */
-  | { readonly kind: "unsupported-target" };
+    };
 
 export type Overlay = "none" | "scan" | "manual" | "hint" | "history";
 
@@ -68,7 +67,10 @@ export interface WorkspaceState {
 export type WorkspaceAction =
   | { readonly type: "entered" }
   | { readonly type: "context-requested" }
-  | { readonly type: "context-resolved"; readonly outcome: ResolveOutcome }
+  | {
+      readonly type: "context-resolved";
+      readonly outcome: MissionContextOutcome;
+    }
   | { readonly type: "edited"; readonly source: string }
   | {
       readonly type: "source-hashed";
@@ -94,10 +96,7 @@ export function initialWorkspaceState(
   return {
     mission,
     entered: false,
-    context:
-      missionMatchTarget(mission) === undefined
-        ? { kind: "unsupported-target" }
-        : { kind: "resolving" },
+    context: { kind: "resolving" },
     source: saved?.source ?? mission.starterSource,
     sourceSha256: undefined,
     latestBuildId: 0,
@@ -176,9 +175,7 @@ function apply(state: WorkspaceState, action: WorkspaceAction): WorkspaceState {
     case "entered":
       return { ...state, entered: true };
     case "context-requested":
-      return state.context.kind === "unsupported-target"
-        ? state
-        : { ...state, context: { kind: "resolving" } };
+      return { ...state, context: { kind: "resolving" } };
     case "context-resolved":
       return resolveContext(state, action.outcome);
     case "edited":
@@ -229,11 +226,18 @@ function apply(state: WorkspaceState, action: WorkspaceAction): WorkspaceState {
 
 function resolveContext(
   state: WorkspaceState,
-  outcome: ResolveOutcome,
+  outcome: MissionContextOutcome,
 ): WorkspaceState {
   switch (outcome.kind) {
     case "ready":
-      return { ...state, context: { kind: "ready", input: outcome.input } };
+      return {
+        ...state,
+        context: {
+          kind: "ready",
+          input: outcome.input,
+          target: outcome.target,
+        },
+      };
     case "unavailable":
     case "content-mismatch":
       return {

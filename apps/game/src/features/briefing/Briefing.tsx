@@ -2,6 +2,9 @@ import type { Mission } from "@osp/mission-schema";
 import { useId, type ReactElement } from "react";
 import { classNames } from "../../styles/classNames";
 import controls from "../../styles/controls.module.css";
+import { missionTier } from "../../vr/presentation";
+import { FieldProvenance } from "../field/FieldProvenance";
+import { missionProvenance } from "../field/provenance";
 import { missingSkillsText, type NamedSkill } from "../mission-map/mapModel";
 import { supportLabel, type ScaffoldPlan } from "../progress/scaffold";
 import { SKILL_STATE_LABELS, type SkillState } from "../progress/skillState";
@@ -10,7 +13,15 @@ import styles from "./Briefing.module.css";
 interface BriefingProps {
   readonly mission: Pick<
     Mission,
-    "id" | "phase" | "title" | "briefing" | "requires" | "practices"
+    | "id"
+    | "kind"
+    | "phase"
+    | "title"
+    | "briefing"
+    | "requires"
+    | "practices"
+    | "source"
+    | "target"
   >;
   readonly skillNames: ReadonlyMap<string, string>;
   /** The player's state for each skill; a skill not listed is new. */
@@ -35,8 +46,13 @@ export function Briefing({
     ...new Set([...mission.requires, ...mission.practices]),
   ];
   const warning = missingSkillsText(missing);
+  const provenance = missionProvenance(mission);
   return (
-    <section className={styles.briefing} aria-labelledby={titleId}>
+    <section
+      className={styles.briefing}
+      aria-labelledby={titleId}
+      data-tier={missionTier(mission.kind)}
+    >
       <p className={controls.label}>
         OSP {mission.id} · {mission.phase}
       </p>
@@ -73,6 +89,9 @@ export function Briefing({
         <dt>Teaching support</dt>
         <dd>{supportLabel(plan)}</dd>
       </dl>
+      {provenance === undefined ? null : (
+        <FieldProvenance provenance={provenance} />
+      )}
       <button
         className={classNames(controls.button, controls.primary)}
         type="button"

@@ -1,6 +1,8 @@
 import type { Mission } from "@osp/mission-schema";
 import { useEffect, useId, useRef, type ReactElement } from "react";
 import controls from "../../styles/controls.module.css";
+import { FieldProvenance } from "../field/FieldProvenance";
+import type { MissionProvenance } from "../field/provenance";
 import { SKILL_STATE_LABELS, type SkillChange } from "../progress/skillState";
 import type { HintUsage } from "../workspace/workspaceReducer";
 import { hintUsageText } from "./hintUsageText";
@@ -23,6 +25,8 @@ interface MissionCompleteProps {
   readonly skillNames: ReadonlyMap<string, string>;
   /** The next mission on the recommended path, if there is one. */
   readonly next: Pick<Mission, "id" | "title"> | undefined;
+  /** Where a field mission's function was recovered from. */
+  readonly provenance?: MissionProvenance | undefined;
   readonly onContinue: () => void;
 }
 
@@ -45,6 +49,7 @@ export function MissionComplete({
   skillChanges,
   skillNames,
   next,
+  provenance,
   onContinue,
 }: MissionCompleteProps): ReactElement {
   const heading = useRef<HTMLHeadingElement>(null);
@@ -104,6 +109,9 @@ export function MissionComplete({
             </p>
           ) : null}
         </div>
+      )}
+      {provenance === undefined ? null : (
+        <FieldProvenance provenance={provenance} />
       )}
       <div className={styles.actions}>
         <button className={controls.button} type="button" onClick={onContinue}>

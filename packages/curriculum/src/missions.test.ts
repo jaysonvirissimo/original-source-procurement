@@ -34,7 +34,7 @@ describe("missions", () => {
 });
 
 describe("the first teaching slice", () => {
-  it("plays 001 through 012 in order on the default path", () => {
+  it("plays 001 through 012 in order, then the first field mission", () => {
     expect(defaultPath).toEqual([
       "001",
       "002",
@@ -48,6 +48,7 @@ describe("the first teaching slice", () => {
       "010",
       "011",
       "012",
+      "F01",
     ]);
   });
 

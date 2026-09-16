@@ -9,7 +9,12 @@ import { fileURLToPath } from "node:url";
 const BASE_PATH = "/original-source-procurement/";
 
 const port = Number(process.env.PORT ?? "4173");
-const distDir = resolve(fileURLToPath(new URL("../dist", import.meta.url)));
+// OSP_DIST names another build directory beside dist, such as the fixtures build.
+const distDir = resolve(
+  fileURLToPath(
+    new URL(`../${process.env.OSP_DIST ?? "dist"}`, import.meta.url),
+  ),
+);
 
 const contentTypes: Readonly<Record<string, string>> = {
   ".css": "text/css; charset=utf-8",

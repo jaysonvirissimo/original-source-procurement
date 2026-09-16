@@ -1,0 +1,23 @@
+/* The same label and value columns as other readouts, in the field accent. */
+.provenance {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--osp-space-1) var(--osp-space-4);
+  justify-self: stretch;
+  margin: 0;
+  padding: var(--osp-space-3) 0 0;
+  border-top: var(--osp-border) dashed var(--osp-field-line);
+  font-size: var(--osp-font-size-label);
+}
+
+.provenance dt {
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--osp-field-accent);
+}
+
+.provenance dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--osp-text-dim);
+}

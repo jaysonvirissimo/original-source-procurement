@@ -1,6 +1,7 @@
 import {
   HintSchema,
   MissionIdSchema,
+  realMissionTextIssues,
   SkillIdSchema,
   SymbolSchema,
   REAL_MISSION_KINDS,
@@ -38,6 +39,28 @@ export type MissionOverride = z.infer<typeof MissionOverrideSchema>;
 
 export const OVERRIDES_SCHEMA_VERSION = 1;
 
+/** Every text a player reads in a reviewed mission, with its path. */
+function playerText(
+  mission: MissionOverride,
+): { readonly path: readonly (string | number)[]; readonly text: string }[] {
+  return [
+    { path: ["title"], text: mission.title },
+    { path: ["briefing", "objective"], text: mission.briefing.objective },
+    ...(mission.briefing.newTechnique === undefined
+      ? []
+      : [
+          {
+            path: ["briefing", "newTechnique"],
+            text: mission.briefing.newTechnique,
+          },
+        ]),
+    ...mission.hints.map((hint, index) => ({
+      path: ["hints", index, "text"],
+      text: hint.text,
+    })),
+  ];
+}
+
 export const MissionOverridesSchema = z
   .strictObject({
     schemaVersion: z.literal(OVERRIDES_SCHEMA_VERSION),
@@ -57,6 +80,18 @@ export const MissionOverridesSchema = z
         });
       }
     }
+
+    file.missions.forEach((mission, index) => {
+      for (const { path, text } of playerText(mission)) {
+        for (const issue of realMissionTextIssues(text)) {
+          ctx.addIssue({
+            code: "custom",
+            path: ["missions", index, ...path],
+            message: `Real-mission text ${issue}; point at the highlighted target rows instead.`,
+          });
+        }
+      }
+    });
   });
 export type MissionOverrides = z.infer<typeof MissionOverridesSchema>;
 

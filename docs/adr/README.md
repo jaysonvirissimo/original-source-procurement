@@ -25,6 +25,7 @@ Changing a locked decision requires a new record. Accepted records are never rew
 | [0015](0015-vr-presentation-layer.md)           | VR presentation layer           | Accepted |
 | [0016](0016-mission-map-recommendations.md)     | Mission map and recommendations | Accepted |
 | [0017](0017-real-mission-pointer-corpus.md)     | Real-mission pointer corpus     | Accepted |
+| [0018](0018-real-missions-in-the-workspace.md)  | Real missions in the workspace  | Accepted |
 
 ## Template
 

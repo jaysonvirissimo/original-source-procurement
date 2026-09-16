@@ -30,6 +30,7 @@ function forbidImports(owner, group) {
 export default defineConfig(
   globalIgnores([
     "**/dist/",
+    "**/dist-fixtures/",
     "**/coverage/",
     "**/test-results/",
     "**/playwright-report/",

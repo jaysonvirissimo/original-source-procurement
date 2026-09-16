@@ -7,6 +7,7 @@ import {
   type ManualEntry,
   type Mission,
   type Skill,
+  realMissionTextIssues,
 } from "@osp/mission-schema";
 import { findCycle, missionNeeds } from "./graph.ts";
 import { sha256Hex, wordsSha256 } from "./hash.ts";
@@ -25,7 +26,8 @@ export type CurriculumIssueCode =
   | "solution-hash"
   | "words-hash"
   | "corpus-commit"
-  | "corpus-symbol";
+  | "corpus-symbol"
+  | "corpus-text";
 
 export interface CurriculumIssue {
   readonly code: CurriculumIssueCode;
@@ -369,6 +371,27 @@ function checkPointerCorpus(value: unknown, report: Report): void {
           "corpus-commit",
           at("hints", hintIndex, "reveal", "commit"),
           `A revealed file must come from the revision the corpus was imported from, ${expected[hint.reveal.repository]}.`,
+        );
+      }
+    }
+
+    const texts: [readonly PathSegment[], string | undefined][] = [
+      [["title"], mission.title],
+      [["briefing", "objective"], mission.briefing.objective],
+      [["briefing", "newTechnique"], mission.briefing.newTechnique],
+      ...mission.hints.map(
+        (hint, hintIndex): [readonly PathSegment[], string] => [
+          ["hints", hintIndex, "text"],
+          hint.text,
+        ],
+      ),
+    ];
+    for (const [path, text] of texts) {
+      for (const issue of realMissionTextIssues(text ?? "")) {
+        report(
+          "corpus-text",
+          at(...path),
+          `Real-mission text ${issue}; point at the highlighted target rows instead.`,
         );
       }
     }
