@@ -1,23 +1,28 @@
-/* An in-workspace technical panel, not a browser modal: the editor behind it
-   keeps its state. */
-.overlay {
-  position: absolute;
-  z-index: 1;
-  top: var(--osp-space-6);
-  right: 0;
-  bottom: var(--osp-space-6);
-  display: grid;
-  align-content: start;
-  justify-items: start;
-  gap: var(--osp-space-3);
-  width: min(520px, 50%);
+/* An in-workspace technical panel, not a browser modal, docked as a column
+   beside the listing so it never covers the editor or the target. */
+.pane {
+  min-width: 0;
+  min-height: 0;
   padding: var(--osp-space-4);
   overflow: auto;
   border: var(--osp-border) solid var(--osp-line);
   border-left: var(--osp-border-strong) solid var(--osp-grid);
   border-radius: var(--osp-radius);
-  /* The corner ticks stay on the panel's frame while its content scrolls. */
+  /* The corner ticks stay on the pane's frame while its content scrolls. */
   background: var(--osp-frame-ticks), var(--osp-surface-0);
+}
+
+.panel {
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  gap: var(--osp-space-3);
+}
+
+/* Focus moves to the heading when a panel opens; the pane frame shows where
+   the reader is, so a mouse user sees no ring. */
+.heading:focus:not(:focus-visible) {
+  outline: none;
 }
 
 .header {
@@ -45,7 +50,7 @@
 
 .itemTitle {
   margin: 0;
-  font-size: var(--osp-font-size-base);
+  font-size: var(--osp-font-size-prose);
   font-weight: 600;
 }
 

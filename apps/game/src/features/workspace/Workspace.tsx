@@ -34,6 +34,9 @@ import {
   type SaveStatus,
 } from "../persistence/progressContext";
 import {
+  clampPaneWidth,
+  referencePaneWidthSetting,
+  REFERENCE_PANE_WIDTH,
   scaffoldSetting,
   type Attempt,
   type MissionProgress,
@@ -79,6 +82,7 @@ import {
   type BuildRequest,
 } from "./missionResult";
 import { PredictionPanel } from "./PredictionPanel";
+import { ReferencePane } from "./ReferencePane";
 import { SplitHandle } from "./SplitHandle";
 import { starterExplanation } from "./starterExplanation";
 import { useSourceAutosave } from "./useSourceAutosave";
@@ -94,6 +98,9 @@ import {
 
 const NO_DIAGNOSTICS: readonly CompilerDiagnostic[] = [];
 const NO_ATTEMPTS: readonly Attempt[] = [];
+
+/** A help panel that opens in the reference pane. */
+type PaneName = Exclude<Overlay, "none">;
 
 interface WorkspaceProps {
   readonly mission: Mission;
@@ -117,6 +124,13 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
     { mission, saved },
     (initial) => initialWorkspaceState(initial.mission, initial.saved),
   );
+  const paneToggles = useRef<
+    Partial<Record<PaneName, HTMLButtonElement | null>>
+  >({});
+  // Held while the pane is dragged, so storage is written once per resize.
+  const [draggedPaneWidth, setDraggedPaneWidth] = useState<number>();
+  const paneWidth =
+    draggedPaneWidth ?? referencePaneWidthSetting(progress.state.settings);
   usePublishPresentation(
     phaseFrom({
       compiling: state.compiling !== undefined,
@@ -370,6 +384,13 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
     setOverlay(state.overlay === overlay ? "none" : overlay);
   };
 
+  /** Closes the pane and returns focus to the control that opened it. */
+  const closePane = (open: PaneName) => {
+    setOverlay("none");
+    /* v8 ignore next -- every toggle is mounted while the workspace shows. */
+    paneToggles.current[open]?.focus();
+  };
+
   const retryContext = () => {
     dispatch({ type: "context-requested" });
     setResolveRequest((count) => count + 1);
@@ -381,7 +402,7 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
     }
     if (event.key === "Escape" && state.overlay !== "none") {
       event.preventDefault();
-      setOverlay("none");
+      closePane(state.overlay);
     } else if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
       event.preventDefault();
       void compile();
@@ -574,7 +595,12 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
       <div
         className={styles.split}
         style={{
-          gridTemplateColumns: `minmax(0, ${String(state.split)}fr) auto minmax(0, ${String(1 - state.split)}fr)`,
+          gridTemplateColumns: [
+            `minmax(0, ${String(state.split)}fr) auto minmax(0, ${String(1 - state.split)}fr)`,
+            ...(state.overlay === "none"
+              ? []
+              : [`auto min(${String(paneWidth)}px, 45%)`]),
+          ].join(" "),
         }}
       >
         <section className={styles.pane} aria-label="Your C">
@@ -644,67 +670,101 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
           <h2 className={controls.label}>TARGET / GENERATED</h2>
           {renderAssembly()}
         </section>
-      </div>
 
-      {state.overlay === "scan" ? (
-        <ScanPanel
-          annotations={annotations}
-          facts={facts}
-          example={example}
-          walkthroughs={walkthroughs}
-          listing={listing}
-          onClose={() => {
-            setOverlay("none");
-          }}
-        />
-      ) : null}
-      {state.overlay === "hint" ? (
-        <HintPanel
-          mission={mission}
-          stage={state.hintStage}
-          onReveal={() => {
-            dispatch({ type: "hint-revealed" });
-          }}
-          onClose={() => {
-            setOverlay("none");
-          }}
-        />
-      ) : null}
-      {state.overlay === "manual" ? (
-        <ManualPanel
-          mission={mission}
-          catalog={catalog}
-          linkedEntries={linkedEntries}
-          onClose={() => {
-            setOverlay("none");
-          }}
-        />
-      ) : null}
-      {state.overlay === "history" ? (
-        <HistoryPanel
-          attempts={
-            progress.state.missions[mission.id]?.attempts ?? NO_ATTEMPTS
-          }
-          onPin={(attemptId, pinned) => {
-            record({
-              type: "attempt-pinned",
-              missionId: mission.id,
-              attemptId,
-              pinned,
-            });
-          }}
-          onRestore={(attempt) => {
-            dispatch({ type: "attempt-restored", source: attempt.source });
-            setOverlay("none");
-          }}
-          onClear={() => {
-            record({ type: "history-cleared", missionId: mission.id });
-          }}
-          onClose={() => {
-            setOverlay("none");
-          }}
-        />
-      ) : null}
+        {state.overlay === "none" ? null : (
+          <>
+            <SplitHandle
+              value={paneWidth}
+              label="Resize the reference pane"
+              min={REFERENCE_PANE_WIDTH.min}
+              max={REFERENCE_PANE_WIDTH.max}
+              step={40}
+              ariaScale={1}
+              direction={-1}
+              fromPointer={(clientX, box) =>
+                clampPaneWidth(box.right - clientX)
+              }
+              onChange={(width) => {
+                setDraggedPaneWidth(clampPaneWidth(width));
+              }}
+              onCommit={(width) => {
+                setDraggedPaneWidth(undefined);
+                record({
+                  type: "settings-changed",
+                  settings: {
+                    ...progress.state.settings,
+                    referencePaneWidth: clampPaneWidth(width),
+                  },
+                });
+              }}
+            />
+            <ReferencePane panel={state.overlay}>
+              {state.overlay === "scan" ? (
+                <ScanPanel
+                  annotations={annotations}
+                  facts={facts}
+                  example={example}
+                  walkthroughs={walkthroughs}
+                  listing={listing}
+                  onClose={() => {
+                    closePane("scan");
+                  }}
+                />
+              ) : null}
+              {state.overlay === "hint" ? (
+                <HintPanel
+                  mission={mission}
+                  stage={state.hintStage}
+                  onReveal={() => {
+                    dispatch({ type: "hint-revealed" });
+                  }}
+                  onClose={() => {
+                    closePane("hint");
+                  }}
+                />
+              ) : null}
+              {state.overlay === "manual" ? (
+                <ManualPanel
+                  mission={mission}
+                  catalog={catalog}
+                  linkedEntries={linkedEntries}
+                  onClose={() => {
+                    closePane("manual");
+                  }}
+                />
+              ) : null}
+              {state.overlay === "history" ? (
+                <HistoryPanel
+                  attempts={
+                    progress.state.missions[mission.id]?.attempts ?? NO_ATTEMPTS
+                  }
+                  onPin={(attemptId, pinned) => {
+                    record({
+                      type: "attempt-pinned",
+                      missionId: mission.id,
+                      attemptId,
+                      pinned,
+                    });
+                  }}
+                  onRestore={(attempt) => {
+                    dispatch({
+                      type: "attempt-restored",
+                      source: attempt.source,
+                    });
+                    closePane("history");
+                  }}
+                  onClear={() => {
+                    record({ type: "history-cleared", missionId: mission.id });
+                  }}
+                  onClose={() => {
+                    closePane("history");
+                  }}
+                />
+              ) : null}
+            </ReferencePane>
+          </>
+        )}
+      </div>
 
       <footer className={styles.controls}>
         <button
@@ -732,6 +792,9 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
           className={controls.button}
           type="button"
           aria-pressed={state.overlay === "scan"}
+          ref={(button) => {
+            paneToggles.current.scan = button;
+          }}
           onClick={() => {
             toggleOverlay("scan");
           }}
@@ -742,6 +805,9 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
           className={controls.button}
           type="button"
           aria-pressed={state.overlay === "hint"}
+          ref={(button) => {
+            paneToggles.current.hint = button;
+          }}
           onClick={() => {
             toggleOverlay("hint");
           }}
@@ -752,6 +818,9 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
           className={controls.button}
           type="button"
           aria-pressed={state.overlay === "manual"}
+          ref={(button) => {
+            paneToggles.current.manual = button;
+          }}
           onClick={() => {
             toggleOverlay("manual");
           }}
@@ -762,6 +831,9 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
           className={controls.button}
           type="button"
           aria-pressed={state.overlay === "history"}
+          ref={(button) => {
+            paneToggles.current.history = button;
+          }}
           onClick={() => {
             toggleOverlay("history");
           }}

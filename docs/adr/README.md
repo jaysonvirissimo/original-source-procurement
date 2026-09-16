@@ -29,6 +29,7 @@ Changing a locked decision requires a new record. Accepted records are never rew
 | [0019](0019-completion-evidence-and-modes.md)          | Completion evidence and modes            | Accepted |
 | [0020](0020-orientation-glossary-and-manual-search.md) | Orientation, glossary, and manual search | Accepted |
 | [0021](0021-walkthrough-diagrams.md)                   | Walkthrough diagrams                     | Accepted |
+| [0022](0022-docked-reference-pane.md)                  | Docked reference pane                    | Accepted |
 
 ## Template
 

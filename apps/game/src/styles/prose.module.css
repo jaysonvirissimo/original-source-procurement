@@ -1,0 +1,12 @@
+/* Explanatory text at a readable size and line length, apart from the dense
+   labels and listings. Code inside it keeps the code face. */
+.prose {
+  max-width: var(--osp-measure-prose);
+  font-family: var(--osp-font-prose);
+  font-size: var(--osp-font-size-prose);
+  line-height: var(--osp-line-height-prose);
+}
+
+.dim {
+  color: var(--osp-text-dim);
+}

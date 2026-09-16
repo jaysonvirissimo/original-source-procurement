@@ -64,12 +64,7 @@
 
 .entryTitle {
   margin: 0;
-  font-size: var(--osp-font-size-base);
+  font-size: var(--osp-font-size-prose);
   font-weight: 600;
   color: var(--osp-text);
-}
-
-.prose {
-  max-width: 68ch;
-  color: var(--osp-text-dim);
 }

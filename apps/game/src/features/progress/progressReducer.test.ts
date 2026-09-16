@@ -372,6 +372,7 @@ describe("progressReducer", () => {
       { ...same, graphics: "full" },
       { ...same, motion: "system" },
       { ...same, mapView: "list" },
+      { ...same, referencePaneWidth: 500 },
       {
         ...same,
         audio: { ...same.audio, music: { volume: 0.4, muted: false } },

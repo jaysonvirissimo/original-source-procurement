@@ -1,6 +1,8 @@
 import type { ManualEntry } from "@osp/mission-schema";
 import type { ReactElement } from "react";
+import { classNames } from "../../styles/classNames";
 import controls from "../../styles/controls.module.css";
+import prose from "../../styles/prose.module.css";
 import styles from "./Manual.module.css";
 import { manualEntryElementId } from "./manualEntryElementId";
 
@@ -30,7 +32,7 @@ export function ManualEntryView({
       {hideSection ? null : <p className={controls.label}>{entry.section}</p>}
       <Heading className={styles.entryTitle}>{entry.title}</Heading>
       {entry.body.map((paragraph, index) => (
-        <p className={styles.prose} key={index}>
+        <p className={classNames(prose.prose, prose.dim)} key={index}>
           {paragraph}
         </p>
       ))}

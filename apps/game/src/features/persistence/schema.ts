@@ -162,6 +162,13 @@ export const DEFAULT_AUDIO_SETTINGS: AudioSettings = {
   sfx: { volume: 0.8, muted: false },
 };
 
+/** The narrowest, first, and widest docked help pane, in CSS pixels. */
+export const REFERENCE_PANE_WIDTH = {
+  min: 300,
+  default: 420,
+  max: 640,
+} as const;
+
 // Fields are optional with defaults read through accessors, so adding one
 // needs no migration and older saves stay valid.
 export const SettingsSchema = z.strictObject({
@@ -170,11 +177,32 @@ export const SettingsSchema = z.strictObject({
   motion: z.enum(MOTION_SETTINGS).optional(),
   audio: AudioSettingsSchema.optional(),
   mapView: z.enum(MAP_VIEW_SETTINGS).optional(),
+  // The docked help pane's width in CSS pixels.
+  referencePaneWidth: z
+    .number()
+    .int()
+    .min(REFERENCE_PANE_WIDTH.min)
+    .max(REFERENCE_PANE_WIDTH.max)
+    .optional(),
 });
 export type Settings = z.infer<typeof SettingsSchema>;
 
 export function mapViewSetting(settings: Settings): MapViewSetting {
   return settings.mapView ?? "map";
+}
+
+export function referencePaneWidthSetting(settings: Settings): number {
+  return settings.referencePaneWidth ?? REFERENCE_PANE_WIDTH.default;
+}
+
+/** A whole pixel width within the pane limits. */
+export function clampPaneWidth(width: number): number {
+  return Math.round(
+    Math.min(
+      REFERENCE_PANE_WIDTH.max,
+      Math.max(REFERENCE_PANE_WIDTH.min, width),
+    ),
+  );
 }
 
 export function scaffoldSetting(settings: Settings): ScaffoldSetting {

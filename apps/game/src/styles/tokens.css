@@ -43,10 +43,14 @@
     "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
     monospace;
   --osp-font-display: "Barlow Condensed", system-ui, sans-serif;
+  --osp-font-prose: "IBM Plex Sans", system-ui, sans-serif;
 
   --osp-font-size-base: 14px;
   --osp-font-size-code: 14px;
   --osp-font-size-label: 12px;
+  --osp-font-size-prose: 16px;
+  --osp-line-height-prose: 1.6;
+  --osp-measure-prose: 66ch;
   --osp-font-size-title: 24px;
   --osp-font-size-mark: 72px;
 

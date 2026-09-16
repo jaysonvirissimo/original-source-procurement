@@ -3,15 +3,17 @@ import {
   type Mission,
   type RemoteCReference,
 } from "@osp/mission-schema";
-import { useEffect, useId, useState, type ReactElement } from "react";
+import { useEffect, useId, useRef, useState, type ReactElement } from "react";
+import { classNames } from "../../styles/classNames";
 import controls from "../../styles/controls.module.css";
+import prose from "../../styles/prose.module.css";
 import {
   UPSTREAM_CONTENT_MISMATCH,
   UPSTREAM_HINT_UNAVAILABLE,
 } from "../upstream/messages";
 import type { UpstreamOutcome } from "../upstream/types";
 import { useUpstream } from "../upstream/upstreamContext";
-import styles from "./OverlayPanel.module.css";
+import styles from "./ReferencePane.module.css";
 
 interface HintPanelProps {
   readonly mission: Pick<Mission, "hints" | "solution">;
@@ -34,11 +36,25 @@ export function HintPanel({
   const titleId = useId();
   const revealed = mission.hints.filter((hint) => hint.stage <= stage);
   const next = mission.hints.find((hint) => hint.stage > stage);
+  const newest = useRef<HTMLParagraphElement>(null);
+  const openedAt = useRef(stage);
+
+  // The reveal button can end up disabled, which drops focus to the page, so
+  // focus follows the newly revealed stage instead.
+  useEffect(() => {
+    if (stage > openedAt.current) {
+      newest.current?.focus();
+    }
+  }, [stage]);
 
   return (
-    <section className={styles.overlay} aria-labelledby={titleId}>
+    <section className={styles.panel} aria-labelledby={titleId}>
       <header className={styles.header}>
-        <h2 className={controls.label} id={titleId}>
+        <h2
+          className={classNames(controls.label, styles.heading)}
+          id={titleId}
+          tabIndex={-1}
+        >
           Hints
         </h2>
         <button className={controls.button} type="button" onClick={onClose}>
@@ -52,9 +68,13 @@ export function HintPanel({
         </p>
       ) : (
         <ol className={styles.list}>
-          {revealed.map((hint) => (
+          {revealed.map((hint, index) => (
             <li className={styles.item} key={hint.stage}>
-              <p className={controls.label}>
+              <p
+                className={classNames(controls.label, styles.heading)}
+                ref={index === revealed.length - 1 ? newest : undefined}
+                tabIndex={-1}
+              >
                 Stage {hint.stage} · {hintStagePurpose(hint.stage)}
               </p>
               {hint.verified === undefined ? null : (
@@ -62,7 +82,7 @@ export function HintPanel({
                   {hint.verified ? "VERIFIED" : "HYPOTHESIS"}
                 </p>
               )}
-              <p>{hint.text}</p>
+              <p className={prose.prose}>{hint.text}</p>
               {hint.highlight === undefined ? null : (
                 <p className={styles.dim}>
                   Target rows marked HINT show where to look.
