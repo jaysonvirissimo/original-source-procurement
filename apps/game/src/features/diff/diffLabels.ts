@@ -10,7 +10,7 @@ export const MISMATCH_EXPLANATIONS: Readonly<Record<MismatchKind, string>> = {
     "The same memory access uses a different offset from its base register.",
   LOAD_WIDTH: "The load reads a different number of bytes.",
   LOAD_SIGNEDNESS:
-    "The load reads the same number of bytes but extends the value differently: lb and lh sign-extend, lbu and lhu zero-extend.",
+    "The load reads the same number of bytes but widens the value differently: a signed load copies the top bit into the new high bits, an unsigned load fills them with zeros.",
   STORE_WIDTH: "The store writes a different number of bytes.",
   MISSING_INSTRUCTION: "The target has instructions your output lacks.",
   EXTRA_INSTRUCTION: "Your output has instructions the target lacks.",

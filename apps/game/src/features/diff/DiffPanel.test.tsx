@@ -27,7 +27,7 @@ const result: MatchResult = {
       origin: {
         line: 2,
         kind: "load-delay-nop",
-        note: "load delay: the next instruction reads $v1",
+        note: "$3 is written by lw and read by lb",
       },
     },
   ],
@@ -90,7 +90,7 @@ describe("DiffPanel", () => {
       "−Missing from your outputjr $raHINT",
     ]);
     expect(rows[2]?.querySelector("td[title]")?.getAttribute("title")).toBe(
-      "load delay: the next instruction reads $v1",
+      "$v1 is written by lw and read by lb",
     );
     expect(screen.queryByText(/^STALE/)).toBeNull();
   });

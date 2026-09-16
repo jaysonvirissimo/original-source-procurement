@@ -1,6 +1,11 @@
 import { missions } from "@osp/curriculum";
 import { wordFacts } from "@osp/matching-core";
-import type { Mission, MissionExample } from "@osp/mission-schema";
+import type {
+  Mission,
+  MissionExample,
+  MissionWalkthrough,
+  WalkthroughStep,
+} from "@osp/mission-schema";
 import { describe, expect, it } from "vitest";
 import { memoryDiagram, registerDiagram } from "./diagrams";
 
@@ -66,4 +71,108 @@ describe("shipped machine diagram examples", () => {
       }
     },
   );
+});
+
+const withWalkthroughs = missions.flatMap((mission) =>
+  mission.walkthroughs === undefined || mission.target.kind !== "inline"
+    ? []
+    : mission.walkthroughs.map(
+        (walkthrough, index) =>
+          [
+            `${mission.id} #${String(index)} ${walkthrough.kind}`,
+            mission,
+            walkthrough,
+          ] as const,
+      ),
+);
+
+describe("shipped walkthroughs", () => {
+  it("cover the missions revised for beginners", () => {
+    expect([
+      ...new Set(withWalkthroughs.map(([, mission]) => mission.id)),
+    ]).toEqual(["001", "002", "004", "005", "006", "007", "008", "010", "012"]);
+  });
+
+  it.each(withWalkthroughs)(
+    "%s agrees with the generated target and the mission's example",
+    (_name, mission: Mission, walkthrough: MissionWalkthrough) => {
+      const words =
+        mission.target.kind === "inline" ? mission.target.words : [];
+      const facts = wordFacts(words);
+      const inTarget = ({ range }: WalkthroughStep) =>
+        range === undefined || range.end <= words.length;
+      switch (walkthrough.kind) {
+        case "trace":
+          expect(walkthrough.steps.every(inTarget)).toBe(true);
+          return;
+        case "timeline":
+          expect(
+            walkthrough.lanes.every(({ steps }) => steps.every(inTarget)),
+          ).toBe(true);
+          return;
+        case "bits":
+          return;
+        case "operands":
+          expect(facts[walkthrough.word]?.memory).toBeDefined();
+          return;
+        case "caller": {
+          const example = mission.example;
+          for (const row of walkthrough.rows) {
+            const register = example?.registers.find(
+              (entry) => entry.register === row.name,
+            );
+            if (register !== undefined) {
+              expect(row.before, row.name).toBe(register.value);
+            }
+            const cell = example?.regions
+              .flatMap(({ cells }) => cells)
+              .find(({ label }) => label === row.name);
+            if (cell !== undefined) {
+              expect(row.before, row.name).toBe(cell.value);
+            }
+          }
+          return;
+        }
+      }
+    },
+  );
+
+  it("reads a load in 006 and a store in 008", () => {
+    const kindAt = (id: string) => {
+      const mission = missions.find((entry) => entry.id === id);
+      const operands = mission?.walkthroughs?.find(
+        (walkthrough) => walkthrough.kind === "operands",
+      );
+      const words =
+        mission?.target.kind === "inline" ? mission.target.words : [];
+      return operands?.kind === "operands"
+        ? wordFacts(words)[operands.word]?.memory?.kind
+        : undefined;
+    };
+    expect(kindAt("006")).toBe("load");
+    expect(kindAt("008")).toBe("store");
+  });
+
+  it("covers 012's load delay nop in its timeline", () => {
+    const mission = missions.find((entry) => entry.id === "012");
+    const nop =
+      mission?.target.kind === "inline"
+        ? mission.target.provenance.findIndex(
+            (origin) => origin.kind === "load-delay-nop",
+          )
+        : -1;
+    const timeline = mission?.walkthroughs?.find(
+      (walkthrough) => walkthrough.kind === "timeline",
+    );
+    const covered =
+      timeline?.kind === "timeline" &&
+      timeline.lanes.some(({ steps }) =>
+        steps.some(
+          ({ range }) =>
+            range !== undefined && range.start <= nop && nop < range.end,
+        ),
+      );
+    expect(nop).toBeGreaterThan(0);
+    expect(covered).toBe(true);
+  });
 });

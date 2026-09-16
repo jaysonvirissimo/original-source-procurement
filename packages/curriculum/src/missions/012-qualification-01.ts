@@ -27,11 +27,28 @@ export const qualification01: MissionDraft = {
   completion: "exact",
   compiler: trainingCompiler("qualification.c"),
   briefing: {
-    objective: "Copy a byte field into a word field through two pointers.",
+    objective:
+      "Copy a byte field into a word field of the struct that a pointer stored inside h points to.",
   },
+  terms: [
+    "glossary.pointer",
+    "glossary.struct",
+    "glossary.temporary",
+    "glossary.lw",
+    "glossary.lb",
+    "glossary.sw",
+    "glossary.nop",
+  ],
   starterSource: `${STRUCTS}void qualification(struct Holder *h)\n{\n}\n`,
   solution: `${STRUCTS}void qualification(struct Holder *h)\n{\n    h->inner->x = h->inner->level;\n}\n`,
   symbol: "qualification",
+  annotations: [
+    {
+      range: { start: 0, end: 1 },
+      text: "$v1 holds the inner pointer only while this function runs. The function is void and returns nothing, so the compiler is free to use $v1 and $v0 as temporaries.",
+      manualEntry: "abi.return-values",
+    },
+  ],
   example: {
     caption:
       "h holds 0x3000. pad fills offsets 0 to 0x1F, eight 4-byte ints, so inner sits at +0x20. inner holds another address, 0x4000, where a struct Inner starts. Its x is at +0 and level at +4.",
@@ -60,6 +77,40 @@ export const qualification01: MissionDraft = {
       },
     ],
   },
+  walkthroughs: [
+    {
+      kind: "timeline",
+      caption:
+        "Why only the first load gets a nop. A loaded register is ready one instruction late, and the assembler inserts a nop only when the very next instruction reads it.",
+      lanes: [
+        {
+          label: "This target",
+          steps: [
+            {
+              range: { start: 0, end: 1 },
+              text: "lw loads inner, an address, into $v1.",
+            },
+            {
+              range: { start: 1, end: 2 },
+              text: "The next instruction reads $v1, which is not ready yet, so the assembler inserted a load delay nop.",
+            },
+            {
+              range: { start: 2, end: 3 },
+              text: "lb reads level through $v1 into $v0. $v1 is ready now.",
+            },
+            {
+              range: { start: 3, end: 4 },
+              text: "jr $ra starts the return. It does not read $v0, so the lb needs no nop.",
+            },
+            {
+              range: { start: 4, end: 5 },
+              text: "sw runs in jr's delay slot and stores $v0 into x through $v1. jr came between lb and sw, so $v0 is ready.",
+            },
+          ],
+        },
+      ],
+    },
+  ],
   hints: [
     {
       stage: 1,

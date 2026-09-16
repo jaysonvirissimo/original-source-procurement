@@ -32,6 +32,17 @@ function registerName(number: number): string {
 }
 
 /**
+ * Text with numeric register names such as `$3` written as the ABI names
+ * listings use, such as `$v1`.
+ */
+export function abiRegisterNames(text: string): string {
+  return text.replace(/\$(\d+)\b/g, (match, digits: string) => {
+    const number = Number(digits);
+    return number < 32 ? registerName(number) : match;
+  });
+}
+
+/**
  * Static facts about each word, in order, for teaching diagrams. Words are
  * decoded, never executed: no register or memory value is computed.
  */

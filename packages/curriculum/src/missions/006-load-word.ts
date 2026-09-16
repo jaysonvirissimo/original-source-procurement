@@ -24,6 +24,18 @@ export const loadWord: MissionDraft = {
       "Compile, select the lw that reads a 32-bit value from memory, then acknowledge it.",
     newTechnique: "lw reads 32 bits from a base register plus an offset.",
   },
+  terms: [
+    "glossary.lw",
+    "glossary.pointer",
+    "glossary.address",
+    "glossary.offset",
+    "glossary.bit",
+    "glossary.byte",
+    "glossary.word",
+    "glossary.nop",
+    "glossary.compiler",
+    "glossary.assembler",
+  ],
   starterSource: SOURCE,
   solution: SOURCE,
   symbol: "load_word",
@@ -46,6 +58,53 @@ export const loadWord: MissionDraft = {
       },
     ],
   },
+  walkthroughs: [
+    {
+      kind: "operands",
+      caption:
+        "lw destination,offset(base). The parentheses do not call anything: they hold the base register, whose value is an address. The offset is added to that address, and memory there is read.",
+      skill: "MIPS.LOAD.WORD",
+      word: 0,
+    },
+    {
+      kind: "timeline",
+      caption:
+        "Two kinds of nop. A nop is an instruction that does nothing. The compiler's output has none here: the assembler adds one where the machine needs a gap.",
+      lanes: [
+        {
+          label: "Branch delay nop, in this target",
+          steps: [
+            {
+              range: { start: 0, end: 1 },
+              text: "lw reads the int into $v0. The compiler placed this load before the jump.",
+            },
+            {
+              range: { start: 1, end: 2 },
+              text: "jr $ra starts the return. The next instruction runs before the jump takes effect.",
+            },
+            {
+              range: { start: 2, end: 3 },
+              text: "Nothing is left to run in that delay slot, so the assembler filled it with a nop. In 001, addiu did useful work there instead.",
+            },
+          ],
+        },
+        {
+          label: "Load delay nop, in later missions",
+          steps: [
+            {
+              text: "A load puts its value in the register one instruction late.",
+            },
+            {
+              text: "When the very next instruction reads that register, the assembler inserts a nop between them.",
+            },
+            {
+              text: "Here nothing reads $v0 right after the lw, so no load delay nop is needed.",
+            },
+          ],
+        },
+      ],
+    },
+  ],
   hints: [
     {
       stage: 1,

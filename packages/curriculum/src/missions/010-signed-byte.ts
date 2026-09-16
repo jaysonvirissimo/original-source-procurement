@@ -25,6 +25,14 @@ export const signedByte: MissionDraft = {
       "Read a signed 8-bit field, and see how its load differs from an unsigned one.",
     newTechnique: "lb sign-extends an 8-bit load; lbu zero-extends it.",
   },
+  terms: [
+    "glossary.lb",
+    "glossary.byte",
+    "glossary.bit",
+    "glossary.twos-complement",
+    "glossary.sign-extension",
+    "glossary.psyq",
+  ],
   starterSource: `${STRUCT}int signed_byte(struct Rec *r)\n{\n    return r->id;\n}\n`,
   solution: `${STRUCT}int signed_byte(struct Rec *r)\n{\n    return r->delta;\n}\n`,
   symbol: "signed_byte",
@@ -32,7 +40,7 @@ export const signedByte: MissionDraft = {
     {
       range: { start: 0, end: 1 },
       text: "Reading count instead would load offset 5 with lbu, because count is unsigned char. A plain char field also loads with lbu.",
-      manualEntry: "mips.loads-and-stores",
+      manualEntry: "c.integer-types",
       skill: "MIPS.LOAD.BYTE",
     },
   ],
@@ -53,6 +61,33 @@ export const signedByte: MissionDraft = {
       },
     ],
   },
+  walkthroughs: [
+    {
+      kind: "bits",
+      caption:
+        "delta's byte, 0xFD, bit by bit. Read as signed, in two's complement, its top bit counts as -128, so it is -128 + 125 = -3. Read as unsigned, it is 253. Returning it as an int widens it to 32 bits: lb copies the top bit into the 24 new bits, and lbu fills them with zeros.",
+      skill: "MIPS.LOAD.BYTE",
+      rows: [
+        {
+          label: "delta: -3 signed, 253 unsigned",
+          width: 8,
+          value: 0xfd,
+        },
+        {
+          label: "lb, sign-extended: -3",
+          width: 32,
+          value: 0xffff_fffd,
+          derive: { op: "sign-extend", from: 0 },
+        },
+        {
+          label: "lbu, zero-extended: 253",
+          width: 32,
+          value: 0xfd,
+          derive: { op: "zero-extend", from: 0 },
+        },
+      ],
+    },
+  ],
   hints: [
     {
       stage: 1,

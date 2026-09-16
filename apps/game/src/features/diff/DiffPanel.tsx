@@ -1,4 +1,8 @@
-import type { MatchResult, TeachingHypothesis } from "@osp/matching-core";
+import {
+  abiRegisterNames,
+  type MatchResult,
+  type TeachingHypothesis,
+} from "@osp/matching-core";
 import type { InstructionRange } from "@osp/mission-schema";
 import { useState, type ReactElement } from "react";
 import { classNames } from "../../styles/classNames";
@@ -95,7 +99,14 @@ export function DiffPanel({
                   <td>
                     <code>{generated?.text}</code>
                   </td>
-                  <td className={styles.note} title={generated?.origin?.note}>
+                  <td
+                    className={styles.note}
+                    title={
+                      generated?.origin?.note === undefined
+                        ? undefined
+                        : abiRegisterNames(generated.origin.note)
+                    }
+                  >
                     {noteText([
                       provenanceLabel(generated?.origin),
                       ...annotationLabels(annotations, row.target),

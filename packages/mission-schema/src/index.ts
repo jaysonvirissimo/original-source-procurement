@@ -99,3 +99,17 @@ export {
   type RemoteTarget,
   type Target,
 } from "./target.ts";
+export {
+  BitDerivationSchema,
+  BitRowSchema,
+  CallerRowSchema,
+  derivedBits,
+  MissionWalkthroughSchema,
+  WalkthroughStepSchema,
+  type BitDerivation,
+  type BitRow,
+  type BitWidth,
+  type CallerRow,
+  type MissionWalkthrough,
+  type WalkthroughStep,
+} from "./walkthrough.ts";

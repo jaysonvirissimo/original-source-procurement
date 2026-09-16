@@ -1,0 +1,22 @@
+.walkthrough {
+  display: grid;
+  gap: var(--osp-space-2);
+  justify-self: stretch;
+}
+
+.caption {
+  margin: 0;
+  text-align: left;
+  color: var(--osp-text-dim);
+}
+
+.wrap td {
+  white-space: normal;
+}
+
+.code {
+  margin: 0;
+  font-family: var(--osp-font-code);
+  font-size: var(--osp-font-size-code);
+  white-space: pre-wrap;
+}

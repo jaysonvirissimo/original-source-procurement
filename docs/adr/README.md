@@ -28,6 +28,7 @@ Changing a locked decision requires a new record. Accepted records are never rew
 | [0018](0018-real-missions-in-the-workspace.md)         | Real missions in the workspace           | Accepted |
 | [0019](0019-completion-evidence-and-modes.md)          | Completion evidence and modes            | Accepted |
 | [0020](0020-orientation-glossary-and-manual-search.md) | Orientation, glossary, and manual search | Accepted |
+| [0021](0021-walkthrough-diagrams.md)                   | Walkthrough diagrams                     | Accepted |
 
 ## Template
 

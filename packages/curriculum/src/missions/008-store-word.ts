@@ -21,6 +21,7 @@ export const storeWord: MissionDraft = {
     objective: "Update a pointed-to integer.",
     newTechnique: "sw writes 32 bits to a base register plus an offset.",
   },
+  terms: ["glossary.sw", "glossary.pointer", "glossary.void", "glossary.a0"],
   starterSource: "void store_word(int *p, int v)\n{\n}\n",
   solution: "void store_word(int *p, int v)\n{\n    *p = v;\n}\n",
   symbol: "store_word",
@@ -40,6 +41,32 @@ export const storeWord: MissionDraft = {
       },
     ],
   },
+  walkthroughs: [
+    {
+      kind: "caller",
+      caption:
+        "The caller's memory changes although nothing is returned. p holds the address of x, so writing *p writes x. Values are illustrative.",
+      skill: "MIPS.STORE.WORD",
+      code: "int x = 42;\nstore_word(&x, 7);\n/* x is now 7 */",
+      rows: [
+        {
+          name: "$a0",
+          before: 0x1000,
+          after: 0x1000,
+          note: "p = &x; the address itself does not change",
+        },
+        { name: "$a1", before: 7, after: 7, note: "v" },
+        { name: "x", before: 42, after: 7, note: "*p, the int at 0x1000" },
+      ],
+    },
+    {
+      kind: "operands",
+      caption:
+        "sw source,offset(base). Unlike arithmetic and lw, a store's first operand is the source: the value flows from $a1 into memory, and no register changes.",
+      skill: "MIPS.STORE.WORD",
+      word: 1,
+    },
+  ],
   hints: [
     {
       stage: 1,

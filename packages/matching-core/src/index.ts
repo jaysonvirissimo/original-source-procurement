@@ -28,6 +28,7 @@ export {
 } from "./hypotheses.ts";
 export { compareFunction, matchFunction } from "./match.ts";
 export {
+  abiRegisterNames,
   usesStack,
   wordFacts,
   type MemoryAccess,

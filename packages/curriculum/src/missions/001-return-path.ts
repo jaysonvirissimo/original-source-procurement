@@ -45,6 +45,27 @@ export const returnPath: MissionDraft = {
     retry:
       "Not that one. Look for the instruction whose first operand, its destination, is $v0.",
   },
+  walkthroughs: [
+    {
+      kind: "trace",
+      caption:
+        "Returning 42, step by step. jr comes first in the listing, but the instruction after it still runs before the caller continues.",
+      skill: "ABI.RETURN",
+      steps: [
+        {
+          range: { start: 0, end: 1 },
+          text: "jr $ra starts the return to the address in $ra, the caller's return address. The jump does not take effect yet.",
+        },
+        {
+          range: { start: 1, end: 2 },
+          text: "The delay slot runs: addiu writes 0 + 42 into $v0.",
+        },
+        {
+          text: "The jump takes effect. The caller continues and finds 42 in $v0.",
+        },
+      ],
+    },
+  ],
   annotations: [
     {
       range: { start: 1, end: 2 },

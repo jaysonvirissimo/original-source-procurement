@@ -24,6 +24,7 @@ export const fieldOffset: MissionDraft = {
     newTechnique:
       "o->field reads memory at the field's offset from the address in o.",
   },
+  terms: ["glossary.struct", "glossary.offset", "glossary.pointer"],
   starterSource: `${STRUCT}int field_offset(struct Obj *o)\n{\n    return o->a;\n}\n`,
   solution: `${STRUCT}int field_offset(struct Obj *o)\n{\n    return o->c;\n}\n`,
   symbol: "field_offset",

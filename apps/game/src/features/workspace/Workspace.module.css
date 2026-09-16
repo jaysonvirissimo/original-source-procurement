@@ -34,6 +34,13 @@
   color: var(--osp-text-dim);
 }
 
+.support {
+  flex-basis: 100%;
+  order: 1;
+  font-size: var(--osp-font-size-label);
+  color: var(--osp-text-dim);
+}
+
 .status {
   font-family: var(--osp-font-code);
   font-size: var(--osp-font-size-label);

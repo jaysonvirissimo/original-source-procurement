@@ -11,8 +11,11 @@ export const manualEntries: readonly ManualEntry[] = [
     title: "Integer types",
     body: [
       "int is 32 bits. short is 16 bits. char is 8 bits.",
+      "A char is a 1-byte integer, not a string. Game data often stores small numbers, such as a delta or a count, in char fields to save memory.",
       "signed char holds -128 to 127. unsigned char holds 0 to 255.",
-      "Plain char is unsigned in PsyQ. A field declared as char behaves like unsigned char, not signed char.",
+      "Signed bytes use two's complement: the top bit counts as -128 instead of +128. So 0xFD, 1111 1101 in binary, is -128 + 125 = -3 as signed char and 253 as unsigned char.",
+      "Using a byte as a 32-bit int widens it. Sign extension copies the top bit into the new bits, so -3 stays -3. Zero extension fills them with zeros, so 253 stays 253.",
+      "Plain char is unsigned in PsyQ, the compiler the game was built with. A field declared as char behaves like unsigned char, not signed char. That is a PsyQ rule: other compilers may treat plain char as signed.",
     ],
   },
   {
@@ -22,6 +25,9 @@ export const manualEntries: readonly ManualEntry[] = [
     body: [
       "A pointer holds an address. int *p means p holds the address of an int.",
       "*p reads the int at that address. *p = v writes v there.",
+      "& takes an address. If an int x is stored at 0x1000, &x is 0x1000, and calling f(&x) gives f a pointer to x.",
+      "* has three roles. In a * 8 it multiplies. In the declaration int *p it says p holds an address. In the expression *p it reads or writes the int at that address.",
+      "p = q changes which address p holds, and nothing else. *p = v writes into the memory p points to, so the caller's variable changes. A void function returns nothing, and this is how it hands back a result.",
       "A pointer argument arrives in an argument register like any other value. The load or store uses that register as its base.",
     ],
   },
@@ -34,6 +40,9 @@ export const manualEntries: readonly ManualEntry[] = [
       "In struct Obj { int a; int b; int c; }, a is at offset 0, b at 4, and c at 8, because each int takes 4 bytes.",
       "A char field takes 1 byte. After int id, a char delta sits at offset 4 and the next char at offset 5.",
       "o->c reads the field c of the struct that o points to: memory at o plus the offset of c.",
+      "The declaration struct Obj { int a; int b; int c; }; describes a layout and creates nothing. An instance is actual memory with that layout. Unlike a JavaScript object, a struct cannot gain fields, and each field has a fixed type, size, and offset.",
+      "With an instance itself, write obj.c. With a pointer to one, write o->c, which means (*o).c. Functions usually take struct Obj *o, the struct's address, so the struct is not copied.",
+      "Offsets are not always the sum of the sizes before them. A layout can contain padding, unused bytes that line a field up. struct Obj holds only ints, so it has none. Later missions teach padding.",
     ],
   },
   {
@@ -41,10 +50,15 @@ export const manualEntries: readonly ManualEntry[] = [
     section: "MIPS",
     title: "Arithmetic",
     body: [
-      "addiu $v0,$a0,imm stores $a0 plus a 16-bit constant in $v0. The constant is sign-extended, so it can be negative.",
-      "sll $v0,$a0,n stores $a0 shifted left by n bits in $v0. Shifting left by n multiplies by 2 to the power n.",
+      "addiu $v0,$a0,imm stores $a0 plus a constant in $v0.",
+      "An immediate is a constant written inside the instruction itself, rather than read from a register. In addiu it has 16 bits, so it ranges from -32768 to 32767.",
+      "The processor widens the immediate to 32 bits by sign extension: it copies the top bit into the new bits, so a negative constant stays negative. The u in addiu does not mean unsigned. It means an overflow does not stop the program.",
+      "sll $v0,$a0,n stores $a0 shifted left by n bits in $v0. Every bit moves n places toward the high end and zeros fill the low places. Each place doubles the value, so shifting left by n multiplies by 2 to the power n.",
+      "In C, a << 3 shifts left by 3 and a * 8 multiplies by 8. The compiler emits the same sll for both, so either one matches. A match shows the output is the same, not that the original source used that exact text.",
+      "The analogy has limits. Bits shifted past the top are lost, so a large value overflows, and shifting right does not divide negative numbers the same way. Later missions cover those cases.",
       "The listing shows immediates in hexadecimal: 0x5 is 5 and 0x2A is 42. Shift amounts are decimal.",
       "When one expression needs two steps, the compiler keeps the intermediate value in a register, often the destination register itself.",
+      "C applies * before +, and + before <<. Parentheses change the order: (a + 3) * 4 adds first, while a + 3 * 4 multiplies 3 by 4 first.",
     ],
   },
   {
@@ -52,8 +66,10 @@ export const manualEntries: readonly ManualEntry[] = [
     section: "MIPS",
     title: "Loads and stores",
     body: [
-      "Memory is reached through a base register plus an offset. lw $v0,0x8($a0) reads 32 bits from the address in $a0 plus 8.",
-      "sw $a1,0x0($a0) writes the 32 bits in $a1 to the address in $a0.",
+      "Memory is a long row of bytes, each with its own address. A byte is 8 bits. An int, like an instruction, is a 32-bit word that takes 4 bytes at consecutive addresses.",
+      "A register holds 32 bits with no type. Sometimes they are a number to calculate with, like a in 003. Sometimes they are an address, like p in 006. The instruction decides: lw treats its base register as an address.",
+      "Memory is reached through a base register plus an offset. lw $v0,0x8($a0) reads 32 bits from the address in $a0 plus 8. The parentheses hold the base; they are not a call.",
+      "sw $a1,0x0($a0) writes the 32 bits in $a1 to the address in $a0. A store's first operand is the source, not a destination: the value flows from $a1 into memory, and no register changes. With p in $a0 and v in $a1, this is *p = v.",
       "lb and lbu read 8 bits. lb sign-extends the byte to 32 bits; lbu zero-extends it.",
       "A signed char loads with lb. An unsigned char or a plain char loads with lbu.",
       "The offset shows which field is read; the instruction shows its width and signedness.",
@@ -74,8 +90,9 @@ export const manualEntries: readonly ManualEntry[] = [
     section: "MIPS",
     title: "Assembler-inserted nops",
     body: [
-      "Some nops are not in the compiler's output. The assembler inserts them.",
-      "A branch delay nop fills a delay slot that has nothing else to run.",
+      "A nop is an instruction that does nothing.",
+      "The compiler, PsyQ, translates C into assembly. The assembler, ASPSX, turns that assembly into words. Some nops are not in the compiler's output: the assembler inserts them.",
+      "A branch delay nop fills a delay slot that has nothing else to run. In 001, addiu does useful work in jr's delay slot, so no nop is needed there.",
       "A load delay nop follows a load when the next instruction reads the register just loaded. The loaded value is not ready one instruction later.",
       "These nops are part of the target. Matching C produces them too.",
     ],
@@ -87,6 +104,8 @@ export const manualEntries: readonly ManualEntry[] = [
     body: [
       "The first four integer or pointer arguments arrive in $a0, $a1, $a2, and $a3, in order.",
       "In int f(int a, int b), a is in $a0 and b is in $a1 when the function starts.",
+      "Registers to know now: $a0 to $a3 carry arguments, $v0 carries the return value, $ra holds the return address, and $zero always reads 0.",
+      "Other names, such as $v1, $s0 to $s7, $t0 to $t9, and $sp, appear in later missions. You can ignore them for now.",
     ],
   },
   {
@@ -96,7 +115,7 @@ export const manualEntries: readonly ManualEntry[] = [
     body: [
       "A function returns an int or a pointer in $v0.",
       "jr $ra jumps back to the caller, whose return address is in $ra.",
-      "A void function sets no return value.",
+      "A void function sets no return value. It can still use $v0 and $v1 for intermediate values while it runs.",
     ],
   },
   {
@@ -387,6 +406,110 @@ export const manualEntries: readonly ManualEntry[] = [
     title: "stack frame",
     body: [
       "Memory a function reserves while it runs, for values that do not fit in registers. The first missions do not use one.",
+    ],
+  },
+  {
+    id: "glossary.a0",
+    section: "GLOSSARY",
+    title: "$a0 to $a3",
+    body: [
+      "The argument registers. The first four int or pointer arguments arrive in $a0, $a1, $a2, and $a3, in order.",
+    ],
+  },
+  {
+    id: "glossary.move",
+    section: "GLOSSARY",
+    title: "move",
+    body: [
+      "Copy a register. move $v0,$a0 copies $a0 into $v0, its first operand. The source keeps its value.",
+    ],
+  },
+  {
+    id: "glossary.sll",
+    section: "GLOSSARY",
+    title: "sll",
+    body: [
+      "Shift left logical. sll $v0,$a0,3 writes $a0 shifted left by 3 bits to $v0, which multiplies by 8.",
+    ],
+  },
+  {
+    id: "glossary.lw",
+    section: "GLOSSARY",
+    title: "lw",
+    body: [
+      "Load word. lw $v0,0x8($a0) reads the 4 bytes at the address in $a0 plus 8 and writes them to $v0.",
+    ],
+  },
+  {
+    id: "glossary.sw",
+    section: "GLOSSARY",
+    title: "sw",
+    body: [
+      "Store word. sw $a1,0x0($a0) writes $a1 to the 4 bytes at the address in $a0. Its first operand is the source.",
+    ],
+  },
+  {
+    id: "glossary.lb",
+    section: "GLOSSARY",
+    title: "lb and lbu",
+    body: [
+      "Load byte. Both read 1 byte and widen it to 32 bits: lb by sign extension, lbu by zero extension.",
+    ],
+  },
+  {
+    id: "glossary.bit",
+    section: "GLOSSARY",
+    title: "bit",
+    body: [
+      "A single binary digit, 0 or 1. A byte is 8 bits, and a register or word is 32.",
+    ],
+  },
+  {
+    id: "glossary.pointer",
+    section: "GLOSSARY",
+    title: "pointer",
+    body: [
+      "A value that holds an address. int *p declares p as a pointer to an int, and *p reads the int there.",
+    ],
+  },
+  {
+    id: "glossary.struct",
+    section: "GLOSSARY",
+    title: "struct",
+    body: [
+      "A C type that places named fields at fixed offsets in memory. Unlike a JavaScript object, its fields and their types are fixed.",
+    ],
+  },
+  {
+    id: "glossary.void",
+    section: "GLOSSARY",
+    title: "void",
+    body: [
+      "As a return type, the function returns nothing. As a parameter list, (void), the function takes no arguments. void * is a different use, taught later.",
+    ],
+  },
+  {
+    id: "glossary.temporary",
+    section: "GLOSSARY",
+    title: "temporary",
+    body: [
+      "A register holding a value partway through a calculation. A register's usual role, such as $v0 for return values, does not stop the compiler from using it this way.",
+    ],
+  },
+  {
+    id: "glossary.twos-complement",
+    section: "GLOSSARY",
+    title: "two's complement",
+    body: [
+      "How signed integers are stored: the top bit counts as negative. In a byte, 1111 1101 is -128 + 125 = -3.",
+    ],
+  },
+  {
+    id: "glossary.psyq",
+    section: "GLOSSARY",
+    title: "PsyQ",
+    body: [
+      "The PlayStation development kit whose C compiler built the game. Some rules, such as plain char being unsigned, are PsyQ behavior rather than rules of all C.",
     ],
   },
 ];
