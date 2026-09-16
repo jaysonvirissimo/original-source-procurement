@@ -92,6 +92,11 @@ export default defineConfig(
 
   {
     files: ["apps/game/src/**/*.{ts,tsx}"],
+    rules: forbidImports("Shipped game code", ["@osp/mgs-importer"]),
+  },
+
+  {
+    files: ["apps/game/src/**/*.{ts,tsx}"],
     ignores: ["apps/game/src/features/persistence/**"],
     rules: {
       "no-restricted-globals": [

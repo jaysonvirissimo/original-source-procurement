@@ -73,6 +73,7 @@ export {
   MissionIdSchema,
   Sha256HexSchema,
   SkillIdSchema,
+  SymbolSchema,
   type SkillId,
 } from "./primitives.ts";
 export {

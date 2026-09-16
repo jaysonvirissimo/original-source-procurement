@@ -1,11 +1,13 @@
 import type { CurriculumData } from "./validate.ts";
 import { manualEntries } from "./manual.ts";
-import { defaultPath, missions } from "./missions.ts";
+import { defaultPath, missions as syntheticMissions } from "./missions.ts";
+import { pointerCorpus } from "./real/corpus.ts";
 import { feasibilityPointers } from "./real/feasibility.ts";
 import { skills } from "./skills.ts";
 
 export { manualEntries } from "./manual.ts";
-export { defaultPath, missions } from "./missions.ts";
+export { defaultPath } from "./missions.ts";
+export { pointerCorpus } from "./real/corpus.ts";
 export { feasibilityPointers } from "./real/feasibility.ts";
 export { skills } from "./skills.ts";
 export { findCycle, missionNeeds } from "./graph.ts";
@@ -18,6 +20,12 @@ export {
   type CurriculumIssueCode,
 } from "./validate.ts";
 
+/**
+ * Every shipped mission: the authored synthetic missions, then the reviewed
+ * real missions the importer generated from pinned upstream checkouts.
+ */
+export const missions = [...syntheticMissions, ...pointerCorpus.missions];
+
 /** The shipped curriculum, as one validatable document set. */
 export const curriculum: CurriculumData = {
   skills,
@@ -25,4 +33,5 @@ export const curriculum: CurriculumData = {
   missions,
   defaultPath,
   feasibilityPointers,
+  pointerCorpus,
 };

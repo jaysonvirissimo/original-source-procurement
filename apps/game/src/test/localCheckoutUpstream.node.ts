@@ -1,11 +1,14 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import type { RemoteCReference } from "@osp/mission-schema";
-import { verifyCBytes, verifyTargetText } from "../features/upstream/content";
+import {
+  verifyCBytes,
+  verifyTargetText,
+} from "../features/upstream/content.ts";
 import type {
   UpstreamOutcome,
   UpstreamService,
-} from "../features/upstream/types";
+} from "../features/upstream/types.ts";
 
 const run = promisify(execFile);
 

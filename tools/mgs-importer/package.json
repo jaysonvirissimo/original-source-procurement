@@ -5,17 +5,21 @@
   "type": "module",
   "description": "Node-only build tool that produces real-mission pointers from pinned upstream checkouts.",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./testing": "./src/testing.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@osp/matching-core": "workspace:*",
-    "@osp/mission-schema": "workspace:*"
+    "@osp/mission-schema": "workspace:*",
+    "psyq-asm": "0.2.0",
+    "zod": "4.6.4"
   },
   "devDependencies": {
     "@types/node": "24.13.4",
+    "prettier": "3.9.6",
     "typescript": "6.0.3"
   }
 }

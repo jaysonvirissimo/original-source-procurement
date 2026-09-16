@@ -86,6 +86,159 @@ describe("validateCurriculum", () => {
     ]);
   });
 
+  describe("the pointer corpus", () => {
+    const UPSTREAM = "1".repeat(40);
+    const SDK = "2".repeat(40);
+    const PRE_MATCH = "3".repeat(40);
+
+    /** A corpus mission whose every reference names the corpus's revisions. */
+    function corpusMission(overrides: Partial<Mission> = {}): Mission {
+      const base = realMission();
+      return {
+        ...base,
+        compiler: {
+          ...base.compiler,
+          remoteHeaders: {
+            "psyq/include/sample.h": {
+              repository: "FoxdieTeam/psyq_sdk",
+              commit: SDK,
+              path: "psyq_4.4/include/sample.h",
+              sha256: "a".repeat(64),
+            },
+          },
+        },
+        target: {
+          ...base.target,
+          kind: "remote",
+          commit: PRE_MATCH,
+        } as Mission["target"],
+        hints: base.hints.map((hint) =>
+          hint.reveal === undefined
+            ? hint
+            : {
+                ...hint,
+                reveal: {
+                  ...hint.reveal,
+                  commit:
+                    hint.reveal.repository === "FoxdieTeam/psyq_sdk"
+                      ? SDK
+                      : UPSTREAM,
+                },
+              },
+        ),
+        ...overrides,
+      };
+    }
+
+    function corpus(missions: Mission[]) {
+      return {
+        schemaVersion: 1,
+        importerVersion: "1.0.0",
+        upstreamCommit: UPSTREAM,
+        sdkCommit: SDK,
+        missions,
+      };
+    }
+
+    it("accepts a corpus whose references all name its revisions", async () => {
+      await expect(
+        codes(data({ pointerCorpus: corpus([corpusMission()]) })),
+      ).resolves.toEqual([]);
+    });
+
+    it("accepts curriculum data that has no corpus", async () => {
+      await expect(codes(data({}))).resolves.toEqual([]);
+    });
+
+    it("accepts a corpus mission whose source needs no context header", async () => {
+      const mission_ = corpusMission();
+      const bare = {
+        ...mission_,
+        compiler: { ...mission_.compiler, remoteHeaders: undefined },
+      };
+      await expect(
+        codes(data({ pointerCorpus: corpus([bare]) })),
+      ).resolves.toEqual([]);
+    });
+
+    it("reports a corpus that fails its schema", async () => {
+      const issues = await validateCurriculum(
+        data({ pointerCorpus: { schemaVersion: 2 } }),
+      );
+      expect(issues.every((issue) => issue.code === "schema")).toBe(true);
+      expect(issues.map((issue) => issue.path)).toContain(
+        "pointerCorpus.schemaVersion",
+      );
+    });
+
+    it("reports a context header from another revision", async () => {
+      const mission_ = corpusMission();
+      const corpus_ = corpus([
+        {
+          ...mission_,
+          compiler: {
+            ...mission_.compiler,
+            remoteHeaders: {
+              "psyq/include/sample.h": {
+                repository: "FoxdieTeam/psyq_sdk",
+                commit: "9".repeat(40),
+                path: "psyq_4.4/include/sample.h",
+                sha256: "a".repeat(64),
+              },
+            },
+          },
+        },
+      ]);
+      await expect(codes(data({ pointerCorpus: corpus_ }))).resolves.toEqual([
+        "corpus-commit",
+      ]);
+    });
+
+    it("reports a revealed file from another revision", async () => {
+      const mission_ = corpusMission();
+      const corpus_ = corpus([
+        {
+          ...mission_,
+          hints: mission_.hints.map((hint) =>
+            hint.reveal === undefined
+              ? hint
+              : { ...hint, reveal: { ...hint.reveal, commit: "9".repeat(40) } },
+          ),
+        },
+      ]);
+      await expect(codes(data({ pointerCorpus: corpus_ }))).resolves.toEqual([
+        "corpus-commit",
+        "corpus-commit",
+      ]);
+    });
+
+    it("reports a target pinned to the corpus commit", async () => {
+      const mission_ = corpusMission();
+      const corpus_ = corpus([
+        {
+          ...mission_,
+          target: { ...mission_.target, commit: UPSTREAM } as Mission["target"],
+        },
+      ]);
+      await expect(codes(data({ pointerCorpus: corpus_ }))).resolves.toEqual([
+        "corpus-commit",
+      ]);
+    });
+
+    it("reports two corpus missions that point at one function", async () => {
+      await expect(
+        codes(
+          data({
+            pointerCorpus: corpus([
+              corpusMission(),
+              corpusMission({ id: "sample-real-2" }),
+            ]),
+          }),
+        ),
+      ).resolves.toEqual(["corpus-symbol"]);
+    });
+  });
+
   it("accepts a consistent curriculum with a default path", async () => {
     const missions = [
       await mission({ id: "m1", teaches: ["S.A"] }),

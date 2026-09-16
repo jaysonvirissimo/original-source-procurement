@@ -1,5 +1,14 @@
 export { ALIGNMENT_COSTS } from "./align.ts";
 export {
+  INSTRUCTION_CLASSES,
+  LOAD_FORMS,
+  STORE_BYTES,
+  transfersControl,
+  type Decoded,
+  type InstructionClass,
+  type LoadForm,
+} from "./classes.ts";
+export {
   observations,
   type Observation,
   type ObservationKind,

@@ -64,7 +64,8 @@ Mission and skill behavior comes from validated curriculum data, never from rule
 - an annotation or example tied to a skill the mission neither teaches nor practices;
 - a real-partial or live hint that does not say whether it is verified, or a hint on any other mission that does;
 - example values on a mission without an inline target, or whose registers or region labels repeat, whose cells overlap or do not fit their size or alignment, or whose pointer cell does not hold the address of a region in the same example;
-- a real-function pointer whose provenance, solution reference, compiler input, or header keys do not follow upstream's default build.
+- a real-function pointer whose provenance, solution reference, compiler input, or header keys do not follow upstream's default build;
+- a pointer corpus whose context headers or revealed files name a revision other than the one it was imported from, whose target is pinned to that same revision rather than to an earlier one, or whose missions point at one upstream function twice.
 
 Prerequisites are the source of truth for progression. The default path is a recommended order that must stay consistent with them.
 
@@ -137,6 +138,25 @@ pnpm vitest run apps/game/src/features/compiler/realFunction.node.test.ts
 ```
 
 Both clones need full git history. Keep them outside this repository. Without both variables the suite is skipped.
+
+### Building the real-mission corpus
+
+Real missions come from a reviewed pointer corpus, produced from the same two clones in three steps. Every step writes its working files to `tmp/reports/corpus/`, which is never committed.
+
+```bash
+export OSP_MGS_REVERSING_DIR=/path/to/mgs_reversing
+export OSP_PSYQ_SDK_DIR=/path/to/psyq_sdk
+
+pnpm corpus:import   # pointers, include closures, difficulty, review report
+pnpm corpus:verify   # builds each source file and checks it reproduces its target
+pnpm corpus:write    # merges the reviewed overrides into the generated corpus
+```
+
+`pnpm corpus:verify` takes symbols as arguments to check only those functions.
+
+`packages/curriculum/src/real/corpus.ts` is generated. To add or change a real mission, edit `tools/mgs-importer/overrides/real-missions.json` — the reviewed title, phase, briefing, starter stub, hints, and skills for one upstream symbol — and run `pnpm corpus:write` again. A reviewed mission whose function no longer reproduces its target fails the build instead of quietly leaving the corpus.
+
+`pnpm corpus:update` compares a newly pinned revision against the last import and reports what would change, including shipped pointers that no longer resolve. It rewrites nothing.
 
 The compiled file sits at the virtual root and stands for its upstream directory. Header keys follow from that:
 
