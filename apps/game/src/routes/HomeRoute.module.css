@@ -29,3 +29,32 @@
   letter-spacing: 0.04em;
   color: var(--osp-text-dim);
 }
+
+.start {
+  display: grid;
+  justify-items: start;
+  gap: var(--osp-space-3);
+  padding: var(--osp-space-4);
+  border: var(--osp-border) solid var(--osp-line);
+  border-left: var(--osp-border-strong) solid var(--osp-grid);
+  border-radius: var(--osp-radius);
+  background: var(--osp-surface-0);
+}
+
+.start a {
+  text-decoration: none;
+}
+
+.startText {
+  max-width: 68ch;
+  color: var(--osp-text-dim);
+}
+
+.reference {
+  display: flex;
+  gap: var(--osp-space-4);
+}
+
+.reference a {
+  color: var(--osp-info);
+}

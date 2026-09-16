@@ -1,0 +1,17 @@
+.steps {
+  display: grid;
+  gap: var(--osp-space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--osp-space-3);
+}
+
+.actions a {
+  text-decoration: none;
+}

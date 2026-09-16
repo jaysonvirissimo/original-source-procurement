@@ -23,7 +23,9 @@ import { createBrowserUpstream } from "../features/upstream/networkUpstream";
 import type { UpstreamService } from "../features/upstream/types";
 import { UpstreamProvider } from "../features/upstream/UpstreamProvider";
 import { HomeRoute } from "../routes/HomeRoute";
+import { ManualRoute } from "../routes/ManualRoute";
 import { MissionRoute } from "../routes/MissionRoute";
+import { OrientationRoute } from "../routes/OrientationRoute";
 import type { Route } from "../routes/parseRoute";
 import { RoutePanel } from "../routes/RoutePanel";
 import { useHashRoute } from "../routes/useHashRoute";
@@ -85,14 +87,10 @@ export function RouteView({ route }: RouteViewProps): ReactElement {
       return <HomeRoute />;
     case "mission":
       return <MissionRoute missionId={route.missionId} />;
+    case "orientation":
+      return <OrientationRoute />;
     case "manual":
-      return (
-        <RoutePanel
-          title="Manual"
-          detail={route.entryId}
-          message="The manual is not available yet."
-        />
-      );
+      return <ManualRoute entryId={route.entryId} />;
     case "settings":
       return (
         <RoutePanel

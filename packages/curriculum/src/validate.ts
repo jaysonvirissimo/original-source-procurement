@@ -19,6 +19,7 @@ export type CurriculumIssueCode =
   | "duplicate-mission"
   | "unknown-skill"
   | "unknown-manual-entry"
+  | "term-not-glossary"
   | "skill-cycle"
   | "unknown-mission"
   | "duplicate-path-entry"
@@ -220,6 +221,22 @@ function checkMissionReferences(
         }
       });
     }
+    mission.terms?.forEach((term, position) => {
+      const entry = manualEntries.get(term);
+      if (entry === undefined) {
+        report(
+          "unknown-manual-entry",
+          ["missions", index, "terms", position],
+          `Unknown manual entry ${term}.`,
+        );
+      } else if (entry.value.section !== "GLOSSARY") {
+        report(
+          "term-not-glossary",
+          ["missions", index, "terms", position],
+          `Term ${term} is not a GLOSSARY entry.`,
+        );
+      }
+    });
     mission.annotations?.forEach(({ manualEntry }, position) => {
       if (manualEntry !== undefined && !manualEntries.has(manualEntry)) {
         report(

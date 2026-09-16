@@ -2,6 +2,7 @@ import { act, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { ToolchainProvider } from "../features/compiler/ToolchainProvider";
 import { saveDataError } from "../features/persistence/errors";
+import { emptyPlayerState } from "../features/persistence/schema";
 import { samplePlayer } from "../features/persistence/persistence.test-helpers";
 import { fakeToolchain } from "../test/fakeToolchain";
 import { memoryProgress } from "../test/progressStorage";
@@ -27,6 +28,32 @@ describe("App", () => {
         .getByRole("link", { name: "001 RETURN PATH" })
         .getAttribute("href"),
     ).toBe("#/mission/001");
+  });
+
+  it("offers the orientation first on a fresh save", async () => {
+    render(<App openStorage={memoryProgress().openStorage} />);
+
+    const start = await screen.findByRole("region", { name: "Start here" });
+    expect(
+      within(start)
+        .getByRole("link", { name: "Read the orientation" })
+        .getAttribute("href"),
+    ).toBe("#/orientation");
+    expect(screen.queryByRole("navigation", { name: "Reference" })).toBeNull();
+  });
+
+  it("keeps the orientation and manual one link away once missions are started", async () => {
+    render(<App openStorage={memoryProgress(samplePlayer()).openStorage} />);
+
+    const reference = await screen.findByRole("navigation", {
+      name: "Reference",
+    });
+    expect(
+      within(reference)
+        .getAllByRole("link")
+        .map((link) => link.getAttribute("href")),
+    ).toEqual(["#/orientation", "#/manual"]);
+    expect(screen.queryByRole("region", { name: "Start here" })).toBeNull();
   });
 
   it("marks completed and started missions on the map", async () => {
@@ -131,13 +158,77 @@ describe("RouteView", () => {
     ).toBe("#/");
   });
 
-  it("names the requested manual entry", () => {
-    render(<RouteView route={{ kind: "manual", entryId: "MIPS.LOAD.WORD" }} />);
+  it("opens the whole manual and focuses the requested entry", () => {
+    render(
+      <RouteView route={{ kind: "manual", entryId: "glossary.register" }} />,
+    );
 
     expect(
       screen.getByRole("heading", { level: 1, name: "Manual" }),
     ).toBeTruthy();
+    expect(document.activeElement?.id).toBe("manual-glossary.register");
+    expect(
+      screen
+        .getAllByRole("heading", { level: 2 })
+        .map((heading) => heading.textContent),
+    ).toEqual([
+      "ORIENTATION",
+      "TOOLS",
+      "C",
+      "MIPS",
+      "ABI",
+      "MATCHING",
+      "GLOSSARY",
+    ]);
+    expect(
+      screen.getByRole("searchbox", { name: "Search the manual" }),
+    ).toBeTruthy();
+    expect(screen.queryByText(/No manual entry has that name/)).toBeNull();
+  });
+
+  it("names an unknown manual entry and still shows the manual", () => {
+    render(<RouteView route={{ kind: "manual", entryId: "MIPS.LOAD.WORD" }} />);
+
     expect(screen.getByText("MIPS.LOAD.WORD")).toBeTruthy();
+    expect(
+      screen.getByText(
+        "No manual entry has that name. Search the manual, or browse every entry.",
+      ),
+    ).toBeTruthy();
+    expect(document.activeElement).toBe(document.body);
+  });
+
+  it("opens the manual with no entry named", () => {
+    render(<RouteView route={{ kind: "manual" }} />);
+
+    expect(document.querySelector("code")).toBeNull();
+    expect(document.activeElement).toBe(document.body);
+  });
+
+  it("reads the orientation in order and changes no progress", async () => {
+    const progress = memoryProgress();
+    render(progress.wrap(<RouteView route={{ kind: "orientation" }} />));
+
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Orientation" }),
+    ).toBeTruthy();
+    const titles = screen
+      .getAllByRole("heading", { level: 2 })
+      .map((heading) => heading.textContent);
+    expect(titles[0]).toBe("What you are doing");
+    expect(titles).toContain("Hexadecimal");
+    expect(titles.at(-1)).toBe("Workspace tools");
+    expect(
+      screen
+        .getByRole("link", { name: "Start mission 001: RETURN PATH" })
+        .getAttribute("href"),
+    ).toBe("#/mission/001");
+    expect(
+      screen
+        .getByRole("link", { name: "Open the manual" })
+        .getAttribute("href"),
+    ).toBe("#/manual");
+    expect(progress.backing.player).toEqual(emptyPlayerState());
   });
 
   it("renders settings with the save data and toolchain panels and no detail line", async () => {

@@ -4,7 +4,7 @@ import styles from "./RoutePanel.module.css";
 interface RoutePanelProps {
   readonly title: string;
   readonly message: string;
-  readonly detail?: string;
+  readonly detail?: string | undefined;
   readonly children?: ReactNode;
 }
 

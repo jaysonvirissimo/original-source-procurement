@@ -1,4 +1,4 @@
-import type { Mission } from "@osp/mission-schema";
+import type { ManualEntry, Mission } from "@osp/mission-schema";
 import { useId, type ReactElement } from "react";
 import { classNames } from "../../styles/classNames";
 import controls from "../../styles/controls.module.css";
@@ -29,6 +29,10 @@ interface BriefingProps {
   /** Expected skills the player has not been introduced to. Entering stays allowed. */
   readonly missing?: readonly NamedSkill[];
   readonly plan: ScaffoldPlan;
+  /** Glossary entries for the terms the mission text uses. */
+  readonly terms?: readonly ManualEntry[];
+  /** Offers the orientation, before the first mission on the path. */
+  readonly orientation?: boolean;
   readonly onEnter: () => void;
 }
 
@@ -38,6 +42,8 @@ export function Briefing({
   skillStates,
   missing = [],
   plan,
+  terms = [],
+  orientation = false,
   onEnter,
 }: BriefingProps): ReactElement {
   const titleId = useId();
@@ -68,6 +74,27 @@ export function Briefing({
             <dd>{mission.briefing.newTechnique}</dd>
           </>
         )}
+        {terms.length === 0 ? null : (
+          <>
+            <dt>Terms</dt>
+            <dd>
+              <ul className={styles.terms} aria-label="Terms">
+                {terms.map((entry) => (
+                  <li key={entry.id}>
+                    <details>
+                      <summary>{entry.title}</summary>
+                      {entry.body.map((paragraph, index) => (
+                        <p className={styles.definition} key={index}>
+                          {paragraph}
+                        </p>
+                      ))}
+                    </details>
+                  </li>
+                ))}
+              </ul>
+            </dd>
+          </>
+        )}
         <dt>Prerequisites</dt>
         <dd>
           {prerequisites.length === 0 ? (
@@ -89,6 +116,12 @@ export function Briefing({
         <dt>Teaching support</dt>
         <dd>{supportLabel(plan)}</dd>
       </dl>
+      {orientation ? (
+        <p className={styles.orientation}>
+          New to C or assembly? <a href="#/orientation">Read the orientation</a>{" "}
+          first. It is optional, and the manual keeps it.
+        </p>
+      ) : null}
       {provenance === undefined ? null : (
         <FieldProvenance provenance={provenance} />
       )}

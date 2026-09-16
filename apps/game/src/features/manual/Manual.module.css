@@ -1,0 +1,75 @@
+.browser {
+  display: grid;
+  gap: var(--osp-space-3);
+  justify-self: stretch;
+}
+
+.search {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--osp-space-2) var(--osp-space-3);
+}
+
+.searchLabel {
+  font-family: var(--osp-font-code);
+  font-size: var(--osp-font-size-label);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--osp-grid);
+}
+
+.searchInput {
+  flex: 1 1 calc(var(--osp-grid-cell) * 5);
+  min-width: 0;
+  font: inherit;
+  padding: var(--osp-space-1) var(--osp-space-2);
+  border: var(--osp-border) solid var(--osp-grid-dim);
+  border-radius: var(--osp-radius);
+  background: var(--osp-surface-1);
+  color: var(--osp-text);
+}
+
+.scopes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--osp-space-2);
+}
+
+.section {
+  display: grid;
+  gap: var(--osp-space-2);
+}
+
+.list {
+  display: grid;
+  gap: var(--osp-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.entry {
+  display: grid;
+  gap: var(--osp-space-1);
+  padding-bottom: var(--osp-space-3);
+  border-bottom: var(--osp-border) solid var(--osp-surface-2);
+  scroll-margin-top: var(--osp-space-4);
+}
+
+.entry:focus-visible {
+  outline: var(--osp-border) solid var(--osp-grid);
+  outline-offset: var(--osp-space-1);
+}
+
+.entryTitle {
+  margin: 0;
+  font-size: var(--osp-font-size-base);
+  font-weight: 600;
+  color: var(--osp-text);
+}
+
+.prose {
+  max-width: 68ch;
+  color: var(--osp-text-dim);
+}

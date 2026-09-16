@@ -62,6 +62,7 @@ Mission and skill behavior comes from validated curriculum data, never from rule
 - a real mission with inline target words, authored headers, a solution, or compiler input that differs from upstream's default build;
 - a synthetic mission whose `solution` or words do not match their recorded hashes;
 - a mission annotation that points past its target's words, sits on a mission without an inline target, or links an unknown manual entry;
+- a mission `terms` entry that names an unknown manual entry or one outside the GLOSSARY section;
 - an annotation or example tied to a skill the mission neither teaches nor practices;
 - an `acknowledge-evidence` mission without an `evidence` prompt, an `evidence` prompt under any other completion rule or on a mission without an inline target, or evidence that points past its target's words;
 - a real-partial or live hint that does not say whether it is verified, or a hint on any other mission that does;

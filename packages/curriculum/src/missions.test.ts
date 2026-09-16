@@ -85,6 +85,28 @@ describe("the first teaching slice", () => {
     }
   });
 
+  it("links a glossary entry for every term the first mission's text uses", () => {
+    const first = missions.find((entry) => entry.id === defaultPath[0]);
+    const glossary = new Map(
+      manualEntries
+        .filter((entry) => entry.section === "GLOSSARY")
+        .map((entry) => [entry.id, entry.title]),
+    );
+    const titles = (first?.terms ?? []).map((term) => glossary.get(term));
+    expect(titles).toEqual(
+      expect.arrayContaining([
+        "register",
+        "$v0",
+        "$ra",
+        "jr",
+        "addiu",
+        "hexadecimal (0x)",
+        "word",
+        "delay slot",
+      ]),
+    );
+  });
+
   it("writes a body for every manual entry a skill links to", () => {
     const entries = new Map(manualEntries.map((entry) => [entry.id, entry]));
     for (const skill of skills) {
