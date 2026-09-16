@@ -20,6 +20,11 @@ describe("parseRoute", () => {
     });
   });
 
+  it("parses the orientation route and the manual without an entry", () => {
+    expect(parseRoute("#/orientation")).toEqual({ kind: "orientation" });
+    expect(parseRoute("#/manual/")).toEqual({ kind: "manual" });
+  });
+
   it("parses a manual route", () => {
     expect(parseRoute("#/manual/MIPS.LOAD.WORD")).toEqual({
       kind: "manual",
@@ -38,7 +43,8 @@ describe("parseRoute", () => {
     "#/mission",
     "#/mission/",
     "#/mission//",
-    "#/manual",
+    "#/manual//",
+    "#/orientation/extra",
     "#/mission/001/extra",
     "#/settings/extra",
     "#/unknown",

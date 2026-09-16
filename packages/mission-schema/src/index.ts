@@ -54,6 +54,7 @@ export {
 export {
   MANUAL_SECTIONS,
   ManualEntrySchema,
+  type ManualSection,
   type ManualEntry,
 } from "./manual.ts";
 export {

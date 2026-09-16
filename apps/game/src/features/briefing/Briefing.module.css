@@ -57,3 +57,37 @@
   border-left-color: var(--osp-field-accent);
   background: var(--osp-field-surface);
 }
+
+.terms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--osp-space-1) var(--osp-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* An opened term takes its own row, so its definition reads as a paragraph. */
+.terms li:has(details[open]) {
+  flex-basis: 100%;
+}
+
+.terms summary {
+  font-family: var(--osp-font-code);
+  color: var(--osp-info);
+  cursor: pointer;
+}
+
+.definition {
+  max-width: 60ch;
+  margin: var(--osp-space-1) 0 var(--osp-space-2);
+  color: var(--osp-text-dim);
+}
+
+.orientation {
+  color: var(--osp-text-dim);
+}
+
+.orientation a {
+  color: var(--osp-info);
+}

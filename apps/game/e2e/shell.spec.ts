@@ -54,7 +54,7 @@ for (const [hash, heading, settled] of [
 }
 
 test("in-page links navigate between hash routes", async ({ page }) => {
-  await page.goto("./#/manual/MIPS.LOAD.WORD");
+  await page.goto("./#/manual/glossary.register");
   await expect(
     page.getByRole("heading", { level: 1, name: "Manual" }),
   ).toBeVisible();

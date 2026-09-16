@@ -8,6 +8,7 @@ import { checkExample, MissionExampleSchema } from "./example.ts";
 import { HintSchema } from "./hint.ts";
 import { PredictionPromptSchema } from "./prediction.ts";
 import {
+  ManualEntryIdSchema,
   MissionIdSchema,
   SkillIdSchema,
   SymbolSchema,
@@ -72,6 +73,8 @@ const MissionObjectSchema = z.strictObject({
     objective: TextSchema,
     newTechnique: TextSchema.optional(),
   }),
+  // GLOSSARY entries for the terms the mission text uses.
+  terms: uniqueArray(ManualEntryIdSchema).optional(),
   // OSP-authored; for real missions, a signature stub.
   starterSource: z.string(),
   // Synthetic missions only: OSP-authored, shown by hint stage 9.

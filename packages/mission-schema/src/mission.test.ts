@@ -256,6 +256,30 @@ describe("valid missions", () => {
   });
 });
 
+describe("terms", () => {
+  it("accepts unique manual entry IDs", () => {
+    expect(
+      issues(syntheticMission({ terms: ["glossary.register", "glossary.v0"] })),
+    ).toEqual([]);
+  });
+
+  it("rejects repeated or malformed IDs", () => {
+    expect(
+      issues(
+        syntheticMission({
+          terms: ["glossary.register", "glossary.register"],
+        }),
+      ),
+    ).toEqual([issue("terms", "Entries must be unique.")]);
+    expect(issues(syntheticMission({ terms: ["Glossary.V0"] }))).toEqual([
+      issue(
+        "terms.0",
+        "Manual entry IDs are lower-case words joined by '.' or '-'.",
+      ),
+    ]);
+  });
+});
+
 describe("source and target", () => {
   it("rejects a synthetic mission with upstream provenance or a remote target", () => {
     expect(

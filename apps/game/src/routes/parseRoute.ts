@@ -1,7 +1,8 @@
 export type Route =
   | { readonly kind: "home" }
   | { readonly kind: "mission"; readonly missionId: string }
-  | { readonly kind: "manual"; readonly entryId: string }
+  | { readonly kind: "orientation" }
+  | { readonly kind: "manual"; readonly entryId?: string }
   | { readonly kind: "settings" }
   | { readonly kind: "not-found"; readonly path: string };
 
@@ -29,11 +30,20 @@ export function parseRoute(hash: string): Route {
     return notFound(path);
   }
 
-  if (head === "settings" && param === undefined) {
-    return { kind: "settings" };
+  if (param === undefined) {
+    if (head === "settings") {
+      return { kind: "settings" };
+    }
+    if (head === "orientation") {
+      return { kind: "orientation" };
+    }
+    if (head === "manual") {
+      return { kind: "manual" };
+    }
+    return notFound(path);
   }
 
-  if (param === undefined || param === "") {
+  if (param === "") {
     return notFound(path);
   }
 

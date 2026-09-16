@@ -2,10 +2,14 @@ import type { ManualEntry, Mission } from "@osp/mission-schema";
 import { useId, type ReactElement } from "react";
 import controls from "../../styles/controls.module.css";
 import type { MissionCatalog } from "../curriculum/missionCatalog";
+import { ManualBrowser } from "../manual/ManualBrowser";
 import styles from "./OverlayPanel.module.css";
 
 interface ManualPanelProps {
-  readonly mission: Pick<Mission, "teaches" | "requires" | "practices">;
+  readonly mission: Pick<
+    Mission,
+    "teaches" | "requires" | "practices" | "terms"
+  >;
   readonly catalog: Pick<MissionCatalog, "skills" | "manualEntries">;
   /** Entries that visible annotations link to. */
   readonly linkedEntries: readonly string[];
@@ -23,7 +27,8 @@ interface Item {
 
 /**
  * Manual entries for the mission's skills, then any other entries its
- * annotations link to, over the workspace.
+ * annotations and terms link to, over the workspace, with search and every
+ * entry a toggle away.
  */
 export function ManualPanel({
   mission,
@@ -63,7 +68,9 @@ export function ManualPanel({
       },
     ];
   });
-  const linkedItems = [...new Set(linkedEntries)].flatMap((id): Item[] => {
+  const linkedItems = [
+    ...new Set([...linkedEntries, ...(mission.terms ?? [])]),
+  ].flatMap((id): Item[] => {
     const entry = findEntry(id);
     if (entry === undefined || shown.has(entry.id)) {
       return [];
@@ -88,20 +95,28 @@ export function ManualPanel({
           Close
         </button>
       </header>
-      <ul className={styles.list}>
-        {[...skillItems, ...linkedItems].map((item) => (
-          <li className={styles.item} key={item.key}>
-            <p className={controls.label}>{item.label}</p>
-            <h3 className={styles.itemTitle}>{item.title}</h3>
-            {item.description === undefined ? null : <p>{item.description}</p>}
-            {item.body.map((paragraph, index) => (
-              <p className={styles.dim} key={index}>
-                {paragraph}
-              </p>
+      <ManualBrowser
+        entries={catalog.manualEntries}
+        level={3}
+        missionView={
+          <ul className={styles.list}>
+            {[...skillItems, ...linkedItems].map((item) => (
+              <li className={styles.item} key={item.key}>
+                <p className={controls.label}>{item.label}</p>
+                <h3 className={styles.itemTitle}>{item.title}</h3>
+                {item.description === undefined ? null : (
+                  <p>{item.description}</p>
+                )}
+                {item.body.map((paragraph, index) => (
+                  <p className={styles.dim} key={index}>
+                    {paragraph}
+                  </p>
+                ))}
+              </li>
             ))}
-          </li>
-        ))}
-      </ul>
+          </ul>
+        }
+      />
     </section>
   );
 }

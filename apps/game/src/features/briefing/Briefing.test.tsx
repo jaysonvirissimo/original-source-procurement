@@ -135,6 +135,43 @@ describe("Briefing", () => {
     expect(
       screen.queryByRole("list", { name: "Prerequisite skills" }),
     ).toBeNull();
+    expect(screen.queryByRole("list", { name: "Terms" })).toBeNull();
+    expect(
+      screen.queryByRole("link", { name: "Read the orientation" }),
+    ).toBeNull();
+  });
+
+  it("defines the mission's terms and offers the orientation", () => {
+    render(
+      <Briefing
+        mission={sample({ id: "001", title: "FIRST" })}
+        skillNames={new Map()}
+        skillStates={new Map()}
+        plan={guided}
+        terms={[
+          {
+            id: "glossary.register",
+            section: "GLOSSARY",
+            title: "register",
+            body: ["A named 32-bit storage slot."],
+          },
+        ]}
+        orientation
+        onEnter={vi.fn()}
+      />,
+    );
+
+    const terms = screen.getByRole("list", { name: "Terms" });
+    expect(
+      within(terms)
+        .getAllByRole("listitem")
+        .map((item) => item.textContent),
+    ).toEqual(["registerA named 32-bit storage slot."]);
+    expect(
+      screen
+        .getByRole("link", { name: "Read the orientation" })
+        .getAttribute("href"),
+    ).toBe("#/orientation");
   });
   it("shows a field mission's provenance and links its target, not its source", () => {
     const base = realMission();

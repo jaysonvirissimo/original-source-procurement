@@ -354,6 +354,30 @@ describe("validateCurriculum", () => {
     ]);
   });
 
+  it("reports terms that are unknown or not glossary entries", async () => {
+    const term = { ...ENTRY, id: "glossary.sample", section: "GLOSSARY" };
+    const withTerms = await mission({
+      teaches: ["S.A"],
+      terms: [term.id, ENTRY.id, "nowhere"],
+    });
+    await expect(
+      validateCurriculum(
+        data({ manualEntries: [ENTRY, term], missions: [withTerms] }),
+      ),
+    ).resolves.toEqual([
+      {
+        code: "term-not-glossary",
+        path: "missions[0].terms[1]",
+        message: "Term sample.entry is not a GLOSSARY entry.",
+      },
+      {
+        code: "unknown-manual-entry",
+        path: "missions[0].terms[2]",
+        message: "Unknown manual entry nowhere.",
+      },
+    ]);
+  });
+
   it("reports a skill cycle", async () => {
     await expect(
       validateCurriculum(

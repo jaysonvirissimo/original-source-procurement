@@ -387,6 +387,10 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
         skillStates={skillStates}
         missing={missingSkills(mission, catalog, progress.state.skills)}
         plan={plan}
+        terms={(mission.terms ?? []).flatMap((id) =>
+          catalog.manualEntries.filter((entry) => entry.id === id),
+        )}
+        orientation={catalog.defaultPath[0] === mission.id}
         onEnter={() => {
           dispatch({ type: "entered" });
           record({ type: "mission-started", mission: missionRef, at: now() });
