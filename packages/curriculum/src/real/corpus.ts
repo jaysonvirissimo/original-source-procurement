@@ -23,7 +23,12 @@ export const pointerCorpus: PointerCorpus = {
         address: 2147766232,
         sourcePath: "source/font/font.c",
       },
-      requires: [],
+      requires: [
+        "C.INTEGER.WIDTH",
+        "C.STRUCT.LAYOUT",
+        "C.POINTER.ARITHMETIC",
+        "C.TYPEDEF",
+      ],
       teaches: [],
       practices: [
         "ABI.ARGUMENT",

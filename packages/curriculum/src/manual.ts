@@ -42,7 +42,80 @@ export const manualEntries: readonly ManualEntry[] = [
       "o->c reads the field c of the struct that o points to: memory at o plus the offset of c.",
       "The declaration struct Obj { int a; int b; int c; }; describes a layout and creates nothing. An instance is actual memory with that layout. Unlike a JavaScript object, a struct cannot gain fields, and each field has a fixed type, size, and offset.",
       "With an instance itself, write obj.c. With a pointer to one, write o->c, which means (*o).c. Functions usually take struct Obj *o, the struct's address, so the struct is not copied.",
-      "Offsets are not always the sum of the sizes before them. A layout can contain padding, unused bytes that line a field up. struct Obj holds only ints, so it has none. Later missions teach padding.",
+      "Offsets are not always the sum of the sizes before them. A layout can contain padding, unused bytes that line a field up. struct Obj holds only ints, so it has none. Struct layout, in the C section, covers padding.",
+    ],
+  },
+  {
+    id: "c.arrays",
+    section: "C",
+    title: "Arrays",
+    body: [
+      "int samples[4]; declares four ints stored back to back. Each is an element. The array takes 4 × 4 = 16 bytes.",
+      "samples[i] is element i. Indexes count from 0, so samples[3] is the last of four, and it sits 3 × 4 = 12 bytes from the start of the array.",
+      "Inside a struct, an array takes its whole size. In struct Log { int samples[4]; int total; }, total is at offset 16.",
+      "With a constant index, the compiler adds the element's offset to the field's offset and loads once, just as for an ordinary field.",
+      "The name of an array, used as a value, is the address of element 0. A variable index needs arithmetic on that address, which later missions cover.",
+    ],
+  },
+  {
+    id: "c.nested-structs",
+    section: "C",
+    title: "Pointers in structs",
+    body: [
+      "A field can hold a pointer. In struct Unit { int id; struct Pos *pos; }, pos is a 4-byte address. The struct Pos it points to lives somewhere else in memory.",
+      "u->pos->y follows the chain: load pos from u, then load y from the struct at that address. That takes two loads.",
+      "The chain can also be written with a local pointer: struct Pos *p = u->pos; return p->y;. Both compile to the same instructions.",
+      "An embedded struct is different. In struct Unit2 { int id; struct Pos pos; }, the x and y of pos sit inside Unit2 itself, at offsets 4 and 8. Reach them with a dot, u->pos.y, and a single load.",
+      "Read the declaration: a * before the field name means a pointer to data elsewhere. No * means the data is right there.",
+    ],
+  },
+  {
+    id: "c.integer-widths",
+    section: "C",
+    title: "Integer widths",
+    body: [
+      "On this target, char takes 1 byte (8 bits), short takes 2 bytes (16 bits), and int takes 4 bytes (32 bits). Pointers also take 4 bytes.",
+      "The load instruction shows the width. lb and lbu read 1 byte, lh and lhu read 2, and lw reads 4.",
+      "Signed widths sign-extend to 32 bits and unsigned widths zero-extend. short loads with lh, and unsigned short with lhu.",
+      "A short holds -32768 to 32767. 0xFFFE read as a short is -2.",
+      "These sizes are this target's. C only sets minimums, and other machines can differ.",
+    ],
+  },
+  {
+    id: "c.struct-layout",
+    section: "C",
+    title: "Struct layout",
+    body: [
+      "Each field has an alignment: on this target, 1 for char, 2 for short, and 4 for int and pointers. A field starts at the next offset that is a multiple of its alignment.",
+      "Bytes skipped to reach that offset are padding. In struct Mixed { char tag; int count; }, tag is at 0 and count at 4, with 3 padding bytes between.",
+      "An embedded struct takes its whole size and aligns to its largest member. Its fields' offsets inside the outer struct are its own offset plus theirs.",
+      "To find an offset, walk the fields in order: round up to the field's alignment, place it, then add its size.",
+      "The whole struct's size is also rounded up to its largest alignment, so arrays of it line up too.",
+    ],
+  },
+  {
+    id: "c.pointer-arithmetic",
+    section: "C",
+    title: "Pointer arithmetic",
+    body: [
+      "Adding n to a pointer moves it n elements of the type it points to. For int *words, words + 3 is 12 bytes further. For char *text, text + 3 is 3 bytes further.",
+      "The listing shows the byte count, because the compiler has already multiplied. Divide by the element size to get the n in the source.",
+      "words + 3 is the address of words[3]. It computes an address and copies no data.",
+      "The compiler can compute words + 3 in a register without changing words. A source expression and the register that holds its result are different things.",
+      "Storing a pointer into a field copies the address. The data at that address stays where it is.",
+      "void * has no element size, so standard C forbids adding to it. PsyQ, a GNU compiler, accepts it and moves 1 byte per step. That is compiler-specific behavior.",
+    ],
+  },
+  {
+    id: "c.typedef",
+    section: "C",
+    title: "Type names and headers",
+    body: [
+      "typedef gives a type another name. typedef struct { int kind; void *data; } Slot; names that struct Slot, so Slot *s declares a pointer to it.",
+      'A header file, such as bridge_types.h, holds declarations shared by several source files. #include "bridge_types.h" pastes its text into the source before compiling.',
+      "A typedef creates no memory and changes no layout. Slot has kind at offset 0 and data at offset 4, just as the struct written out would.",
+      "void * is a generic pointer: an address of anything. It is a different use of void from a function that returns nothing.",
+      "Storing a void * copies the address. Reading the data behind it needs a pointer of a specific type.",
     ],
   },
   {
@@ -485,7 +558,87 @@ export const manualEntries: readonly ManualEntry[] = [
     section: "GLOSSARY",
     title: "void",
     body: [
-      "As a return type, the function returns nothing. As a parameter list, (void), the function takes no arguments. void * is a different use, taught later.",
+      "As a return type, the function returns nothing. As a parameter list, (void), the function takes no arguments. void * is a different use: a generic pointer.",
+    ],
+  },
+  {
+    id: "glossary.array",
+    section: "GLOSSARY",
+    title: "array",
+    body: [
+      "A fixed number of values of one type stored back to back. int samples[4] is four ints, 16 bytes.",
+    ],
+  },
+  {
+    id: "glossary.element",
+    section: "GLOSSARY",
+    title: "element",
+    body: [
+      "One value in an array. samples[i] is element i, counting from 0, at i element sizes from the start.",
+    ],
+  },
+  {
+    id: "glossary.embedded-struct",
+    section: "GLOSSARY",
+    title: "embedded struct",
+    body: [
+      "A struct stored inside another struct, reached with a dot. A pointer field, reached with ->, holds the address of a struct stored elsewhere.",
+    ],
+  },
+  {
+    id: "glossary.short",
+    section: "GLOSSARY",
+    title: "short",
+    body: [
+      "A 16-bit integer type, 2 bytes on this target. It holds -32768 to 32767.",
+    ],
+  },
+  {
+    id: "glossary.lh",
+    section: "GLOSSARY",
+    title: "lh and lhu",
+    body: [
+      "Load half: read 16 bits from memory. lh sign-extends them to 32 bits, and lhu zero-extends them.",
+    ],
+  },
+  {
+    id: "glossary.padding",
+    section: "GLOSSARY",
+    title: "padding",
+    body: [
+      "Unused bytes in a struct that move the next field to an offset matching its alignment.",
+    ],
+  },
+  {
+    id: "glossary.alignment",
+    section: "GLOSSARY",
+    title: "alignment",
+    body: [
+      "The multiple a field's offset must be. On this target: 1 for char, 2 for short, 4 for int and pointers.",
+    ],
+  },
+  {
+    id: "glossary.typedef",
+    section: "GLOSSARY",
+    title: "typedef",
+    body: [
+      "Gives a type a new name. typedef struct { int kind; } Slot; lets you write Slot instead of the struct.",
+    ],
+  },
+  {
+    id: "glossary.header",
+    section: "GLOSSARY",
+    title: "header file",
+    body: [
+      "A file of shared declarations, usually ending in .h. #include pastes its text into the source before compiling.",
+    ],
+  },
+  {
+    id: "glossary.generic-pointer",
+    section: "GLOSSARY",
+    title: "void *",
+    body: [
+      "A generic pointer: it holds an address of any type. Unlike void as a return type, it is a real 4-byte value.",
     ],
   },
   {

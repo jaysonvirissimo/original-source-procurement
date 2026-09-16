@@ -22,6 +22,8 @@ export const qualification01: MissionDraft = {
     "MIPS.LOAD.WORD",
     "MIPS.LOAD.BYTE",
     "MIPS.STORE.WORD",
+    "C.ARRAY",
+    "C.STRUCT.NESTED",
   ],
   scaffold: "independent",
   completion: "exact",

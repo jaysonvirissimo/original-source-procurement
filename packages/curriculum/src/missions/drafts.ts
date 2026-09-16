@@ -9,7 +9,13 @@ import { storeWord } from "./008-store-word.ts";
 import { fieldOffset } from "./009-field-offset.ts";
 import { signedByte } from "./010-signed-byte.ts";
 import { wrongSign } from "./011-wrong-sign.ts";
+import { arrayLayout } from "./011A-array-layout.ts";
+import { pointerInStruct } from "./011B-pointer-in-struct.ts";
 import { qualification01 } from "./012-qualification-01.ts";
+import { halfWidth } from "./012A-half-width.ts";
+import { padding } from "./012B-padding.ts";
+import { pointerStep } from "./012C-pointer-step.ts";
+import { typeNames } from "./012D-type-names.ts";
 import type { MissionDraft } from "./authoring.ts";
 
 export type { MissionDraft } from "./authoring.ts";
@@ -30,5 +36,11 @@ export const missionDrafts: readonly MissionDraft[] = [
   fieldOffset,
   signedByte,
   wrongSign,
+  arrayLayout,
+  pointerInStruct,
   qualification01,
+  halfWidth,
+  padding,
+  pointerStep,
+  typeNames,
 ];
