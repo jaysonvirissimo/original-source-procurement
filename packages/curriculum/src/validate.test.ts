@@ -70,6 +70,17 @@ describe("validateCurriculum", () => {
     await expect(validateCurriculum(curriculum)).resolves.toEqual([]);
   });
 
+  it("finds the gap at 012 when the array bridge leaves the default path", async () => {
+    const issues = await validateCurriculum({
+      ...curriculum,
+      defaultPath: curriculum.defaultPath.filter((id) => id !== "011A"),
+    });
+    expect(issues.map(({ code, message }) => [code, message])).toContainEqual([
+      "unreachable-prerequisite",
+      "Mission 012 needs C.ARRAY, which no earlier mission on the default path teaches.",
+    ]);
+  });
+
   it("reports feasibility pointers that fail their schema", async () => {
     const pointer = feasibilityPointer();
     pointer.symbol = "other_function";

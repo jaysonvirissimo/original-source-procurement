@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { manualEntries } from "./manual.ts";
 import { missionDrafts } from "./missions/drafts.ts";
 import { defaultPath, missions, withTarget } from "./missions.ts";
+import { pointerCorpus } from "./real/corpus.ts";
 import { skills } from "./skills.ts";
 
 function mission(id: string): Mission {
@@ -34,7 +35,7 @@ describe("missions", () => {
 });
 
 describe("the first teaching slice", () => {
-  it("plays 001 through 012 in order, then the first field mission", () => {
+  it("plays 001 through 012 with the bridges in order, then the first field mission", () => {
     expect(defaultPath).toEqual([
       "001",
       "002",
@@ -47,9 +48,36 @@ describe("the first teaching slice", () => {
       "009",
       "010",
       "011",
+      "011A",
+      "011B",
       "012",
+      "012A",
+      "012B",
+      "012C",
+      "012D",
       "F01",
     ]);
+  });
+
+  it("teaches what 012 and the first field mission need before they are played", () => {
+    expect(mission("012").practices).toEqual(
+      expect.arrayContaining(["C.ARRAY", "C.STRUCT.NESTED"]),
+    );
+    const f01 = pointerCorpus.missions.find((entry) => entry.id === "F01");
+    expect(f01?.requires).toEqual(
+      expect.arrayContaining([
+        "C.INTEGER.WIDTH",
+        "C.STRUCT.LAYOUT",
+        "C.POINTER.ARITHMETIC",
+        "C.TYPEDEF",
+      ]),
+    );
+  });
+
+  it("supplies the type names mission's header as authored compiler input", () => {
+    const typeNames = mission("012D");
+    expect(Object.keys(typeNames.compiler.headers)).toEqual(["bridge_types.h"]);
+    expect(typeNames.starterSource).toContain('#include "bridge_types.h"');
   });
 
   it("teaches nothing new in its synthesis missions", () => {
@@ -126,7 +154,13 @@ describe("the first teaching slice", () => {
       "009": ["C.STRUCT.FIELD"],
       "010": ["MIPS.LOAD.BYTE"],
       "011": ["MATCH.SIGNEDNESS"],
+      "011A": ["C.ARRAY"],
+      "011B": ["C.STRUCT.NESTED"],
       "012": [],
+      "012A": ["C.INTEGER.WIDTH"],
+      "012B": ["C.STRUCT.LAYOUT"],
+      "012C": ["C.POINTER.ARITHMETIC"],
+      "012D": ["C.TYPEDEF"],
     });
   });
 
@@ -153,7 +187,13 @@ describe("the first teaching slice", () => {
     ["009", ["struct", "offset"]],
     ["010", ["lb and lbu", "two's complement", "sign extension", "PsyQ"]],
     ["011", ["lb and lbu", "PsyQ"]],
+    ["011A", ["array", "element", "offset"]],
+    ["011B", ["pointer", "embedded struct", "nop"]],
     ["012", ["pointer", "struct", "temporary", "nop"]],
+    ["012A", ["short", "lh and lhu", "sign extension"]],
+    ["012B", ["padding", "alignment", "embedded struct"]],
+    ["012C", ["pointer", "element"]],
+    ["012D", ["typedef", "header file", "void *", "void"]],
   ])("links glossary entries for the terms %s introduces", (id, expected) => {
     const glossary = new Map(
       manualEntries

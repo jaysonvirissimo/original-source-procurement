@@ -8,7 +8,12 @@
       "phase": "Field work",
       "kind": "real-solved",
       "scaffold": "field",
-      "requires": [],
+      "requires": [
+        "C.INTEGER.WIDTH",
+        "C.STRUCT.LAYOUT",
+        "C.POINTER.ARITHMETIC",
+        "C.TYPEDEF"
+      ],
       "practices": [
         "ABI.ARGUMENT",
         "C.POINTER.DEREFERENCE",

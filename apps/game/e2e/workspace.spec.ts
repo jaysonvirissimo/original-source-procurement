@@ -411,6 +411,29 @@ test("a fresh session plays the training missions on the default path, then poin
   }
 });
 
+test("a bridge mission compiles against its authored header and shows the header's text", async ({
+  page,
+}) => {
+  const typeNames = missions.find((entry) => entry.id === "012D");
+  if (typeNames?.solution === undefined) {
+    throw new Error("The curriculum has no 012D solution.");
+  }
+  await openMission(page, "012D", typeNames.title);
+  await expect(page.getByRole("region", { name: "Walkthrough" })).toContainText(
+    "void *data;",
+  );
+
+  await compile(page);
+  await expect(status(page)).toHaveText("NOT AN EXACT MATCH", {
+    timeout: 30_000,
+  });
+
+  await setSource(page, typeNames.solution);
+  await compile(page);
+  await missionComplete(page);
+  await expect(status(page)).toHaveText("EXACT MATCH");
+});
+
 test("help panels dock beside the listing without covering it", async ({
   page,
 }) => {

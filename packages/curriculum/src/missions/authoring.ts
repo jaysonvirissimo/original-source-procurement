@@ -10,8 +10,14 @@ import {
  */
 export type MissionDraft = Omit<Mission, "target">;
 
-/** Compiler input shared by the first training missions. */
-export function trainingCompiler(filename: string): Mission["compiler"] {
+/**
+ * Compiler input shared by the training missions, with any OSP-authored
+ * headers the source includes.
+ */
+export function trainingCompiler(
+  filename: string,
+  headers: Mission["compiler"]["headers"] = {},
+): Mission["compiler"] {
   return {
     gpSize: 0,
     aspsxVersion: "2.77",
@@ -19,7 +25,7 @@ export function trainingCompiler(filename: string): Mission["compiler"] {
     cppFlags: [...PSYQ_WASM_DEFAULT_CPP_FLAGS],
     encoding: "utf8",
     filename,
-    headers: {},
+    headers,
   };
 }
 

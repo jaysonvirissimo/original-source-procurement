@@ -73,6 +73,8 @@ Mission and skill behavior comes from validated curriculum data, never from rule
 
 Prerequisites are the source of truth for progression. The default path is a recommended order that must stay consistent with them.
 
+A synthetic mission's source may `#include` OSP-authored headers. Pass them to `trainingCompiler(filename, headers)`, keyed by the name the source includes. The target generator builds with them, and the workspace supplies them to every compile. Show a header's text to the player in mission text, such as a walkthrough or hint, because the workspace does not display headers.
+
 Package sources that `pnpm curriculum:validate` loads run directly on Node.js with type stripping, so relative imports in `mission-schema` and `curriculum` use explicit `.ts` extensions and only erasable TypeScript syntax.
 
 ## Toolchain boundaries

@@ -25,7 +25,12 @@ describe("shipped machine diagram examples", () => {
       "009",
       "010",
       "011",
+      "011A",
+      "011B",
       "012",
+      "012A",
+      "012B",
+      "012D",
     ]);
   });
 
@@ -90,7 +95,21 @@ describe("shipped walkthroughs", () => {
   it("cover the missions revised for beginners", () => {
     expect([
       ...new Set(withWalkthroughs.map(([, mission]) => mission.id)),
-    ]).toEqual(["001", "002", "004", "005", "006", "007", "008", "010", "012"]);
+    ]).toEqual([
+      "001",
+      "002",
+      "004",
+      "005",
+      "006",
+      "007",
+      "008",
+      "010",
+      "011B",
+      "012",
+      "012A",
+      "012C",
+      "012D",
+    ]);
   });
 
   it.each(withWalkthroughs)(

@@ -227,6 +227,7 @@ describe("mapRegions", () => {
     expect(regions.map(({ kind, title }) => [kind, title])).toEqual([
       ["phase", "Translation"],
       ["phase", "Memory"],
+      ["phase", "Types and layout"],
       ["field", "Field"],
       ["live", "Live"],
     ]);
@@ -264,7 +265,7 @@ describe("searchEntries", () => {
   it("matches every word against the ID, title, and phase, ignoring case", () => {
     expect(search("field offset")).toEqual(["009"]);
     expect(search("  FIELD   Offset ")).toEqual(["009"]);
-    expect(search("012")).toEqual(["012"]);
+    expect(search("012")).toEqual(["012", "012A", "012B", "012C", "012D"]);
     expect(search("memory")).toEqual(
       entries.filter((entry) => entry.mission.phase === "Memory").map(idOf),
     );
