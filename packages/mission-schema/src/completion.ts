@@ -5,8 +5,10 @@ import { z } from "zod";
  * succeeded and defined the mission's function:
  *
  * - `exact`: the assembled function matches the target exactly;
- * - `acknowledge-evidence`: the player acknowledged the highlighted evidence;
- * - `prediction-recorded`: the player recorded a prediction before the build.
+ * - `acknowledge-evidence`: the player selected the mission's evidence words and
+ *   acknowledged them;
+ * - `prediction-recorded`: the player recorded a prediction before the build,
+ *   and corrected it after the build if it was wrong.
  */
 export const COMPLETION_RULES = [
   "exact",

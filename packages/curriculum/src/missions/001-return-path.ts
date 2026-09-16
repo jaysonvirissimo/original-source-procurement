@@ -21,12 +21,18 @@ export const returnPath: MissionDraft = {
   compiler: trainingCompiler("return_path.c"),
   briefing: {
     objective:
-      "Compile, then acknowledge the evidence: the instruction that puts the return value in $v0.",
+      "Compile, select the instruction that puts the return value in $v0, then acknowledge it.",
     newTechnique: "A function returns an int in $v0.",
   },
   starterSource: SOURCE,
   solution: SOURCE,
   symbol: "return_path",
+  evidence: {
+    question: "Which instruction puts the return value in $v0?",
+    range: { start: 1, end: 2 },
+    retry:
+      "Not that one. Look for the instruction whose first operand, its destination, is $v0.",
+  },
   annotations: [
     {
       range: { start: 1, end: 2 },
@@ -47,7 +53,7 @@ export const returnPath: MissionDraft = {
     },
     {
       stage: 9,
-      text: "The starting source is already complete. Compile it, find $v0, and acknowledge the evidence.",
+      text: "The starting source is already complete. Compile it, select the addiu that writes 42 into $v0, and acknowledge it.",
       revealSolution: true,
     },
   ],

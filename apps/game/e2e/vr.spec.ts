@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
+import { acknowledgeEvidence } from "./evidence.ts";
 import { siteUrl, watchPage, type PageWatch } from "./page-watch.ts";
 
 let watch: PageWatch;
@@ -112,11 +113,7 @@ test("simple graphics never starts WebGL, and a mission still completes", async 
   await expect(page.locator("canvas")).toHaveCount(0);
 
   await compileButton(page).click();
-  const acknowledge = page.getByRole("button", {
-    name: "Acknowledge evidence",
-  });
-  await expect(acknowledge).toBeEnabled({ timeout: 30_000 });
-  await acknowledge.click();
+  await acknowledgeEvidence(page, "001");
   await expect(
     page.getByRole("heading", { name: "Mission complete" }),
   ).toBeVisible({ timeout: 30_000 });

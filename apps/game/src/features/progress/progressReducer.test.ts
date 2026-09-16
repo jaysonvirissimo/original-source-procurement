@@ -120,6 +120,51 @@ describe("progressReducer", () => {
     }
   });
 
+  it("starts practice from the starter with no hints, keeping completion", () => {
+    const played = progressReducer(
+      progressReducer(
+        progressReducer(emptyPlayerState(), {
+          type: "hint-stage-saved",
+          mission: ref,
+          stage: 9,
+          at: timestamp(1),
+        }),
+        {
+          type: "source-saved",
+          mission: ref,
+          source: "solved\n",
+          at: timestamp(2),
+        },
+      ),
+      {
+        type: "mission-completed",
+        mission: ref,
+        completionId: "c1",
+        at: timestamp(3),
+        skills: [],
+      },
+    );
+    const practice = progressReducer(played, {
+      type: "practice-started",
+      mission: ref,
+      at: timestamp(4),
+    });
+
+    expect(practice.missions["003"]).toMatchObject({
+      source: "starter\n",
+      sourceSavedAt: timestamp(4),
+      hintMaxStage: 0,
+      completion: played.missions["003"]?.completion,
+    });
+    expect(
+      progressReducer(practice, {
+        type: "practice-started",
+        mission: ref,
+        at: timestamp(5),
+      }),
+    ).toBe(practice);
+  });
+
   it("records an attempt once and tracks the best match", () => {
     const first = attempt({ id: "x", createdAt: timestamp(4) });
     const state = progressReducer(emptyPlayerState(), {

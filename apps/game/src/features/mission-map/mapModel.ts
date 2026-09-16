@@ -7,6 +7,7 @@ import {
 } from "../curriculum/missionCatalog";
 import type { PlayerState } from "../persistence/schema";
 import { missionStatus, type MissionStatus } from "../progress/progressReducer";
+import { onlyRevealed } from "../progress/completionMode";
 import { skillStateOf } from "../progress/skillState";
 
 export interface NamedSkill {
@@ -22,6 +23,8 @@ export interface MissionEntry {
   /** Skills the mission expects that the player has not been introduced to. */
   readonly missing: readonly NamedSkill[];
   readonly recommended: boolean;
+  /** Complete, but only ever with the solution revealed. */
+  readonly revealedOnly: boolean;
 }
 
 /** A training phase lane, or the field or live region. */
@@ -40,6 +43,10 @@ export interface MissionMapModel {
   readonly resume: MissionEntry | undefined;
   readonly completed: number;
   readonly total: number;
+  /** Completed missions whose every completion revealed the solution. */
+  readonly revealed: number;
+  /** The first of those, in recommended order, to practice again. */
+  readonly practice: MissionEntry | undefined;
 }
 
 type Catalog = Pick<MissionCatalog, "missions" | "skills" | "defaultPath">;
@@ -86,6 +93,8 @@ export function missionMapModel(
   const entries: MissionEntry[] = draft.map((entry) => ({
     ...entry,
     recommended: entry.mission.id === recommendedId,
+    revealedOnly:
+      entry.status === "complete" && onlyRevealed(state, entry.mission.id),
   }));
 
   let resume: MissionEntry | undefined;
@@ -109,17 +118,22 @@ export function missionMapModel(
     resume,
     completed: entries.length - incomplete.length,
     total: entries.length,
+    revealed: entries.filter((entry) => entry.revealedOnly).length,
+    practice: entries.find((entry) => entry.revealedOnly),
   };
 }
 
 /**
  * Text marks for an entry, so status never depends on color. A completed
- * mission shows only COMPLETE; otherwise marks say whether it is recommended,
+ * mission shows COMPLETE, and SOLUTION REVEALED when it was only ever
+ * completed that way; otherwise marks say whether it is recommended,
  * started, or expects skills the player has not been introduced to.
  */
 export function entryMarks(entry: MissionEntry): string[] {
   if (entry.status === "complete") {
-    return ["COMPLETE"];
+    return entry.revealedOnly
+      ? ["COMPLETE", "SOLUTION REVEALED"]
+      : ["COMPLETE"];
   }
   const marks: string[] = [];
   if (entry.recommended) {

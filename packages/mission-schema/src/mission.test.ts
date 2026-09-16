@@ -19,6 +19,12 @@ const prediction = {
   revealedBy: "The copy from $a0.",
 };
 
+const evidence = {
+  question: "Which instruction returns the value?",
+  range: { start: 1, end: 2 },
+  retry: "Look for the write to $v0.",
+};
+
 const wholeFile = {
   repository: "FoxdieTeam/mgs_reversing",
   commit: PLACEHOLDER_COMMIT,
@@ -466,6 +472,65 @@ describe("completion", () => {
         }),
       ),
     ).toEqual([]);
+  });
+
+  it("accepts the acknowledge-evidence rule with evidence inside the target", () => {
+    expect(
+      issues(
+        syntheticMission({
+          kind: "demo",
+          completion: "acknowledge-evidence",
+          evidence,
+        }),
+      ),
+    ).toEqual([]);
+  });
+
+  it("rejects the acknowledge-evidence rule without evidence", () => {
+    expect(
+      issues(syntheticMission({ completion: "acknowledge-evidence" })),
+    ).toEqual([
+      issue(
+        "evidence",
+        "The acknowledge-evidence rule needs an evidence prompt.",
+      ),
+    ]);
+  });
+
+  it("rejects evidence under another completion rule", () => {
+    expect(issues(syntheticMission({ evidence }))).toEqual([
+      issue(
+        "evidence",
+        "Only the acknowledge-evidence rule uses an evidence prompt.",
+      ),
+    ]);
+  });
+
+  it("rejects evidence outside the target function", () => {
+    expect(
+      issues(
+        syntheticMission({
+          completion: "acknowledge-evidence",
+          evidence: { ...evidence, range: { start: 1, end: 3 } },
+        }),
+      ),
+    ).toEqual([
+      issue(
+        "evidence.range",
+        "The evidence must stay inside the target function.",
+      ),
+    ]);
+  });
+
+  it("rejects evidence on a remote target", () => {
+    expect(
+      issues(realMission({ completion: "acknowledge-evidence", evidence })),
+    ).toContainEqual(
+      issue(
+        "evidence",
+        "Only missions with an inline target name evidence words.",
+      ),
+    );
   });
 
   it("rejects a demonstration mission without a completion rule", () => {

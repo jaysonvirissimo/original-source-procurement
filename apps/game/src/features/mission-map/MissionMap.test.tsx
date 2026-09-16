@@ -4,6 +4,7 @@ import { shippedCatalog } from "../curriculum/missionCatalog";
 import {
   missionProgress,
   samplePlayer,
+  skillEvidence,
   timestamp,
 } from "../persistence/persistence.test-helpers";
 import { emptyPlayerState, type PlayerState } from "../persistence/schema";
@@ -126,6 +127,44 @@ describe("MissionMap", () => {
 
     expect(within(map).getByText("Training complete")).toBeTruthy();
     expect(within(map).getByText("13 of 13 complete")).toBeTruthy();
+    expect(map.textContent).not.toContain("Practice:");
+  });
+
+  it("does not call training complete when a solution was revealed, and offers practice", async () => {
+    const player = emptyPlayerState();
+    for (const { id } of shippedCatalog.missions) {
+      player.missions[id] = missionProgress({
+        missionId: id,
+        completion: {
+          count: 1,
+          firstCompletedAt: timestamp(1),
+          lastCompletedAt: timestamp(1),
+          lastCompletionId: `completion-${id}`,
+        },
+      });
+    }
+    player.skills["ABI.ARGUMENT"] = {
+      evidence: [
+        skillEvidence({
+          id: "completion-F01:ABI.ARGUMENT",
+          completionId: "completion-F01",
+          skill: "ABI.ARGUMENT",
+          missionId: "F01",
+          kind: "real",
+          hintMaxStage: 9,
+          solutionRevealed: true,
+        }),
+      ],
+    };
+    const map = await renderMap(player);
+
+    expect(within(map).queryByText("Training complete")).toBeNull();
+    expect(
+      within(map).getByText("All missions complete · 1 with solution revealed"),
+    ).toBeTruthy();
+    expect(
+      within(map).getByRole("link", { name: "FONT BUFFER (F01)" }),
+    ).toBeTruthy();
   });
 
   it("switches to a searchable list and back", async () => {

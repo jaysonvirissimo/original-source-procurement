@@ -293,28 +293,46 @@ describe("acknowledgement", () => {
     );
 
     expect(built.completed).toBe(false);
-    const acknowledged = run(built, { type: "evidence-acknowledged" });
+    const missed = run(built, { type: "evidence-acknowledged", word: 0 });
+    expect(missed.evidenceMiss).toEqual({ buildId: 1, word: 0 });
+    expect(missed.actions.acknowledgement).toBeUndefined();
+    expect(missed.completed).toBe(false);
+
+    const acknowledged = run(missed, {
+      type: "evidence-acknowledged",
+      word: 1,
+    });
+    expect(acknowledged.evidenceMiss).toBeUndefined();
     expect(acknowledged.actions.acknowledgement).toEqual({
       missionId: "001",
       buildId: 1,
+      word: 1,
     });
     expect(acknowledged.completed).toBe(true);
   });
 
-  it("ignores acknowledgement without a current match or on another rule", () => {
+  it("ignores acknowledgement without a current match, evidence, or the rule", () => {
     const demo = hashed(demoMission);
     const exact = compileAndResolve(
       hashed(),
       matchedResult(exactMission, request(exactMission, 1, SOURCE), false),
     );
+    const unprompted = { ...demoMission, evidence: undefined };
+    const noEvidence = compileAndResolve(
+      hashed(unprompted),
+      matchedResult(demoMission, request(demoMission, 1, SOURCE), false),
+    );
 
-    expect(run(demo, { type: "evidence-acknowledged" })).toBe(demo);
-    expect(run(exact, { type: "evidence-acknowledged" })).toBe(exact);
+    for (const state of [demo, exact, noEvidence]) {
+      expect(run(state, { type: "evidence-acknowledged", word: 1 })).toBe(
+        state,
+      );
+    }
   });
 });
 
 describe("prediction", () => {
-  it("records one prediction before the next build and completes after a wrong one", () => {
+  it("records one prediction before the next build and completes after a right one", () => {
     const predicted = run(hashed(predictionMission), {
       type: "prediction-recorded",
       choice: 0,
@@ -335,12 +353,54 @@ describe("prediction", () => {
       definedFunctions: [],
     });
     expect(missing.completed).toBe(false);
+    const revealed = compileAndResolve(
+      missing,
+      matchedResult(predictionMission, request(predictionMission, 2, SOURCE)),
+    );
+    // Choice 0 is wrong, so the reveal asks for a correction first.
+    expect(revealed.completed).toBe(false);
+
+    const rightFirst = run(hashed(predictionMission), {
+      type: "prediction-recorded",
+      choice: 1,
+    });
     expect(
       compileAndResolve(
-        missing,
-        matchedResult(predictionMission, request(predictionMission, 2, SOURCE)),
+        rightFirst,
+        matchedResult(predictionMission, request(predictionMission, 1, SOURCE)),
       ).completed,
     ).toBe(true);
+  });
+
+  it("completes a wrong prediction once the revealed answer is chosen", () => {
+    const predicted = run(hashed(predictionMission), {
+      type: "prediction-recorded",
+      choice: 0,
+    });
+    // Before the reveal there is nothing to correct.
+    expect(run(predicted, { type: "prediction-corrected", choice: 1 })).toBe(
+      predicted,
+    );
+    const revealed = compileAndResolve(
+      predicted,
+      matchedResult(predictionMission, request(predictionMission, 1, SOURCE)),
+    );
+
+    const missed = run(revealed, { type: "prediction-corrected", choice: 2 });
+    expect(missed.correctionMiss).toBe(2);
+    expect(missed.completed).toBe(false);
+
+    const corrected = run(missed, { type: "prediction-corrected", choice: 1 });
+    expect(corrected.correctionMiss).toBeUndefined();
+    expect(corrected.actions.correction).toEqual({
+      missionId: "002",
+      choice: 1,
+      buildId: 1,
+    });
+    expect(corrected.completed).toBe(true);
+    expect(run(corrected, { type: "prediction-corrected", choice: 1 })).toBe(
+      corrected,
+    );
   });
 
   it("rejects a prediction without a prompt or outside its choices", () => {
@@ -431,6 +491,43 @@ describe("saved progress and history", () => {
       run(restored, { type: "attempt-restored", source: "int b;\n" })
         .replacement,
     ).toEqual({ revision: 2, source: "int b;\n" });
+  });
+
+  it("starts practice from the starter source with no hints, keeping build numbers", () => {
+    const completed = run(
+      compileAndResolve(
+        run(hashed(), { type: "entered" }, { type: "hint-revealed" }),
+        matchedResult(exactMission, request(exactMission, 1, SOURCE)),
+      ),
+      { type: "edited", source: "int changed;\n" },
+      { type: "split-resized", split: 0.3 },
+    );
+    const practice = run(completed, { type: "practice-started" });
+
+    expect(practice).toMatchObject({
+      entered: true,
+      source: exactMission.starterSource,
+      sourceSha256: undefined,
+      result: undefined,
+      hintStage: 0,
+      attempts: 0,
+      completed: false,
+      completedBuildId: 0,
+      reviewing: false,
+      split: 0.3,
+      latestBuildId: 1,
+      replacement: { revision: 1, source: exactMission.starterSource },
+    });
+    expect(
+      compileAndResolve(
+        run(practice, {
+          type: "source-hashed",
+          source: practice.source,
+          sha256: SOURCE,
+        }),
+        matchedResult(exactMission, request(exactMission, 2, SOURCE)),
+      ).completedBuildId,
+    ).toBe(2);
   });
 
   it("remembers the build that completed the mission", () => {

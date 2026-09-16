@@ -33,6 +33,11 @@ export type ProgressEvent =
       readonly at: string;
     }
   | {
+      readonly type: "practice-started";
+      readonly mission: MissionRef;
+      readonly at: string;
+    }
+  | {
       readonly type: "attempt-recorded";
       readonly mission: MissionRef;
       readonly attempt: Attempt;
@@ -88,6 +93,19 @@ export function progressReducer(
     case "hint-stage-saved":
       return updateMission(state, event.mission, event.at, (m) =>
         event.stage <= m.hintMaxStage ? m : { ...m, hintMaxStage: event.stage },
+      );
+    case "practice-started":
+      // Practice starts over from the starter with no hints opened. Earlier
+      // completions, predictions, attempts, and skill evidence stay.
+      return updateMission(state, event.mission, event.at, (m) =>
+        m.source === event.mission.starterSource && m.hintMaxStage === 0
+          ? m
+          : {
+              ...m,
+              source: event.mission.starterSource,
+              sourceSavedAt: event.at,
+              hintMaxStage: 0,
+            },
       );
     case "attempt-recorded":
       return recordAttempt(state, event.mission, event.attempt);

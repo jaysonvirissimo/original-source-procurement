@@ -3,6 +3,7 @@ import { MissionAnnotationSchema } from "./annotation.ts";
 import { checkUpstreamBuild, CompilerSettingsSchema } from "./compiler.ts";
 import { CompletionRuleSchema } from "./completion.ts";
 import { DifficultyProfileSchema } from "./difficulty.ts";
+import { EvidencePromptSchema } from "./evidence.ts";
 import { checkExample, MissionExampleSchema } from "./example.ts";
 import { HintSchema } from "./hint.ts";
 import { PredictionPromptSchema } from "./prediction.ts";
@@ -78,6 +79,8 @@ const MissionObjectSchema = z.strictObject({
   symbol: SymbolSchema,
   target: TargetSchema,
   prediction: PredictionPromptSchema.optional(),
+  // Required by the acknowledge-evidence rule, and allowed only with it.
+  evidence: EvidencePromptSchema.optional(),
   hints: z.array(HintSchema),
   // Synthetic missions only: notes on target words for guided play.
   annotations: z.array(MissionAnnotationSchema).optional(),
@@ -120,6 +123,7 @@ export const MissionSchema = MissionObjectSchema.superRefine((mission, ctx) => {
       "Prediction missions and the prediction-recorded rule need a prediction prompt.",
     );
   }
+  checkEvidence(mission, report);
 });
 export type Mission = z.infer<typeof MissionSchema>;
 
@@ -152,6 +156,36 @@ function checkAnnotations(mission: MissionShape, report: Report): void {
       );
     }
   });
+}
+
+function checkEvidence(mission: MissionShape, report: Report): void {
+  const acknowledged = mission.completion === "acknowledge-evidence";
+  if (mission.evidence === undefined) {
+    if (acknowledged) {
+      report(
+        ["evidence"],
+        "The acknowledge-evidence rule needs an evidence prompt.",
+      );
+    }
+    return;
+  }
+  if (!acknowledged) {
+    report(
+      ["evidence"],
+      "Only the acknowledge-evidence rule uses an evidence prompt.",
+    );
+  }
+  if (mission.target.kind !== "inline") {
+    report(
+      ["evidence"],
+      "Only missions with an inline target name evidence words.",
+    );
+  } else if (mission.evidence.range.end > mission.target.words.length) {
+    report(
+      ["evidence", "range"],
+      "The evidence must stay inside the target function.",
+    );
+  }
 }
 
 function checkSourceAndTarget(mission: MissionShape, report: Report): void {

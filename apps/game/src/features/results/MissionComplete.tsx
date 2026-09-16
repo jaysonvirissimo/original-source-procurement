@@ -3,6 +3,10 @@ import { useEffect, useId, useRef, type ReactElement } from "react";
 import controls from "../../styles/controls.module.css";
 import { FieldProvenance } from "../field/FieldProvenance";
 import type { MissionProvenance } from "../field/provenance";
+import {
+  completionModeText,
+  type CompletionMode,
+} from "../progress/completionMode";
 import { SKILL_STATE_LABELS, type SkillChange } from "../progress/skillState";
 import type { HintUsage } from "../workspace/workspaceReducer";
 import { hintUsageText } from "./hintUsageText";
@@ -18,6 +22,8 @@ interface MissionCompleteProps {
   readonly exact: boolean;
   readonly attempts: number;
   readonly hints: HintUsage;
+  /** How this completion was reached, when it recorded skill evidence. */
+  readonly mode: CompletionMode | undefined;
   /** The prediction recorded before the completing build, if any. */
   readonly prediction: PredictionOutcome | undefined;
   /** Each skill this completion recorded, before and after it. */
@@ -27,7 +33,10 @@ interface MissionCompleteProps {
   readonly next: Pick<Mission, "id" | "title"> | undefined;
   /** Where a field mission's function was recovered from. */
   readonly provenance?: MissionProvenance | undefined;
-  readonly onContinue: () => void;
+  /** Returns to the workspace with the comparison still in view. */
+  readonly onReview: () => void;
+  /** Starts the mission over from its starter with no hints opened. */
+  readonly onPractice: () => void;
 }
 
 function skillLine(change: SkillChange, name: string): string {
@@ -45,12 +54,14 @@ export function MissionComplete({
   exact,
   attempts,
   hints,
+  mode,
   prediction,
   skillChanges,
   skillNames,
   next,
   provenance,
-  onContinue,
+  onReview,
+  onPractice,
 }: MissionCompleteProps): ReactElement {
   const heading = useRef<HTMLHeadingElement>(null);
   const titleId = useId();
@@ -71,6 +82,12 @@ export function MissionComplete({
         <dd>{attempts}</dd>
         <dt>HINTS</dt>
         <dd>{hintUsageText(hints)}</dd>
+        {mode === undefined ? null : (
+          <>
+            <dt>MODE</dt>
+            <dd>{completionModeText(mode, hints.stage)}</dd>
+          </>
+        )}
         {prediction === undefined ? null : (
           <>
             <dt>PREDICTION</dt>
@@ -81,8 +98,8 @@ export function MissionComplete({
                 </>
               ) : (
                 <>
-                  Not correct: you chose <code>{prediction.chosen}</code>; the
-                  answer is <code>{prediction.answer}</code>.
+                  First choice <code>{prediction.chosen}</code>; corrected to{" "}
+                  <code>{prediction.answer}</code>.
                 </>
               )}
             </dd>
@@ -114,14 +131,29 @@ export function MissionComplete({
         <FieldProvenance provenance={provenance} />
       )}
       <div className={styles.actions}>
-        <button className={controls.button} type="button" onClick={onContinue}>
-          Continue
+        <button className={controls.button} type="button" onClick={onReview}>
+          Review workspace
         </button>
-        {next === undefined ? null : (
+        {mode === "solution-revealed" ? (
+          <button
+            className={controls.button}
+            type="button"
+            onClick={onPractice}
+          >
+            Practice again
+          </button>
+        ) : null}
+        {next === undefined ? (
+          <p className={styles.note}>
+            No mission follows this one on the training path yet. The map shows
+            anything left to play or practice.
+          </p>
+        ) : (
           <a href={`#/mission/${encodeURIComponent(next.id)}`}>
             Next mission · {next.id} {next.title}
           </a>
         )}
+        <a href="#/">Back to map</a>
       </div>
     </section>
   );

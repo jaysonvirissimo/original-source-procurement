@@ -1,5 +1,6 @@
 import { defaultPath, missions } from "@osp/curriculum";
 import { expect, test, type Locator, type Page } from "@playwright/test";
+import { acknowledgeEvidence, evidenceWord } from "./evidence.ts";
 import { siteUrl, watchPage, type PageWatch } from "./page-watch.ts";
 
 // Every C source in this file is OSP-authored.
@@ -102,13 +103,15 @@ test("a training mission goes from a classified mismatch to an exact match", asy
   }
 });
 
-test("a demonstration completes after a build and an acknowledgement", async ({
+test("a demonstration completes once the evidence instruction is selected and acknowledged", async ({
   page,
 }) => {
   await openMission(page, "001", "RETURN PATH");
   const acknowledge = page.getByRole("button", {
     name: "Acknowledge evidence",
   });
+  await expect(acknowledge).toBeDisabled();
+  await evidenceWord(page, 0).check();
   await expect(acknowledge).toBeDisabled();
 
   await compile(page);
@@ -119,11 +122,19 @@ test("a demonstration completes after a build and an acknowledgement", async ({
 
   await compile(page);
   await expect(acknowledge).toBeEnabled({ timeout: 30_000 });
+  // The jr is not the evidence: the panel points again and nothing completes.
   await acknowledge.click();
+  const evidence = page.getByRole("group", { name: "EVIDENCE" });
+  await expect(evidence.getByRole("status")).toContainText("Not that one.");
+  await expect(
+    page.getByRole("heading", { name: "Mission complete" }),
+  ).toHaveCount(0);
+
+  await acknowledgeEvidence(page, "001");
   await missionComplete(page);
 });
 
-test("a prediction mission completes after a wrong prediction and one build", async ({
+test("a wrong prediction completes only after the revealed answer is chosen", async ({
   page,
 }) => {
   await openMission(page, "002", "ARGUMENT ZERO");
@@ -132,18 +143,44 @@ test("a prediction mission completes after a wrong prediction and one build", as
   await page.getByRole("button", { name: "Record prediction" }).click();
   await compile(page);
 
-  await missionComplete(page);
-  // The correction stays in view with completion, before Continue.
-  await expect(page.getByRole("region", { name: "Prediction" })).toContainText(
-    "Answer: $a0.",
+  const prediction = page.getByRole("region", { name: "Prediction" });
+  const check = prediction.getByRole("button", { name: "Check answer" });
+  await prediction.getByRole("radio", { name: "$s0" }).check();
+  await expect(check).toBeEnabled({ timeout: 30_000 });
+  await check.click();
+  await expect(prediction.getByRole("status")).toHaveText(
+    "Not $s0. Read the output again.",
   );
-  await expect(
-    page.getByText("Not correct: you chose $v0; the answer is $a0."),
-  ).toBeVisible();
-  await page.getByRole("button", { name: "Continue" }).click();
   await expect(
     page.getByRole("heading", { name: "Mission complete" }),
   ).toHaveCount(0);
+
+  await prediction.getByRole("radio", { name: "$a0" }).check();
+  await check.click();
+  await missionComplete(page);
+  // The correction stays in view with completion.
+  await expect(prediction).toContainText("Answer: $a0.");
+  await expect(
+    page.getByText("First choice $v0; corrected to $a0."),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Review workspace" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Mission complete" }),
+  ).toHaveCount(0);
+});
+
+test("a right prediction completes after one build", async ({ page }) => {
+  await openMission(page, "002", "ARGUMENT ZERO");
+
+  await page.getByRole("radio", { name: "$a0" }).check();
+  await page.getByRole("button", { name: "Record prediction" }).click();
+  await compile(page);
+
+  await missionComplete(page);
+  await expect(page.getByText("Correct: $a0")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Check answer" })).toHaveCount(
+    0,
+  );
 });
 
 test("compiler errors and missing functions stay in the workspace and complete nothing", async ({
@@ -289,7 +326,7 @@ test("the primary flow works from the keyboard alone", async ({
 
   const heading = await missionComplete(page);
   await expect(heading).toBeFocused();
-  await tab(page.getByRole("button", { name: "Continue" }));
+  await tab(page.getByRole("button", { name: "Review workspace" }));
   await page.keyboard.press("Enter");
   await expect(status(page)).toHaveText("EXACT MATCH");
 });
@@ -331,12 +368,8 @@ test("a fresh session plays the training missions on the default path, then poin
 
     switch (mission.completion) {
       case "acknowledge-evidence": {
-        const acknowledge = page.getByRole("button", {
-          name: "Acknowledge evidence",
-        });
         await compile(page);
-        await expect(acknowledge).toBeEnabled({ timeout: 30_000 });
-        await acknowledge.click();
+        await acknowledgeEvidence(page, mission.id);
         break;
       }
       case "prediction-recorded": {

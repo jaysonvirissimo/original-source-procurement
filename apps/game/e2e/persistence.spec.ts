@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { expect, test, type Locator, type Page } from "@playwright/test";
+import { acknowledgeEvidence } from "./evidence.ts";
 import { siteUrl, watchPage, type PageWatch } from "./page-watch.ts";
 
 // Every C source and save file in this file is OSP-authored.
@@ -210,12 +211,8 @@ function jsonFile(name: string, value: unknown) {
 
 test("reloading keeps edited source and mission progress", async ({ page }) => {
   await openMission(page, "001", "RETURN PATH");
-  const acknowledge = page.getByRole("button", {
-    name: "Acknowledge evidence",
-  });
   await compile(page);
-  await expect(acknowledge).toBeEnabled({ timeout: 30_000 });
-  await acknowledge.click();
+  await acknowledgeEvidence(page, "001");
   await expect(
     page.getByRole("heading", { name: "Mission complete" }),
   ).toBeVisible();
@@ -365,11 +362,7 @@ test("when the browser refuses storage, the player can play without saving", asy
   await expect(compileButton(page)).toBeEnabled({ timeout: 30_000 });
   await expect(page.getByText("NOT SAVED", { exact: true })).toBeVisible();
   await compile(page);
-  const acknowledge = page.getByRole("button", {
-    name: "Acknowledge evidence",
-  });
-  await expect(acknowledge).toBeEnabled({ timeout: 30_000 });
-  await acknowledge.click();
+  await acknowledgeEvidence(page, "001");
   await expect(
     page.getByRole("heading", { name: "Mission complete" }),
   ).toBeVisible();

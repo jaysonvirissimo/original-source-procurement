@@ -154,6 +154,39 @@ describe("missionMapModel", () => {
 
     expect(model.recommended).toBeUndefined();
     expect(model.completed).toBe(model.total);
+    expect(model.revealed).toBe(0);
+    expect(model.practice).toBeUndefined();
+  });
+
+  it("counts missions only completed with the solution revealed, and offers the first for practice", () => {
+    const state = playerAfter(...catalog.defaultPath);
+    const reveal = (id: string, completionId: string, revealed: boolean) =>
+      skillEvidence({
+        id: `${completionId}:ABI.ARGUMENT`,
+        completionId,
+        skill: "ABI.ARGUMENT",
+        missionId: id,
+        kind: "real",
+        hintMaxStage: revealed ? 9 : 2,
+        solutionRevealed: revealed,
+      });
+    state.skills["ABI.ARGUMENT"] = {
+      evidence: [
+        reveal("F01", "f1", true),
+        reveal("012", "q1", true),
+        reveal("012", "q2", false),
+        reveal("005", "a1", true),
+      ],
+    };
+    const model = missionMapModel(catalog, state);
+
+    expect(model.revealed).toBe(2);
+    expect(idOf(model.practice)).toBe("005");
+    expect(
+      model.entries
+        .filter((entry) => entry.revealedOnly)
+        .map((entry) => entry.mission.id),
+    ).toEqual(["005", "F01"]);
   });
 
   it("resumes the started mission saved most recently, preferring the earlier mission on a tie", () => {
