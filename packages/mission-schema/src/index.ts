@@ -29,6 +29,7 @@ export {
   type ExampleRegion,
   type MissionExample,
 } from "./example.ts";
+export { EvidencePromptSchema, type EvidencePrompt } from "./evidence.ts";
 export {
   FEASIBILITY_POINTER_SCHEMA_VERSION,
   directoryOf,

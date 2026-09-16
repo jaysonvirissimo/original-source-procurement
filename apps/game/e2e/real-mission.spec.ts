@@ -315,3 +315,44 @@ test("the hint ladder loads source only at stage 9 and shows it read-only", asyn
   ]);
   await expect(reveals.last()).not.toHaveAttribute("contenteditable");
 });
+
+test("a completion with the revealed solution says so, practices again, and is marked on the map", async ({
+  page,
+}) => {
+  await openField(page);
+  await expect(compileButton(page)).toBeEnabled({ timeout: 30_000 });
+  await page.getByRole("button", { name: "Hint" }).click();
+  const hints = page.getByRole("region", { name: "Hints" });
+  const next = hints.getByRole("button", { name: /^Reveal/ });
+  for (let stage = 0; stage < 3; stage += 1) {
+    await next.click();
+  }
+  await expect(hints.getByLabel("Upstream source").last()).toContainText(
+    "return pair->left + pair->right;",
+  );
+  await hints.getByRole("button", { name: "Close" }).click();
+  await expect(hints).toHaveCount(0);
+
+  await setSource(
+    page,
+    FIELD_STARTER.replace("return 0;", "return pair->left + pair->right;"),
+  );
+  await compileButton(page).click();
+  const complete = page.getByRole("region", { name: "Mission complete" });
+  await expect(complete).toBeVisible({ timeout: 30_000 });
+  await expect(complete).toContainText("Solution revealed");
+  await expect(complete).toContainText("does not advance skills");
+
+  await complete.getByRole("button", { name: "Practice again" }).click();
+  await expect(complete).toHaveCount(0);
+  const editor = page.getByRole("textbox", { name: "C source" });
+  await expect(editor).toContainText("return 0;");
+  await expect(editor).not.toContainText("pair->left");
+  await page.getByRole("button", { name: "Hint" }).click();
+  await expect(hints.getByLabel("Upstream source")).toHaveCount(0);
+
+  await page.goto("./#/");
+  await expect(page.getByRole("region", { name: "Mission map" })).toContainText(
+    "SOLUTION REVEALED",
+  );
+});

@@ -12,6 +12,7 @@ const base: MissionEntry = {
   tier: "training",
   missing: [],
   recommended: false,
+  revealedOnly: false,
 };
 const alpha = [{ id: "A", name: "Alpha" }];
 
@@ -29,6 +30,11 @@ describe("entryMarks", () => {
       "a completed mission, whatever else is true",
       { status: "complete", recommended: true, missing: alpha },
       ["COMPLETE"],
+    ],
+    [
+      "a mission only completed with its solution revealed",
+      { status: "complete", revealedOnly: true },
+      ["COMPLETE", "SOLUTION REVEALED"],
     ],
   ] as const)("marks %s", (_, overrides, marks) => {
     expect(entryMarks({ ...base, ...overrides })).toEqual(marks);

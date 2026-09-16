@@ -21,12 +21,18 @@ export const loadWord: MissionDraft = {
   compiler: trainingCompiler("load_word.c"),
   briefing: {
     objective:
-      "Compile, then acknowledge the evidence: the lw that reads a 32-bit value from memory.",
+      "Compile, select the lw that reads a 32-bit value from memory, then acknowledge it.",
     newTechnique: "lw reads 32 bits from a base register plus an offset.",
   },
   starterSource: SOURCE,
   solution: SOURCE,
   symbol: "load_word",
+  evidence: {
+    question: "Which instruction reads the int from memory?",
+    range: { start: 0, end: 1 },
+    retry:
+      "Not that one. Look for the instruction that reads memory at an offset from the address in $a0.",
+  },
   example: {
     caption:
       "p holds an address, not an int: here 0x1000. The int stored at address 0x1000 is 42. lw uses the address in $a0 to copy that 42 into $v0.",
@@ -52,7 +58,7 @@ export const loadWord: MissionDraft = {
     },
     {
       stage: 9,
-      text: "The starting source is already complete. Compile it, find the lw, and acknowledge the evidence.",
+      text: "The starting source is already complete. Compile it, select the lw, and acknowledge it.",
       revealSolution: true,
     },
   ],

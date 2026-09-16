@@ -1,9 +1,11 @@
 import type { Mission } from "@osp/mission-schema";
 import type { MatchTarget } from "@osp/matching-core";
 import type { CompilationInput } from "../compiler/types";
+import { inRange } from "../diff/diffLabels";
 import type { EditorReplacement } from "../editor/CEditor";
 import type { MissionProgress } from "../persistence/schema";
 import {
+  canCorrectPrediction,
   currentMatch,
   isComplete,
   isCurrent,
@@ -15,7 +17,13 @@ import type { BuildRequest, MissionResult } from "./missionResult";
 
 export type WorkspaceMission = Pick<
   Mission,
-  "id" | "completion" | "starterSource" | "target" | "hints" | "prediction"
+  | "id"
+  | "completion"
+  | "starterSource"
+  | "target"
+  | "hints"
+  | "prediction"
+  | "evidence"
 >;
 
 /** What a workspace resumes from: the saved source and the hints already opened. */
@@ -50,6 +58,11 @@ export interface WorkspaceState {
   readonly previousScore: number | undefined;
   readonly attempts: number;
   readonly actions: RecordedActions;
+  /** The last selection acknowledged outside the evidence, for feedback. */
+  readonly evidenceMiss:
+    { readonly buildId: number; readonly word: number } | undefined;
+  /** The last wrong correction choice, for feedback. */
+  readonly correctionMiss: number | undefined;
   /** The highest hint stage revealed, or 0. */
   readonly hintStage: number;
   readonly overlay: Overlay;
@@ -80,7 +93,9 @@ export type WorkspaceAction =
   | { readonly type: "compile-started"; readonly request: BuildRequest }
   | { readonly type: "build-resolved"; readonly result: MissionResult }
   | { readonly type: "prediction-recorded"; readonly choice: number }
-  | { readonly type: "evidence-acknowledged" }
+  | { readonly type: "evidence-acknowledged"; readonly word: number }
+  | { readonly type: "prediction-corrected"; readonly choice: number }
+  | { readonly type: "practice-started" }
   | { readonly type: "hint-revealed" }
   | { readonly type: "overlay-changed"; readonly overlay: Overlay }
   | { readonly type: "split-resized"; readonly split: number }
@@ -105,6 +120,8 @@ export function initialWorkspaceState(
     previousScore: undefined,
     attempts: 0,
     actions: {},
+    evidenceMiss: undefined,
+    correctionMiss: undefined,
     hintStage: saved?.hintMaxStage ?? 0,
     overlay: "none",
     split: 0.5,
@@ -119,6 +136,8 @@ export function completionState(state: WorkspaceState): CompletionState {
   return {
     missionId: state.mission.id,
     completion: state.mission.completion,
+    evidence: state.mission.evidence?.range,
+    predictionAnswer: state.mission.prediction?.answer,
     sourceSha256: state.sourceSha256,
     latestBuildId: state.latestBuildId,
     result: state.result,
@@ -194,7 +213,11 @@ function apply(state: WorkspaceState, action: WorkspaceAction): WorkspaceState {
     case "prediction-recorded":
       return recordPrediction(state, action.choice);
     case "evidence-acknowledged":
-      return acknowledgeEvidence(state);
+      return acknowledgeEvidence(state, action.word);
+    case "prediction-corrected":
+      return correctPrediction(state, action.choice);
+    case "practice-started":
+      return startPractice(state);
     case "hint-revealed":
       return revealHint(state);
     case "overlay-changed":
@@ -316,22 +339,79 @@ function recordPrediction(
   };
 }
 
-function acknowledgeEvidence(state: WorkspaceState): WorkspaceState {
+function acknowledgeEvidence(
+  state: WorkspaceState,
+  word: number,
+): WorkspaceState {
   const matched = currentMatch(completionState(state));
+  const { evidence } = state.mission;
   if (
     state.mission.completion !== "acknowledge-evidence" ||
+    evidence === undefined ||
     matched === undefined
   ) {
     return state;
   }
+  const { buildId } = matched.request;
+  // A selection outside the evidence is feedback, never an acknowledgement.
+  if (!inRange(word, evidence.range)) {
+    return { ...state, evidenceMiss: { buildId, word } };
+  }
   return {
     ...state,
+    evidenceMiss: undefined,
     actions: {
       ...state.actions,
-      acknowledgement: {
+      acknowledgement: { missionId: state.mission.id, buildId, word },
+    },
+  };
+}
+
+function correctPrediction(
+  state: WorkspaceState,
+  choice: number,
+): WorkspaceState {
+  const completion = completionState(state);
+  const matched = currentMatch(completion);
+  if (matched === undefined || !canCorrectPrediction(completion)) {
+    return state;
+  }
+  if (choice !== state.mission.prediction?.answer) {
+    return { ...state, correctionMiss: choice };
+  }
+  return {
+    ...state,
+    correctionMiss: undefined,
+    actions: {
+      ...state.actions,
+      correction: {
         missionId: state.mission.id,
+        choice,
         buildId: matched.request.buildId,
       },
+    },
+  };
+}
+
+/**
+ * Starts the mission over from its starting source with no hints opened.
+ * Build numbers keep counting, so an older result still never applies.
+ */
+function startPractice(state: WorkspaceState): WorkspaceState {
+  const { starterSource } = state.mission;
+  return {
+    ...initialWorkspaceState(state.mission, {
+      source: starterSource,
+      hintMaxStage: 0,
+    }),
+    entered: state.entered,
+    context: state.context,
+    split: state.split,
+    latestBuildId: state.latestBuildId,
+    compiling: state.compiling,
+    replacement: {
+      revision: (state.replacement?.revision ?? 0) + 1,
+      source: starterSource,
     },
   };
 }

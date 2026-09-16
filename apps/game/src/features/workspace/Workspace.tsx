@@ -39,6 +39,7 @@ import {
   type MissionProgress,
 } from "../persistence/schema";
 import { attemptFrom } from "../progress/attempts";
+import { completionMode } from "../progress/completionMode";
 import { completionEvidence } from "../progress/evidence";
 import { presentationFor, selectScaffold } from "../progress/scaffold";
 import {
@@ -60,7 +61,8 @@ import {
 import { useUpstream } from "../upstream/upstreamContext";
 import { missionTier, phaseFrom } from "../../vr/presentation";
 import { usePublishPresentation } from "../../vr/presentationContext";
-import { canAcknowledge } from "./completion";
+import { canAcknowledge, canCorrectPrediction } from "./completion";
+import { EvidencePanel } from "./EvidencePanel";
 import { HintPanel } from "./HintPanel";
 import { HistoryPanel } from "./HistoryPanel";
 import { ManualPanel } from "./ManualPanel";
@@ -514,6 +516,11 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
           exact={result?.kind === "matched" && result.result.exact}
           attempts={state.attempts}
           hints={hintUsage(state)}
+          mode={completionMode(
+            Object.values(progress.state.skills).flatMap(({ evidence }) =>
+              evidence.filter((event) => event.completionId === completionId),
+            ),
+          )}
           prediction={predictionOutcome}
           skillChanges={completionSkillChanges(
             progress.state.skills,
@@ -522,8 +529,16 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
           skillNames={skillNames}
           next={nextMission(catalog, mission.id)}
           provenance={missionProvenance(mission)}
-          onContinue={() => {
+          onReview={() => {
             dispatch({ type: "review-requested" });
+          }}
+          onPractice={() => {
+            record({
+              type: "practice-started",
+              mission: missionRef,
+              at: now(),
+            });
+            dispatch({ type: "practice-started" });
           }}
         />
       ) : null}
@@ -561,6 +576,23 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
                 }
                 onRecord={(choice) => {
                   dispatch({ type: "prediction-recorded", choice });
+                }}
+                correction={state.actions.correction}
+                correctionMiss={state.correctionMiss}
+                canCorrect={canCorrectPrediction(completionState(state))}
+                onCorrect={(choice) => {
+                  dispatch({ type: "prediction-corrected", choice });
+                }}
+              />
+            )}
+            {mission.evidence === undefined || completed ? null : (
+              <EvidencePanel
+                prompt={mission.evidence}
+                lines={listing}
+                canAcknowledge={canAcknowledge(completionState(state))}
+                miss={state.evidenceMiss?.word}
+                onAcknowledge={(word) => {
+                  dispatch({ type: "evidence-acknowledged", word });
                 }}
               />
             )}
@@ -666,18 +698,6 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
         >
           Cancel
         </button>
-        {mission.completion === "acknowledge-evidence" ? (
-          <button
-            className={controls.button}
-            type="button"
-            disabled={!canAcknowledge(completionState(state))}
-            onClick={() => {
-              dispatch({ type: "evidence-acknowledged" });
-            }}
-          >
-            Acknowledge evidence
-          </button>
-        ) : null}
         <button
           className={controls.button}
           type="button"

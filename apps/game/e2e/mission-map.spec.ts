@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
+import { acknowledgeEvidence } from "./evidence.ts";
 import { siteUrl, watchPage, type PageWatch } from "./page-watch.ts";
 
 let watch: PageWatch;
@@ -116,11 +117,7 @@ test("completing a mission moves the recommendation, and a started mission can b
   await page.getByRole("button", { name: "Enter" }).click();
   await expect(compileButton(page)).toBeEnabled({ timeout: 30_000 });
   await compileButton(page).click();
-  const acknowledge = page.getByRole("button", {
-    name: "Acknowledge evidence",
-  });
-  await expect(acknowledge).toBeEnabled({ timeout: 30_000 });
-  await acknowledge.click();
+  await acknowledgeEvidence(page, "001");
   await expect(
     page.getByRole("heading", { name: "Mission complete" }),
   ).toBeVisible();

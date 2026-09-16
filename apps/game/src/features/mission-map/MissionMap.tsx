@@ -44,15 +44,21 @@ export function MissionMap(): ReactElement {
     [catalog],
   );
   const view = mapViewSetting(state.settings);
-  const { recommended, resume } = model;
+  const { recommended, resume, practice } = model;
   const phase = (recommended ?? resume)?.mission.phase;
+  // Training is complete only when nothing was finished by revealing its
+  // solution; otherwise the map says how many were, and offers practice.
+  const finished =
+    model.revealed === 0
+      ? "Training complete"
+      : `All missions complete · ${String(model.revealed)} with solution revealed`;
 
   return (
     <section className={styles.map} aria-label="Mission map">
       <div className={styles.bar}>
         <h2 className={styles.title}>Mission map</h2>
         <p className={styles.readout}>
-          {phase === undefined ? "Training complete" : `Phase · ${phase}`}
+          {phase === undefined ? finished : `Phase · ${phase}`}
         </p>
         <p className={styles.readout}>
           {`${String(model.completed)} of ${String(model.total)} complete`}
@@ -76,6 +82,11 @@ export function MissionMap(): ReactElement {
           ))}
         </div>
       </div>
+      {phase !== undefined || practice === undefined ? null : (
+        <p className={styles.next}>
+          <span>Practice: {missionLink(practice.mission)}</span>
+        </p>
+      )}
       {recommended === undefined && resume === undefined ? null : (
         <p className={styles.next}>
           {resume === undefined ? null : (

@@ -26,6 +26,7 @@ Changing a locked decision requires a new record. Accepted records are never rew
 | [0016](0016-mission-map-recommendations.md)     | Mission map and recommendations | Accepted |
 | [0017](0017-real-mission-pointer-corpus.md)     | Real-mission pointer corpus     | Accepted |
 | [0018](0018-real-missions-in-the-workspace.md)  | Real missions in the workspace  | Accepted |
+| [0019](0019-completion-evidence-and-modes.md)   | Completion evidence and modes   | Accepted |
 
 ## Template
 

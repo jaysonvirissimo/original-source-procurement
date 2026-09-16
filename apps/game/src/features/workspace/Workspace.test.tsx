@@ -241,7 +241,7 @@ describe("Workspace", () => {
       screen.getByRole("table", { name: "Target and generated instructions" }),
     ).toBeTruthy();
 
-    fireEvent.click(button("Continue"));
+    fireEvent.click(button("Review workspace"));
     expect(
       screen.queryByRole("heading", { name: "Mission complete" }),
     ).toBeNull();
@@ -360,7 +360,13 @@ describe("Workspace", () => {
     await renderWorkspace(returnPath, { service });
     enter();
     const acknowledge = () => button("Acknowledge evidence");
+    const word = (index: number) =>
+      screen.getByRole("radio", {
+        name: new RegExp(`^Word ${String(index)} ·`),
+      });
 
+    expect(acknowledge()).toHaveProperty("disabled", true);
+    fireEvent.click(word(0));
     expect(acknowledge()).toHaveProperty("disabled", true);
     await compileWhenReady();
     await whenEnabled(acknowledge);
@@ -369,6 +375,18 @@ describe("Workspace", () => {
 
     await compileWhenReady();
     await whenEnabled(acknowledge);
+    // A selection outside the evidence only points again.
+    fireEvent.click(acknowledge());
+    expect(
+      within(screen.getByRole("group", { name: "EVIDENCE" })).getByRole(
+        "status",
+      ).textContent,
+    ).toBe(returnPath.evidence?.retry);
+    expect(
+      screen.queryByRole("heading", { name: "Mission complete" }),
+    ).toBeNull();
+
+    fireEvent.click(word(1));
     fireEvent.click(acknowledge());
     expect(
       await screen.findByRole("heading", { name: "Mission complete" }),
@@ -381,7 +399,7 @@ describe("Workspace", () => {
     ).toBeTruthy();
   });
 
-  it("completes a prediction mission after a wrong prediction and a matched build, recording the prediction", async () => {
+  it("completes a prediction mission after a wrong prediction is corrected, recording the first prediction", async () => {
     const service = fakeToolchain(successWith(objectWith("argument_zero", [])));
     const { progress } = await renderWorkspace(argumentZero, { service });
     enter();
@@ -401,6 +419,21 @@ describe("Workspace", () => {
       successWith(objectWith("argument_zero", inlineWords(argumentZero))),
     );
     await compileWhenReady();
+    const check = () => button("Check answer");
+    fireEvent.click(await screen.findByRole("radio", { name: "$ra" }));
+    await whenEnabled(check);
+    expect(
+      screen.queryByRole("heading", { name: "Mission complete" }),
+    ).toBeNull();
+    fireEvent.click(check());
+    expect(
+      within(screen.getByRole("region", { name: "Prediction" })).getByRole(
+        "status",
+      ).textContent,
+    ).toBe("Not $ra. Read the output again.");
+
+    fireEvent.click(screen.getByRole("radio", { name: "$a0" }));
+    fireEvent.click(check());
     expect(
       await screen.findByRole("heading", { name: "Mission complete" }),
     ).toBeTruthy();
@@ -413,15 +446,15 @@ describe("Workspace", () => {
       ]);
     });
 
-    // The correction shows alongside completion, before the player continues.
+    // The correction shows alongside completion, before the player moves on.
     expect(screen.getByText("PREDICTION").nextElementSibling?.textContent).toBe(
-      "Not correct: you chose $v0; the answer is $a0.",
+      "First choice $v0; corrected to $a0.",
     );
     expect(
       screen.getByRole("region", { name: "Prediction" }).textContent,
-    ).toContain("Your prediction was not correct.");
+    ).toContain("You found the answer in the output.");
 
-    fireEvent.click(button("Continue"));
+    fireEvent.click(button("Review workspace"));
     expect(
       screen.getByRole("region", { name: "Prediction" }).textContent,
     ).toContain("Answer: $a0.");
@@ -1116,7 +1149,7 @@ describe("Workspace progress", () => {
       }),
     ]);
 
-    fireEvent.click(button("Continue"));
+    fireEvent.click(button("Review workspace"));
     fireEvent.click(button("Hint"));
     fireEvent.click(
       within(screen.getByRole("region", { name: "Hints" })).getByRole(
@@ -1142,6 +1175,49 @@ describe("Workspace progress", () => {
     });
     expect(evidence()).toHaveLength(2);
     expect(evidence()?.[1]).toMatchObject({ hintMaxStage: 1 });
+  });
+
+  it("says a revealed solution held skills back and practices again from the starter", async () => {
+    const service = fakeToolchain(exact003);
+    const { progress } = await renderWorkspace(addImmediate, { service });
+    const mission = () => progress.backing.player.missions["003"];
+    enter();
+
+    fireEvent.click(button("Hint"));
+    const hints = screen.getByRole("region", { name: "Hints" });
+    for (let stage = 1; stage < addImmediate.hints.length; stage += 1) {
+      fireEvent.click(
+        within(hints).getByRole("button", { name: "Reveal next hint" }),
+      );
+    }
+    fireEvent.click(
+      within(hints).getByRole("button", { name: "Reveal the solution" }),
+    );
+    replaceSource(addImmediate.solution ?? "");
+    await compileWhenReady();
+    await screen.findByRole("heading", { name: "Mission complete" });
+    await waitFor(() => {
+      expect(screen.getByText("MODE").nextElementSibling?.textContent).toBe(
+        "Solution revealed",
+      );
+    });
+    await waitFor(() => {
+      expect(mission()?.hintMaxStage).toBe(9);
+    });
+
+    fireEvent.click(button("Practice again"));
+    expect(
+      screen.queryByRole("heading", { name: "Mission complete" }),
+    ).toBeNull();
+    expect(editorView().state.doc.toString()).toBe(addImmediate.starterSource);
+    expect(statusText()).toBe("NOT COMPILED");
+    await waitFor(() => {
+      expect(mission()).toMatchObject({
+        source: addImmediate.starterSource,
+        hintMaxStage: 0,
+        completion: { count: 1 },
+      });
+    });
   });
 
   it("keeps attempts in history to pin, restore, and clear", async () => {
