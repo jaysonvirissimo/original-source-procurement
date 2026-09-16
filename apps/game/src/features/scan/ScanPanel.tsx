@@ -1,11 +1,13 @@
 import { usesStack, type WordFacts } from "@osp/matching-core";
 import type { MissionExample, MissionWalkthrough } from "@osp/mission-schema";
 import { useId, useState, type ReactElement } from "react";
+import { classNames } from "../../styles/classNames";
 import controls from "../../styles/controls.module.css";
+import prose from "../../styles/prose.module.css";
 import type { WordAnnotation } from "../diff/annotations";
 import { wordsLabel } from "../diff/diffLabels";
 import { WalkthroughView } from "../walkthrough/WalkthroughView";
-import styles from "../workspace/OverlayPanel.module.css";
+import styles from "../workspace/ReferencePane.module.css";
 import { MemoryLayer } from "./MemoryLayer";
 import { RegisterLayer } from "./RegisterLayer";
 import scan from "./Scan.module.css";
@@ -54,7 +56,7 @@ export function ScanPanel({
               <p className={controls.label}>
                 {wordsLabel(annotation.range)} · {annotation.label}
               </p>
-              <p>{annotation.text}</p>
+              <p className={prose.prose}>{annotation.text}</p>
             </li>
           ))}
         </ul>
@@ -90,7 +92,7 @@ export function ScanPanel({
       );
     }
     return (
-      <p>
+      <p className={prose.prose}>
         {usesStack(facts)
           ? "A stack frame is memory a function reserves for itself by moving the stack pointer, $sp. This function changes $sp, so it has one. Stack frames are taught in later missions."
           : "A stack frame is memory a function reserves for itself by moving the stack pointer, $sp. This function never changes $sp, so it has none. Stack frames are taught in later missions."}
@@ -99,9 +101,13 @@ export function ScanPanel({
   };
 
   return (
-    <section className={styles.overlay} aria-labelledby={titleId}>
+    <section className={styles.panel} aria-labelledby={titleId}>
       <header className={styles.header}>
-        <h2 className={controls.label} id={titleId}>
+        <h2
+          className={classNames(controls.label, styles.heading)}
+          id={titleId}
+          tabIndex={-1}
+        >
           Scan
         </h2>
         <button className={controls.button} type="button" onClick={onClose}>

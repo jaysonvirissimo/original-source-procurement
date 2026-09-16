@@ -125,7 +125,7 @@ function renderBody(
                     </td>
                     <td>{exampleValue(row.before)}</td>
                     <td>{exampleValue(row.after)}</td>
-                    <td>{row.note ?? ""}</td>
+                    <td className={styles.text}>{row.note ?? ""}</td>
                   </tr>
                 ))}
               </tbody>
@@ -140,7 +140,7 @@ function renderBody(
       }
       return (
         <>
-          <p>
+          <p className={styles.text}>
             <code>{listing[walkthrough.word]}</code>: {reading.summary}
           </p>
           <div className={table.tableWrap}>
@@ -162,7 +162,7 @@ function renderBody(
                     <td>
                       <code>{part.value}</code>
                     </td>
-                    <td>{part.meaning}</td>
+                    <td className={styles.text}>{part.meaning}</td>
                   </tr>
                 ))}
               </tbody>
@@ -229,7 +229,7 @@ function StepTable({
                   </>
                 )}
               </td>
-              <td>{step.text}</td>
+              <td className={styles.text}>{step.text}</td>
             </tr>
           ))}
         </tbody>

@@ -128,6 +128,10 @@
 }
 
 .evidence {
+  max-width: var(--osp-measure-prose);
+  font-family: var(--osp-font-prose);
+  font-size: var(--osp-font-size-prose);
+  line-height: var(--osp-line-height-prose);
   color: var(--osp-text-dim);
 }
 

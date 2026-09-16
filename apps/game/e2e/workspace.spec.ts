@@ -1,6 +1,7 @@
 import { defaultPath, missions } from "@osp/curriculum";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { acknowledgeEvidence, evidenceWord } from "./evidence.ts";
+import { expectListingUncovered } from "./reference-pane.ts";
 import { siteUrl, watchPage, type PageWatch } from "./page-watch.ts";
 
 // Every C source in this file is OSP-authored.
@@ -249,6 +250,8 @@ test("hints climb from a weak hint to the solution, and completion still works",
     hints.getByRole("button", { name: "No more hints" }),
   ).toBeDisabled();
   await page.keyboard.press("Escape");
+  await expect(hints).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Hint" })).toBeFocused();
   await expect(summary).toContainText("HINTS5 of 5 · stage 9");
 
   await setSource(page, addImmediate(5));
@@ -406,6 +409,50 @@ test("a fresh session plays the training missions on the default path, then poin
         .click();
     }
   }
+});
+
+test("help panels dock beside the listing without covering it", async ({
+  page,
+}) => {
+  await openMission(page, "012", "QUALIFICATION 01");
+
+  for (const [control, region] of [
+    ["Hint", "Hints"],
+    ["Manual", "Manual"],
+    ["Scan", "Scan"],
+  ] as const) {
+    await page.getByRole("button", { name: control }).click();
+    const panel = page.getByRole("region", { name: region });
+    await expect(panel.getByRole("heading", { name: region })).toBeFocused();
+    await expectListingUncovered(page, panel);
+    await expect(
+      page.getByRole("textbox", { name: "C source" }),
+    ).toBeInViewport();
+    await expect(compileButton(page)).toBeInViewport();
+    await page.keyboard.press("Escape");
+    await expect(panel).toHaveCount(0);
+  }
+
+  // The pane keeps the width it was given.
+  await page.getByRole("button", { name: "Hint" }).click();
+  const handle = page.getByRole("separator", {
+    name: "Resize the reference pane",
+  });
+  await expect(handle).toHaveAttribute("aria-valuenow", "420");
+  await handle.focus();
+  await page.keyboard.press("ArrowLeft");
+  await expect(handle).toHaveAttribute("aria-valuenow", "460");
+  await expect(page.getByText("SAVED", { exact: true })).toBeVisible();
+  await page.reload();
+  await page.getByRole("button", { name: "Enter" }).click();
+  await page.getByRole("button", { name: "Hint" }).click();
+  await expect(
+    page.getByRole("separator", { name: "Resize the reference pane" }),
+  ).toHaveAttribute("aria-valuenow", "460");
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth > window.innerWidth,
+  );
+  expect(overflow).toBe(false);
 });
 
 test("the workspace fits a 1280×720 viewport", async ({ page }) => {

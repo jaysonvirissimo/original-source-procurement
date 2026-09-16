@@ -1,6 +1,8 @@
 import type { ManualEntry } from "@osp/mission-schema";
 import { useId, useState, type ReactElement, type ReactNode } from "react";
+import { classNames } from "../../styles/classNames";
 import controls from "../../styles/controls.module.css";
+import prose from "../../styles/prose.module.css";
 import styles from "./Manual.module.css";
 import { ManualEntryView } from "./ManualEntryView";
 import { groupBySection, searchManual } from "./searchManual";
@@ -40,7 +42,9 @@ export function ManualBrowser({
     const found = searchManual(entries, query);
     content =
       found.length === 0 ? (
-        <p className={styles.prose}>No manual entry matches that search.</p>
+        <p className={classNames(prose.prose, prose.dim)}>
+          No manual entry matches that search.
+        </p>
       ) : (
         <ul className={styles.list} aria-label="Search results">
           {found.map((entry) => (

@@ -115,6 +115,14 @@ function compileButton(): HTMLElement {
   return screen.getByRole("button", { name: /^Compil/ });
 }
 
+function focused(): Element {
+  const element = document.activeElement;
+  if (element === null) {
+    throw new Error("Nothing has focus.");
+  }
+  return element;
+}
+
 function button(name: string): HTMLElement {
   return screen.getByRole("button", { name });
 }
@@ -510,7 +518,7 @@ describe("Workspace", () => {
     expect(screen.queryByRole("region", { name: "Hints" })).toBeNull();
   });
 
-  it("opens the manual over the workspace without losing the source", async () => {
+  it("opens the manual beside the workspace without losing the source", async () => {
     await renderWorkspace(addImmediate);
     enter();
     const edited = "int add_immediate(int a) { return a + 1; }\n";
@@ -576,6 +584,127 @@ describe("Workspace", () => {
     rect.mockReturnValue({ left: 100, width: 1000 } as unknown as DOMRect);
     fireEvent.pointerMove(window, { clientX: 700 });
     expect(value()).toBe("40");
+  });
+
+  it("docks a help panel beside the listing and returns focus to its control", async () => {
+    await renderWorkspace(addImmediate);
+    enter();
+    const assembly = screen.getByRole("region", { name: "Assembly" });
+    const split = assembly.parentElement;
+    expect(split?.style.gridTemplateColumns).not.toContain("px");
+
+    fireEvent.click(button("Scan"));
+    fireEvent.click(
+      within(screen.getByRole("region", { name: "Scan" })).getByRole("button", {
+        name: "Close",
+      }),
+    );
+    expect(screen.queryByRole("region", { name: "Scan" })).toBeNull();
+    expect(document.activeElement).toBe(button("Scan"));
+
+    fireEvent.click(button("Hint"));
+    const hints = screen.getByRole("region", { name: "Hints" });
+    expect(hints.parentElement?.parentElement).toBe(split);
+    expect(split?.style.gridTemplateColumns).toContain("min(420px, 45%)");
+    expect(screen.getByRole("textbox", { name: "C source" })).toBeTruthy();
+    expect(screen.getByRole("region", { name: "Assembly" })).toBe(assembly);
+    expect(document.activeElement).toBe(
+      within(hints).getByRole("heading", { name: "Hints" }),
+    );
+
+    fireEvent.click(button("Manual"));
+    const manual = screen.getByRole("region", { name: "Manual" });
+    expect(document.activeElement).toBe(
+      within(manual).getByRole("heading", { name: "Manual", level: 2 }),
+    );
+    fireEvent.keyDown(focused(), { key: "Escape" });
+    expect(screen.queryByRole("region", { name: "Manual" })).toBeNull();
+    expect(document.activeElement).toBe(button("Manual"));
+    expect(split?.style.gridTemplateColumns).not.toContain("px");
+  });
+
+  it("closes the hints with Escape after the last hint is revealed", async () => {
+    await renderWorkspace(addImmediate);
+    enter();
+    fireEvent.click(button("Hint"));
+    const hints = screen.getByRole("region", { name: "Hints" });
+    for (;;) {
+      const reveal = within(hints).queryByRole("button", {
+        name: /^Reveal/,
+      });
+      if (reveal === null) {
+        break;
+      }
+      reveal.focus();
+      fireEvent.click(reveal);
+      expect(hints.contains(document.activeElement)).toBe(true);
+    }
+    expect(document.activeElement?.textContent).toContain("Stage 9");
+
+    fireEvent.keyDown(focused(), { key: "Escape" });
+    expect(screen.queryByRole("region", { name: "Hints" })).toBeNull();
+    expect(document.activeElement).toBe(button("Hint"));
+  });
+
+  it("resizes the reference pane and saves its width", async () => {
+    const { progress } = await renderWorkspace(addImmediate, {
+      player: { ...emptyPlayerState(), settings: { referencePaneWidth: 500 } },
+    });
+    enter();
+    fireEvent.click(button("Scan"));
+    const handle = screen.getByRole("separator", {
+      name: "Resize the reference pane",
+    });
+    const value = () => handle.getAttribute("aria-valuenow");
+    const saved = () => progress.backing.player.settings.referencePaneWidth;
+
+    expect(value()).toBe("500");
+    expect(handle.getAttribute("aria-valuemin")).toBe("300");
+    expect(handle.getAttribute("aria-valuemax")).toBe("640");
+    fireEvent.keyDown(handle, { key: "ArrowLeft" });
+    expect(value()).toBe("540");
+    await waitFor(() => {
+      expect(saved()).toBe(540);
+    });
+    fireEvent.keyDown(handle, { key: "ArrowRight" });
+    fireEvent.keyDown(handle, { key: "ArrowRight" });
+    expect(value()).toBe("460");
+    fireEvent.keyDown(handle, { key: "End" });
+    fireEvent.keyDown(handle, { key: "ArrowLeft" });
+    expect(value()).toBe("640");
+    fireEvent.keyDown(handle, { key: "Home" });
+    expect(value()).toBe("300");
+    await waitFor(() => {
+      expect(saved()).toBe(300);
+    });
+
+    const container = handle.parentElement;
+    if (container === null) {
+      throw new Error("The handle sits inside the split.");
+    }
+    vi.spyOn(container, "getBoundingClientRect").mockReturnValue({
+      left: 100,
+      right: 1300,
+      width: 1200,
+    } as unknown as DOMRect);
+    fireEvent.pointerDown(handle, { clientX: 1000 });
+    fireEvent.pointerUp(window);
+    fireEvent.pointerDown(handle, { clientX: 1000 });
+    fireEvent.pointerMove(window, { clientX: 900 });
+    expect(value()).toBe("400");
+    expect(saved()).toBe(300);
+    fireEvent.pointerUp(window);
+    await waitFor(() => {
+      expect(saved()).toBe(400);
+    });
+
+    fireEvent.click(button("Scan"));
+    fireEvent.click(button("History"));
+    expect(
+      screen
+        .getByRole("separator", { name: "Resize the reference pane" })
+        .getAttribute("aria-valuenow"),
+    ).toBe("400");
   });
 
   it("compiles with Mod-Enter from the editor or any workspace control", async () => {

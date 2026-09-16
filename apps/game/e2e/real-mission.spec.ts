@@ -9,6 +9,7 @@ import {
   fieldTargetText,
 } from "../src/test/fieldFixture.ts";
 import { FIXTURE_BASE_URL } from "./fixture-server.ts";
+import { expectListingUncovered } from "./reference-pane.ts";
 import { watchPage, type PageWatch } from "./page-watch.ts";
 
 // Every header, source, and word served here is OSP-authored fixture content
@@ -314,6 +315,7 @@ test("the hint ladder loads source only at stage 9 and shows it read-only", asyn
     "No more hints",
   ]);
   await expect(reveals.last()).not.toHaveAttribute("contenteditable");
+  await expectListingUncovered(page, hints);
 });
 
 test("a completion with the revealed solution says so, practices again, and is marked on the map", async ({
@@ -330,16 +332,34 @@ test("a completion with the revealed solution says so, practices again, and is m
   await expect(hints.getByLabel("Upstream source").last()).toContainText(
     "return pair->left + pair->right;",
   );
-  await hints.getByRole("button", { name: "Close" }).click();
+  await page.keyboard.press("Escape");
   await expect(hints).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Hint" })).toBeFocused();
 
   await setSource(
     page,
     FIELD_STARTER.replace("return 0;", "return pair->left + pair->right;"),
   );
+  // The pane stays open through completion without covering its actions.
+  await page.getByRole("button", { name: "Hint" }).click();
   await compileButton(page).click();
   const complete = page.getByRole("region", { name: "Mission complete" });
   await expect(complete).toBeVisible({ timeout: 30_000 });
+  await expect(hints).toBeVisible();
+  for (const action of ["Review workspace", "Practice again"]) {
+    const control = complete.getByRole("button", { name: action });
+    await expect(control).toBeInViewport();
+    const topmost = await control.evaluate((element) => {
+      const box = element.getBoundingClientRect();
+      const hit = document.elementFromPoint(
+        box.left + box.width / 2,
+        box.top + box.height / 2,
+      );
+      return hit !== null && element.contains(hit);
+    });
+    expect(topmost).toBe(true);
+  }
+  await page.getByRole("button", { name: "Hint", exact: true }).click();
   await expect(complete).toContainText("Solution revealed");
   await expect(complete).toContainText("does not advance skills");
 

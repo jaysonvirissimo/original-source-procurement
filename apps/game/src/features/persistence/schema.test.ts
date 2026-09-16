@@ -14,6 +14,8 @@ import {
   graphicsSetting,
   MAP_VIEW_SETTINGS,
   mapViewSetting,
+  clampPaneWidth,
+  referencePaneWidthSetting,
   MOTION_SETTINGS,
   motionSetting,
   PlayerStateSchema,
@@ -44,6 +46,25 @@ describe("SettingsSchema", () => {
 
   it.each(MAP_VIEW_SETTINGS)("accepts the %s map view setting", (mapView) => {
     expect(mapViewSetting(SettingsSchema.parse({ mapView }))).toBe(mapView);
+  });
+
+  it("reads a saved reference pane width, defaults it, and keeps it in bounds", () => {
+    expect(
+      referencePaneWidthSetting(
+        SettingsSchema.parse({ referencePaneWidth: 512 }),
+      ),
+    ).toBe(512);
+    expect(referencePaneWidthSetting(SettingsSchema.parse({}))).toBe(420);
+    for (const referencePaneWidth of [299, 641, 400.5]) {
+      expect(SettingsSchema.safeParse({ referencePaneWidth }).success).toBe(
+        false,
+      );
+    }
+    expect([
+      clampPaneWidth(10),
+      clampPaneWidth(999),
+      clampPaneWidth(401.6),
+    ]).toEqual([300, 640, 402]);
   });
 
   it("reads saves without a map view as the map, and rejects unknown views", () => {

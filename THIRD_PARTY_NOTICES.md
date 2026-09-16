@@ -16,6 +16,7 @@ The distributed packages currently include:
 | -------------------------------------------------------------------------------------- | -------------------- | ----------------------------------------------------------------------------- |
 | `react`, `react-dom`, `scheduler`                                                      | MIT                  | User interface runtime                                                        |
 | `@fontsource/ibm-plex-mono`                                                            | OFL-1.1              | IBM Plex Mono font files                                                      |
+| `@fontsource/ibm-plex-sans`                                                            | OFL-1.1              | IBM Plex Sans font files                                                      |
 | `@fontsource/barlow-condensed`                                                         | OFL-1.1              | Barlow Condensed font files                                                   |
 | `psyq-wasm`                                                                            | MIT AND GPL-2.0-only | PsyQ 4.4 compiler and preprocessor (WebAssembly) and their TypeScript wrapper |
 | `psyq-asm`                                                                             | MIT                  | ASPSX-compatible assembler and R3000 decoder                                  |

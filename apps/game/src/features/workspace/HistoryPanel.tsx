@@ -1,8 +1,9 @@
 import { useId, useState, type ReactElement } from "react";
+import { classNames } from "../../styles/classNames";
 import controls from "../../styles/controls.module.css";
 import type { Attempt } from "../persistence/schema";
 import history from "./HistoryPanel.module.css";
-import styles from "./OverlayPanel.module.css";
+import styles from "./ReferencePane.module.css";
 
 interface HistoryPanelProps {
   readonly attempts: readonly Attempt[];
@@ -13,7 +14,7 @@ interface HistoryPanelProps {
   readonly onClose: () => void;
 }
 
-/** The mission's saved attempts, newest first, over the workspace. */
+/** The mission's saved attempts, newest first, beside the listing. */
 export function HistoryPanel({
   attempts,
   onPin,
@@ -29,9 +30,13 @@ export function HistoryPanel({
   const clearable = attempts.some((attempt) => !attempt.pinned);
 
   return (
-    <section className={styles.overlay} aria-labelledby={titleId}>
+    <section className={styles.panel} aria-labelledby={titleId}>
       <header className={styles.header}>
-        <h2 className={controls.label} id={titleId}>
+        <h2
+          className={classNames(controls.label, styles.heading)}
+          id={titleId}
+          tabIndex={-1}
+        >
           History
         </h2>
         <button className={controls.button} type="button" onClick={onClose}>

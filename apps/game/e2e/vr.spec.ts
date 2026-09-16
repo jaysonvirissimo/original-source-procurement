@@ -160,3 +160,22 @@ test("the workspace fits the minimum 1024×700 viewport", async ({ page }) => {
   );
   expect(overflow).toBe(false);
 });
+
+test("the workspace fits 1024×700 with a help panel open", async ({ page }) => {
+  await page.setViewportSize({ width: 1024, height: 700 });
+  await openMission(page, "003", "ADD IMMEDIATE");
+  await page.getByRole("button", { name: "Hint" }).click();
+
+  for (const locator of [
+    page.getByRole("textbox", { name: "C source" }),
+    page.getByRole("table", { name: "Target instructions" }),
+    page.getByRole("region", { name: "Hints" }),
+    compileButton(page),
+  ]) {
+    await expect(locator).toBeInViewport();
+  }
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth > window.innerWidth,
+  );
+  expect(overflow).toBe(false);
+});

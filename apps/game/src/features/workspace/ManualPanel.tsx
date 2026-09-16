@@ -1,9 +1,11 @@
 import type { ManualEntry, Mission } from "@osp/mission-schema";
 import { useId, type ReactElement } from "react";
+import { classNames } from "../../styles/classNames";
 import controls from "../../styles/controls.module.css";
+import prose from "../../styles/prose.module.css";
 import type { MissionCatalog } from "../curriculum/missionCatalog";
 import { ManualBrowser } from "../manual/ManualBrowser";
-import styles from "./OverlayPanel.module.css";
+import styles from "./ReferencePane.module.css";
 
 interface ManualPanelProps {
   readonly mission: Pick<
@@ -27,7 +29,7 @@ interface Item {
 
 /**
  * Manual entries for the mission's skills, then any other entries its
- * annotations and terms link to, over the workspace, with search and every
+ * annotations and terms link to, beside the listing, with search and every
  * entry a toggle away.
  */
 export function ManualPanel({
@@ -86,9 +88,13 @@ export function ManualPanel({
   });
 
   return (
-    <section className={styles.overlay} aria-labelledby={titleId}>
+    <section className={styles.panel} aria-labelledby={titleId}>
       <header className={styles.header}>
-        <h2 className={controls.label} id={titleId}>
+        <h2
+          className={classNames(controls.label, styles.heading)}
+          id={titleId}
+          tabIndex={-1}
+        >
           Manual
         </h2>
         <button className={controls.button} type="button" onClick={onClose}>
@@ -105,10 +111,10 @@ export function ManualPanel({
                 <p className={controls.label}>{item.label}</p>
                 <h3 className={styles.itemTitle}>{item.title}</h3>
                 {item.description === undefined ? null : (
-                  <p>{item.description}</p>
+                  <p className={prose.prose}>{item.description}</p>
                 )}
                 {item.body.map((paragraph, index) => (
-                  <p className={styles.dim} key={index}>
+                  <p className={classNames(prose.prose, prose.dim)} key={index}>
                     {paragraph}
                   </p>
                 ))}

@@ -81,11 +81,17 @@ test("fonts load from the site itself", async ({ page }) => {
     await document.fonts.ready;
     const code = await document.fonts.load('14px "IBM Plex Mono"');
     const display = await document.fonts.load('14px "Barlow Condensed"');
-    return { code: code.length, display: display.length };
+    const prose = await document.fonts.load('16px "IBM Plex Sans"');
+    return {
+      code: code.length,
+      display: display.length,
+      prose: prose.length,
+    };
   });
 
   expect(loaded.code).toBeGreaterThan(0);
   expect(loaded.display).toBeGreaterThan(0);
+  expect(loaded.prose).toBeGreaterThan(0);
 });
 
 test("the build ships third-party notices", async ({ page, baseURL }) => {

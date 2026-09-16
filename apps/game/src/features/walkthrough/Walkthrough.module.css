@@ -6,12 +6,22 @@
 
 .caption {
   margin: 0;
+  font-family: var(--osp-font-prose);
+  font-size: var(--osp-font-size-prose);
+  line-height: var(--osp-line-height-prose);
   text-align: left;
   color: var(--osp-text-dim);
 }
 
 .wrap td {
   white-space: normal;
+}
+
+/* Explanations inside a table read as prose; operands and words stay code. */
+.text {
+  font-family: var(--osp-font-prose);
+  font-size: var(--osp-font-size-prose);
+  line-height: var(--osp-line-height-prose);
 }
 
 .code {
