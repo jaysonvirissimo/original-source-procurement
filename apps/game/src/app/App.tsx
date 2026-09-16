@@ -10,17 +10,18 @@ import {
 import { openBrowserStorage } from "../features/persistence/indexedDbPersistence";
 import { PersistenceProvider } from "../features/persistence/PersistenceProvider";
 import { SaveNotices } from "../features/persistence/SaveNotices";
-import type { BrowserStorage } from "../features/persistence/types";
+import type {
+  BrowserStorage,
+  UpstreamCacheStore,
+} from "../features/persistence/types";
 import { AudioSettingPanel } from "../features/settings/AudioSettingPanel";
 import { GraphicsSettingPanel } from "../features/settings/GraphicsSettingPanel";
 import { SaveDataPanel } from "../features/settings/SaveDataPanel";
 import { ScaffoldSettingPanel } from "../features/settings/ScaffoldSettingPanel";
 import { ToolchainPanel } from "../features/settings/ToolchainPanel";
+import { createBrowserUpstream } from "../features/upstream/networkUpstream";
 import type { UpstreamService } from "../features/upstream/types";
-import {
-  offlineUpstream,
-  UpstreamContext,
-} from "../features/upstream/upstreamContext";
+import { UpstreamProvider } from "../features/upstream/UpstreamProvider";
 import { HomeRoute } from "../routes/HomeRoute";
 import { MissionRoute } from "../routes/MissionRoute";
 import type { Route } from "../routes/parseRoute";
@@ -36,14 +37,14 @@ const openDefaultStorage = () => openBrowserStorage();
 interface AppProps {
   readonly createToolchain?: () => Promise<ToolchainService>;
   readonly catalog?: MissionCatalog;
-  readonly upstream?: UpstreamService;
+  readonly createUpstream?: (cache: UpstreamCacheStore) => UpstreamService;
   readonly openStorage?: () => Promise<BrowserStorage>;
 }
 
 export function App({
   createToolchain = createBrowserToolchain,
   catalog = shippedCatalog,
-  upstream = offlineUpstream,
+  createUpstream = createBrowserUpstream,
   openStorage = openDefaultStorage,
 }: AppProps): ReactElement {
   const route = useHashRoute();
@@ -51,27 +52,24 @@ export function App({
   return (
     <ToolchainProvider createToolchain={createToolchain}>
       <MissionCatalogContext value={catalog}>
-        <UpstreamContext value={upstream}>
-          <PresentationProvider>
-            <div className={styles.shell}>
-              <main className={styles.main}>
-                <PersistenceProvider openStorage={openStorage}>
+        <PresentationProvider>
+          <div className={styles.shell}>
+            <main className={styles.main}>
+              <PersistenceProvider openStorage={openStorage}>
+                <UpstreamProvider createUpstream={createUpstream}>
                   <PresentationLayer />
                   <SaveNotices />
                   <RouteView route={route} />
-                </PersistenceProvider>
-              </main>
-              <footer className={styles.footer}>
-                <a
-                  className={styles.footerLink}
-                  href="./THIRD_PARTY_NOTICES.txt"
-                >
-                  Third-party notices
-                </a>
-              </footer>
-            </div>
-          </PresentationProvider>
-        </UpstreamContext>
+                </UpstreamProvider>
+              </PersistenceProvider>
+            </main>
+            <footer className={styles.footer}>
+              <a className={styles.footerLink} href="./THIRD_PARTY_NOTICES.txt">
+                Third-party notices
+              </a>
+            </footer>
+          </div>
+        </PresentationProvider>
       </MissionCatalogContext>
     </ToolchainProvider>
   );

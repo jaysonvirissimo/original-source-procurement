@@ -66,4 +66,5 @@ export const defaultPath: readonly string[] = [
   "010",
   "011",
   "012",
+  "F01",
 ];

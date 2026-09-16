@@ -212,6 +212,26 @@ describe("validateCurriculum", () => {
       ]);
     });
 
+    it("reports real-mission text that quotes target instructions", async () => {
+      const mission_ = corpusMission();
+      const corpus_ = corpus([
+        {
+          ...mission_,
+          briefing: {
+            objective: "Match the function.",
+            newTechnique: "Read the lw row.",
+          },
+          hints: mission_.hints.map((hint, index) =>
+            index === 0 ? { ...hint, text: "The value is in $v0." } : hint,
+          ),
+        },
+      ]);
+      await expect(codes(data({ pointerCorpus: corpus_ }))).resolves.toEqual([
+        "corpus-text",
+        "corpus-text",
+      ]);
+    });
+
     it("reports a target pinned to the corpus commit", async () => {
       const mission_ = corpusMission();
       const corpus_ = corpus([

@@ -33,6 +33,7 @@ Committed text must stand on its own. State the rule, behavior, or reason direct
 - Test behavior, not just types. A green build is not enough.
 - A bug fix normally includes a regression test.
 - Browser tests run in Chromium, Firefox, and WebKit against the production build served under a sub-path.
+- Field-mission browser tests run against a separate `fixtures` build, which adds an OSP-authored field mission, and answer the upstream hosts with that mission's content. Change `apps/game/src/test/fieldFixture.ts` only together with the words its source compiles to; a Node test checks them.
 - Test output such as coverage, Playwright reports, traces, and HAR recordings is never committed.
 
 ## Package boundaries
@@ -122,6 +123,14 @@ Transformed content still counts. That covers decoded word arrays, disassembly l
 - Public availability, permissive CORS headers, CDN caching, and runtime fetching do not authorize copying upstream content into a commit. Runtime loading is a content-handling policy, not legal clearance.
 
 Hints, manual entries, and briefings are original teaching text. Write them from the target instructions and the curriculum, never by adapting upstream source.
+
+For a real solved mission:
+
+- only hint stages 5 and 9 show upstream C, as read-only line spans: stage 5 a declaration from a header, stage 9 the function in its source file;
+- briefings and hints never quote the target: no register names, instruction mnemonics, or hexadecimal values. They point at the highlighted target rows instead, and `pnpm corpus:write` and curriculum validation reject text that quotes them;
+- stages 6 to 8 describe the expression shape, the structure, and the remaining logic in general terms. They never give a code or pseudocode skeleton of the upstream function, which values go into which fields, or the order of statements. Omit them when a function is too small to describe without doing so;
+- write the text only from the target listing, the starter, and the curriculum, by someone who has not read the upstream source file or its headers;
+- the starter is a signature stub with the includes a player needs, and the starter's includes followed by the stage 9 span must match exactly (checked from local checkouts).
 
 ### Checking real functions from local checkouts
 

@@ -50,3 +50,10 @@
   padding: 0;
   list-style: none;
 }
+
+/* Field missions read as recovered data rather than a lit training panel. */
+.briefing[data-tier="field"] {
+  border-color: var(--osp-field-line);
+  border-left-color: var(--osp-field-accent);
+  background: var(--osp-field-surface);
+}

@@ -1,5 +1,7 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { realMission } from "@osp/mission-schema/testing";
+import { missionProvenance } from "../field/provenance";
 import { MissionComplete } from "./MissionComplete";
 
 describe("MissionComplete", () => {
@@ -112,5 +114,24 @@ describe("MissionComplete", () => {
 
     expect(screen.queryByText("PREDICTION")).toBeNull();
     expect(screen.queryByRole("list")).toBeNull();
+  });
+  it("shows where a field mission was recovered from", () => {
+    render(
+      <MissionComplete
+        exact
+        attempts={1}
+        hints={{ opened: 0, available: 9, stage: 0 }}
+        prediction={undefined}
+        skillChanges={[]}
+        skillNames={new Map()}
+        next={undefined}
+        provenance={missionProvenance(realMission())}
+        onContinue={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByLabelText("Provenance").textContent).toContain(
+      "sample_function",
+    );
   });
 });

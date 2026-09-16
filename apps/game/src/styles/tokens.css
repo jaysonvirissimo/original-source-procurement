@@ -19,6 +19,11 @@
 
   --osp-focus: #b5ffe0;
 
+  /* Field missions: recovered data from the real game, dimmer and warmer. */
+  --osp-field-accent: #c8b47a;
+  --osp-field-line: #5e5638;
+  --osp-field-surface: #070806;
+
   --osp-space-1: 4px;
   --osp-space-2: 8px;
   --osp-space-3: 12px;

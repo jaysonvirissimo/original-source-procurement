@@ -24,20 +24,24 @@ function rowOf(map: HTMLElement, name: string): HTMLElement {
 }
 
 describe("MissionMap", () => {
-  it("shows phase lanes, empty field and live regions, and the recommended mission on a fresh save", async () => {
+  it("shows phase lanes, the field region, an empty live region, and the recommended mission on a fresh save", async () => {
     const map = await renderMap();
 
     for (const name of ["Phase · Translation", "Phase · Memory"]) {
       expect(within(map).getByRole("heading", { name })).toBeTruthy();
     }
-    for (const name of ["Field", "Live"]) {
-      expect(
-        within(within(map).getByRole("region", { name })).getByText(
-          "No missions yet.",
-        ),
-      ).toBeTruthy();
-    }
-    expect(within(map).getByText("0 of 12 complete")).toBeTruthy();
+    expect(
+      within(within(map).getByRole("region", { name: "Live" })).getByText(
+        "No missions yet.",
+      ),
+    ).toBeTruthy();
+    expect(
+      within(within(map).getByRole("region", { name: "Field" })).getByRole(
+        "link",
+        { name: "F01 FONT BUFFER" },
+      ),
+    ).toBeTruthy();
+    expect(within(map).getByText("0 of 13 complete")).toBeTruthy();
     expect(within(map).getByRole("button", { name: "Map" })).toHaveProperty(
       "ariaPressed",
       "true",
@@ -58,7 +62,7 @@ describe("MissionMap", () => {
     const map = await renderMap(samplePlayer());
 
     expect(rowOf(map, "001 RETURN PATH").textContent).toContain("COMPLETE");
-    expect(within(map).getByText("1 of 12 complete")).toBeTruthy();
+    expect(within(map).getByText("1 of 13 complete")).toBeTruthy();
     expect(
       within(map)
         .getByRole("link", { name: "ADD IMMEDIATE (003)" })
@@ -121,7 +125,7 @@ describe("MissionMap", () => {
     const map = await renderMap(player);
 
     expect(within(map).getByText("Training complete")).toBeTruthy();
-    expect(within(map).getByText("12 of 12 complete")).toBeTruthy();
+    expect(within(map).getByText("13 of 13 complete")).toBeTruthy();
   });
 
   it("switches to a searchable list and back", async () => {
@@ -135,7 +139,7 @@ describe("MissionMap", () => {
       "ariaPressed",
       "true",
     );
-    expect(within(map).getByRole("status").textContent).toBe("12 missions");
+    expect(within(map).getByRole("status").textContent).toBe("13 missions");
 
     fireEvent.change(search, { target: { value: "field offset" } });
     expect(
@@ -144,7 +148,7 @@ describe("MissionMap", () => {
         .map((row) => within(row).getByRole("link").textContent),
     ).toEqual(["009 FIELD OFFSET"]);
     expect(within(map).getByRole("status").textContent).toBe(
-      "1 of 12 missions",
+      "1 of 13 missions",
     );
 
     fireEvent.change(search, { target: { value: "zzz" } });

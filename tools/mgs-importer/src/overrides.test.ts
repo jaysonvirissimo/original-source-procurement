@@ -61,4 +61,26 @@ describe("parseOverrides", () => {
       parseOverrides(file([MISSION, { ...MISSION, symbol: "other_function" }])),
     ).toThrow(/share the id/);
   });
+  it("rejects hint text that quotes target instructions", () => {
+    expect(() =>
+      parseOverrides(
+        file([
+          {
+            ...MISSION,
+            hints: [{ stage: 1, text: "The first row is sw $a1,0x28($a0)." }],
+          },
+        ]),
+      ),
+    ).toThrow(
+      /missions.0.hints.0.text: Real-mission text names the register \$a1/,
+    );
+  });
+
+  it("rejects a briefing that quotes a target value", () => {
+    expect(() =>
+      parseOverrides(
+        file([{ ...MISSION, briefing: { objective: "Store at 0x14." } }]),
+      ),
+    ).toThrow(/briefing.objective: Real-mission text quotes the value 0x14/);
+  });
 });

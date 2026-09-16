@@ -1,6 +1,12 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import type { Mission } from "@osp/mission-schema";
+import { realMission, syntheticMission } from "@osp/mission-schema/testing";
 import { Briefing } from "./Briefing";
+
+function sample(fields: Partial<Mission>): Mission {
+  return syntheticMission(fields);
+}
 
 const guided = {
   layout: "guided",
@@ -13,14 +19,14 @@ describe("Briefing", () => {
     const onEnter = vi.fn();
     render(
       <Briefing
-        mission={{
+        mission={sample({
           id: "900",
           phase: "Translation",
           title: "SAMPLE",
           briefing: { objective: "Return a constant." },
           requires: ["ABI.RETURN", "OSP.UNKNOWN"],
           practices: [],
-        }}
+        })}
         skillNames={new Map([["ABI.RETURN", "Return values"]])}
         skillStates={new Map([["ABI.RETURN", "PRACTICED"]])}
         plan={guided}
@@ -46,14 +52,14 @@ describe("Briefing", () => {
   it("lists a synthesis mission's practiced skills as prerequisites once", () => {
     render(
       <Briefing
-        mission={{
+        mission={sample({
           id: "905",
           phase: "Registers and arithmetic",
           title: "SYNTHESIS",
           briefing: { objective: "Combine." },
           requires: [],
           practices: ["ABI.ARGUMENT", "MIPS.ARITH.SHIFT", "ABI.ARGUMENT"],
-        }}
+        })}
         skillNames={
           new Map([
             ["ABI.ARGUMENT", "Arguments"],
@@ -81,14 +87,14 @@ describe("Briefing", () => {
     const onEnter = vi.fn();
     render(
       <Briefing
-        mission={{
+        mission={sample({
           id: "909",
           phase: "Memory",
           title: "SKIPPED AHEAD",
           briefing: { objective: "Read a field." },
           requires: ["C.POINTER.DEREFERENCE"],
           practices: [],
-        }}
+        })}
         skillNames={new Map([["C.POINTER.DEREFERENCE", "Dereference"]])}
         skillStates={new Map()}
         missing={[
@@ -110,14 +116,14 @@ describe("Briefing", () => {
   it("says None when a mission lists no prerequisite skills", () => {
     render(
       <Briefing
-        mission={{
+        mission={sample({
           id: "901",
           phase: "Translation",
           title: "FIRST",
           briefing: { objective: "Look." },
           requires: [],
           practices: [],
-        }}
+        })}
         skillNames={new Map()}
         skillStates={new Map()}
         plan={guided}
@@ -129,5 +135,47 @@ describe("Briefing", () => {
     expect(
       screen.queryByRole("list", { name: "Prerequisite skills" }),
     ).toBeNull();
+  });
+  it("shows a field mission's provenance and links its target, not its source", () => {
+    const base = realMission();
+    const mission = realMission({
+      source: { ...base.source, address: 0x80010000 } as Mission["source"],
+    });
+    render(
+      <Briefing
+        mission={mission}
+        skillNames={new Map()}
+        skillStates={new Map()}
+        plan={guided}
+        onEnter={vi.fn()}
+      />,
+    );
+
+    const readout = screen.getByLabelText("Provenance");
+    expect(readout.textContent).toContain("FoxdieTeam/mgs_reversing");
+    expect(readout.textContent).toContain("sample_function");
+    expect(readout.textContent).toContain("0x80010000");
+    const link = within(readout).getByRole("link");
+    expect(link.getAttribute("href")).toMatch(
+      /^https:\/\/github\.com\/FoxdieTeam\/mgs_reversing\/blob\/[0-9a-f]{40}\/asm\//,
+    );
+    expect(link.getAttribute("rel")).toBe("noopener noreferrer");
+    expect(
+      screen.getByRole("region", { name: "SAMPLE FIELD WORK" }).dataset.tier,
+    ).toBe("field");
+  });
+
+  it("shows no provenance for a training mission", () => {
+    render(
+      <Briefing
+        mission={syntheticMission()}
+        skillNames={new Map()}
+        skillStates={new Map()}
+        plan={guided}
+        onEnter={vi.fn()}
+      />,
+    );
+
+    expect(screen.queryByLabelText("Provenance")).toBeNull();
   });
 });

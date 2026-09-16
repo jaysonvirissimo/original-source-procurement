@@ -2,6 +2,7 @@ import { createContext, useContext } from "react";
 import type { ProgressEvent } from "../progress/progressReducer";
 import type { SaveDataError } from "./errors";
 import type { PlayerState } from "./schema";
+import type { UpstreamCacheStore } from "./types";
 
 export type SaveStatus =
   | { readonly kind: "saved" }
@@ -57,6 +58,21 @@ export function useSaveData(): SaveDataValue {
   const value = useContext(SaveDataContext);
   if (value === undefined) {
     throw new Error("useSaveData must be used inside a PersistenceProvider.");
+  }
+  return value;
+}
+
+/** The upstream cache of the storage progress was loaded from. */
+export const UpstreamCacheContext = createContext<
+  UpstreamCacheStore | undefined
+>(undefined);
+
+export function useUpstreamCache(): UpstreamCacheStore {
+  const value = useContext(UpstreamCacheContext);
+  if (value === undefined) {
+    throw new Error(
+      "useUpstreamCache must be used inside a PersistenceProvider.",
+    );
   }
   return value;
 }

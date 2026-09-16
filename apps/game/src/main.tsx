@@ -12,8 +12,22 @@ if (container === null) {
   throw new Error("OSP could not find its root element.");
 }
 
-createRoot(container).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-);
+const root = createRoot(container);
+
+// The fixtures build, used only by browser tests, adds an OSP-authored field
+// mission. Production builds drop this branch and never contain the fixture.
+if (import.meta.env.MODE === "fixtures") {
+  void import("./test/fixtureCatalog").then(async ({ fixtureCatalog }) => {
+    root.render(
+      <StrictMode>
+        <App catalog={await fixtureCatalog()} />
+      </StrictMode>,
+    );
+  });
+} else {
+  root.render(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  );
+}

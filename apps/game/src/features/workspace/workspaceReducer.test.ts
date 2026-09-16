@@ -1,4 +1,3 @@
-import { realMission } from "@osp/mission-schema/testing";
 import { describe, expect, it } from "vitest";
 import type { CompilationInput } from "../compiler/types";
 import type { MissionResult } from "./missionResult";
@@ -66,17 +65,11 @@ describe("initial state", () => {
     });
     expect(run(state, { type: "entered" }).entered).toBe(true);
   });
-
-  it("marks a remote target as unsupported and keeps it that way", () => {
-    const state = initialWorkspaceState(realMission());
-
-    expect(state.context).toEqual({ kind: "unsupported-target" });
-    expect(run(state, { type: "context-requested" })).toBe(state);
-  });
 });
 
 describe("context", () => {
   const input = { source: "" } as CompilationInput;
+  const target = { kind: "linked", words: [0] } as const;
 
   it("becomes ready, unavailable, or mismatched, and retries", () => {
     const initial = initialWorkspaceState(exactMission);
@@ -84,12 +77,12 @@ describe("context", () => {
     expect(
       run(initial, {
         type: "context-resolved",
-        outcome: { kind: "ready", input },
+        outcome: { kind: "ready", input, target },
       }).context,
-    ).toEqual({ kind: "ready", input });
+    ).toEqual({ kind: "ready", input, target });
     const unavailable = run(initial, {
       type: "context-resolved",
-      outcome: { kind: "unavailable", path: "source/a.h", attempts: [] },
+      outcome: { kind: "unavailable", path: "source/a.h" },
     });
     expect(unavailable.context).toEqual({
       kind: "unavailable",
@@ -98,7 +91,7 @@ describe("context", () => {
     expect(
       run(initial, {
         type: "context-resolved",
-        outcome: { kind: "content-mismatch", path: "source/b.h", attempts: [] },
+        outcome: { kind: "content-mismatch", path: "source/b.h" },
       }).context,
     ).toEqual({ kind: "content-mismatch", path: "source/b.h" });
     expect(run(unavailable, { type: "context-requested" }).context).toEqual({

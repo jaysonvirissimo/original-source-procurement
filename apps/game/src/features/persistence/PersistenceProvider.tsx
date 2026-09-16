@@ -18,6 +18,7 @@ import styles from "./PersistenceProvider.module.css";
 import {
   PlayerProgressContext,
   SaveDataContext,
+  UpstreamCacheContext,
   type PlayerProgressValue,
   type SaveDataValue,
 } from "./progressContext";
@@ -364,7 +365,11 @@ function ProgressSession({
 
   return (
     <PlayerProgressContext value={progress}>
-      <SaveDataContext value={saveData}>{children}</SaveDataContext>
+      <SaveDataContext value={saveData}>
+        <UpstreamCacheContext value={storage.upstreamCache}>
+          {children}
+        </UpstreamCacheContext>
+      </SaveDataContext>
     </PlayerProgressContext>
   );
 }

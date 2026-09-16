@@ -58,12 +58,15 @@ test("a fresh save recommends the first mission and marks missions that skip ahe
   await expect(row(page, "009 FIELD OFFSET")).toContainText(
     "Not yet introduced:",
   );
-  for (const name of ["Field", "Live"]) {
-    await expect(missionMap(page).getByRole("region", { name })).toContainText(
-      "No missions yet.",
-    );
-  }
-  await expect(missionMap(page)).toContainText("0 of 12 complete");
+  await expect(
+    missionMap(page).getByRole("region", { name: "Live" }),
+  ).toContainText("No missions yet.");
+  await expect(
+    missionMap(page)
+      .getByRole("region", { name: "Field" })
+      .getByRole("link", { name: "F01 FONT BUFFER" }),
+  ).toBeVisible();
+  await expect(missionMap(page)).toContainText("0 of 13 complete");
 });
 
 test("skipping ahead warns on the briefing and still enters the mission", async ({
@@ -93,7 +96,7 @@ test("list mode finds a mission by search and stays chosen after a reload", asyn
   await expect(missionMap(page).getByRole("listitem")).toHaveCount(1);
   await expect(row(page, "009 FIELD OFFSET")).toBeVisible();
   await expect(missionMap(page).getByRole("status")).toHaveText(
-    "1 of 12 missions",
+    "1 of 13 missions",
   );
 
   // The setting saves in the background, so reload until it has.

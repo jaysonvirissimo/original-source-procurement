@@ -674,14 +674,103 @@ describe("Workspace", () => {
     expect(compileButton()).toHaveProperty("disabled", true);
   });
 
-  it("explains that a mission with a remote target cannot load in this build", async () => {
-    await renderWorkspace(realMission());
-    enter();
+  describe("with an upstream target", () => {
+    const mission = realMission();
+    const words = [0x03e00008, 0x00000000];
+    const header = { kind: "loaded", value: "\n", source: "cache" } as const;
+    const remotePath =
+      mission.target.kind === "remote" ? mission.target.path : "";
 
-    expect(screen.getByRole("alert").textContent).toContain(
-      "loads its target from upstream",
+    it("lists the loaded target and compiles with its context", async () => {
+      const loadTarget = vi
+        .fn<UpstreamService["loadTarget"]>()
+        .mockResolvedValue({ kind: "loaded", value: words, source: "cache" });
+      const loadC = vi.fn<UpstreamService["loadC"]>().mockResolvedValue(header);
+      const service = fakeToolchain(exact003);
+      await renderWorkspace(mission, {
+        service,
+        upstream: { ...offlineUpstream, loadTarget, loadC },
+      });
+      enter();
+
+      const listing = await screen.findByRole("table", {
+        name: "Target instructions",
+      });
+      expect(within(listing).getAllByRole("row")).toHaveLength(
+        words.length + 1,
+      );
+      expect(loadTarget).toHaveBeenCalledWith(
+        mission.target,
+        expect.any(AbortSignal),
+      );
+      await compileWhenReady();
+      await waitFor(() => {
+        expect(service.build).toHaveBeenCalledWith(
+          expect.objectContaining({
+            headers: { "psyq/include/sample.h": "\n" },
+          }),
+          expect.any(AbortSignal),
+        );
+      });
+    });
+
+    it.each([
+      ["unavailable", "couldn't reach it"],
+      ["content-mismatch", "didn't match what it expected"],
+    ] as const)(
+      "shows the %s state for the target and retries",
+      async (kind, copy) => {
+        const loadTarget = vi
+          .fn<UpstreamService["loadTarget"]>()
+          .mockResolvedValueOnce({ kind, attempts: [] })
+          .mockResolvedValue({ kind: "loaded", value: words, source: "cache" });
+        const loadC = vi
+          .fn<UpstreamService["loadC"]>()
+          .mockResolvedValue(header);
+        await renderWorkspace(mission, {
+          upstream: { ...offlineUpstream, loadTarget, loadC },
+        });
+        enter();
+
+        const alert = await screen.findByRole("alert");
+        expect(alert.textContent).toContain(copy);
+        expect(alert.textContent).toContain(remotePath);
+        expect(compileButton()).toHaveProperty("disabled", true);
+
+        fireEvent.click(within(alert).getByRole("button", { name: "Retry" }));
+        expect(
+          await screen.findByRole("table", { name: "Target instructions" }),
+        ).toBeTruthy();
+      },
     );
-    expect(compileButton()).toHaveProperty("disabled", true);
+
+    it("reports a failed header once the target has loaded", async () => {
+      const loadTarget = vi
+        .fn<UpstreamService["loadTarget"]>()
+        .mockResolvedValue({ kind: "loaded", value: words, source: "cache" });
+      await renderWorkspace(mission, {
+        upstream: { ...offlineUpstream, loadTarget },
+      });
+      enter();
+
+      const alert = await screen.findByRole("alert");
+      expect(alert.textContent).toContain("psyq/include/sample.h");
+    });
+
+    it("says so while the target is loading", async () => {
+      const loadTarget = vi.fn<UpstreamService["loadTarget"]>(
+        () => new Promise(() => undefined),
+      );
+      await renderWorkspace(mission, {
+        upstream: { ...offlineUpstream, loadTarget },
+      });
+      enter();
+
+      expect(
+        await screen.findByText("Loading the target from upstream."),
+      ).toBeTruthy();
+      expect(compileButton()).toHaveProperty("disabled", true);
+    });
   });
 
   it("offers Retry when the compiler does not start", async () => {

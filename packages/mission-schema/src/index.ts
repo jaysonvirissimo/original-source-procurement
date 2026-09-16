@@ -69,6 +69,7 @@ export {
 export { PredictionPromptSchema, type PredictionPrompt } from "./prediction.ts";
 export {
   CommitShaSchema,
+  isSafeRelativePath,
   ManualEntryIdSchema,
   MissionIdSchema,
   Sha256HexSchema,
@@ -81,6 +82,7 @@ export {
   UPSTREAM_REPOSITORIES,
   type RemoteCReference,
 } from "./remote.ts";
+export { realMissionTextIssues } from "./realText.ts";
 export { SkillSchema, type Skill } from "./skill.ts";
 export { MissionSourceSchema, type MissionSource } from "./source.ts";
 export {

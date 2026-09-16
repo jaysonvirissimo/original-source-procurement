@@ -12,9 +12,14 @@ import { PSYQ_ASM_VERSION } from "./browserToolchain";
 import { createToolchainService } from "./toolchainService";
 import type { ToolchainService } from "./types";
 
-// Every mission here is synthetic and OSP-authored.
+// Every mission here is synthetic and OSP-authored. Real missions load their
+// targets from upstream, and a separate suite checks them from local checkouts.
 
-const exactMissions = missions.filter(
+const syntheticMissions = missions.filter(
+  (mission) => mission.source.kind === "synthetic",
+);
+
+const exactMissions = syntheticMissions.filter(
   (mission) => mission.completion === "exact",
 );
 
@@ -64,7 +69,7 @@ describe("shipped missions with the real toolchain", () => {
     return result.result;
   }
 
-  it.each(missions.map((mission) => [mission.id, mission] as const))(
+  it.each(syntheticMissions.map((mission) => [mission.id, mission] as const))(
     "mission %s: the solution matches its target exactly",
     async (_, mission) => {
       if (mission.solution === undefined) {

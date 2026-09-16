@@ -16,7 +16,6 @@ import controls from "../../styles/controls.module.css";
 import { useSoundCue } from "../audio/audioContext";
 import { buildCue } from "../audio/sounds";
 import { Briefing } from "../briefing/Briefing";
-import { createMissionContextResolver } from "../compiler/missionContextResolver";
 import { targetListing } from "../compiler/targetListing";
 import { useToolchain } from "../compiler/toolchainContext";
 import type { CompilerDiagnostic } from "../compiler/types";
@@ -50,6 +49,7 @@ import {
 import { BuildFeedback } from "../results/BuildFeedback";
 import { MatchSummary } from "../results/MatchSummary";
 import { MissionComplete } from "../results/MissionComplete";
+import { missionProvenance } from "../field/provenance";
 import { MemoryLayer } from "../scan/MemoryLayer";
 import scan from "../scan/Scan.module.css";
 import { ScanPanel } from "../scan/ScanPanel";
@@ -65,6 +65,7 @@ import { HintPanel } from "./HintPanel";
 import { HistoryPanel } from "./HistoryPanel";
 import { ManualPanel } from "./ManualPanel";
 import { matchStatus } from "./matchStatus";
+import { loadMissionContext } from "./missionContext";
 import {
   missionMatchTarget,
   missionResultFrom,
@@ -134,7 +135,11 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
   const buildCounter = useRef(0);
   const running = useRef<AbortController | undefined>(undefined);
 
-  const target = useMemo(() => missionMatchTarget(mission), [mission]);
+  const { entered, source, context, result, hintStage, completed } = state;
+  // An inline target is known before its context resolves; an upstream
+  // target only once it has loaded.
+  const inlineTarget = useMemo(() => missionMatchTarget(mission), [mission]);
+  const target = context.kind === "ready" ? context.target : inlineTarget;
   const listing = useMemo(
     () => (target === undefined ? [] : targetListing(target.words)),
     [target],
@@ -191,8 +196,6 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
     [mission],
   );
 
-  const { entered, source, context, result, hintStage, completed } = state;
-  const unsupported = context.kind === "unsupported-target";
   const hypotheses = useMemo(
     () => (result?.kind === "matched" ? teachingHypotheses(result.result) : []),
     [result],
@@ -212,19 +215,16 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
   }, [source]);
 
   useEffect(() => {
-    if (unsupported) {
-      return;
-    }
     const controller = new AbortController();
-    void createMissionContextResolver(upstream)
-      .resolve(mission, mission.starterSource, controller.signal)
-      .then((outcome) => {
+    void loadMissionContext(mission, upstream, controller.signal).then(
+      (outcome) => {
         dispatch({ type: "context-resolved", outcome });
-      });
+      },
+    );
     return () => {
       controller.abort();
     };
-  }, [mission, upstream, unsupported, resolveRequest]);
+  }, [mission, upstream, resolveRequest]);
 
   useEffect(
     () => () => {
@@ -307,7 +307,6 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
     if (
       toolchain.status !== "ready" ||
       context.kind !== "ready" ||
-      target === undefined ||
       running.current !== undefined
     ) {
       return;
@@ -330,7 +329,7 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
       request,
       outcome,
       mission.symbol,
-      target,
+      context.target,
     );
     dispatch({ type: "build-resolved", result: missionResult });
     // Only a comparison is an attempt; failed builds have nothing to compare.
@@ -417,13 +416,6 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
 
   const renderAssembly = (): ReactElement => {
     switch (context.kind) {
-      case "unsupported-target":
-        return (
-          <p className={styles.alert} role="alert">
-            This mission loads its target from upstream, which this build of OSP
-            cannot do yet. Training missions still work.
-          </p>
-        );
       case "unavailable":
       case "content-mismatch":
         return (
@@ -447,6 +439,13 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
         );
       case "resolving":
       case "ready":
+        if (target === undefined) {
+          return (
+            <p className={styles.notice} role="status">
+              Loading the target from upstream.
+            </p>
+          );
+        }
         return (
           <>
             {result?.kind === "matched" ? (
@@ -495,6 +494,7 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
         styles.workspace,
         showCompletion && styles.completing,
       )}
+      data-tier={missionTier(mission.kind)}
       onKeyDown={onKeyDown}
     >
       <header className={styles.header}>
@@ -521,6 +521,7 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
           )}
           skillNames={skillNames}
           next={nextMission(catalog, mission.id)}
+          provenance={missionProvenance(mission)}
           onContinue={() => {
             dispatch({ type: "review-requested" });
           }}

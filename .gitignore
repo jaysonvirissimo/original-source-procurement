@@ -4,6 +4,7 @@ tmp/
 # Dependencies and build output
 node_modules/
 dist/
+dist-fixtures/
 *.tsbuildinfo
 
 # Test output

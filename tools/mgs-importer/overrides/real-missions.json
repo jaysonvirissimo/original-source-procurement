@@ -1,4 +1,84 @@
 {
   "schemaVersion": 1,
-  "missions": []
+  "missions": [
+    {
+      "symbol": "font_set_buffer",
+      "id": "F01",
+      "title": "FONT BUFFER",
+      "phase": "Field work",
+      "kind": "real-solved",
+      "scaffold": "field",
+      "requires": [],
+      "practices": [
+        "ABI.ARGUMENT",
+        "C.POINTER.DEREFERENCE",
+        "C.STRUCT.FIELD",
+        "MIPS.STORE.WORD",
+        "MIPS.ARITH.ADD_IMMEDIATE"
+      ],
+      "briefing": {
+        "objective": "Write font_set_buffer so it compiles to the four target rows. It takes a font control block and a buffer, and it stores into two fields of the block before returning."
+      },
+      "starterSource": "#include \"font.h\"\n\nvoid font_set_buffer(KCB *kcb, void *buffer)\n{\n}\n",
+      "hints": [
+        {
+          "stage": 1,
+          "text": "This mission combines struct fields reached through a pointer argument, full-width stores, and a constant added to an argument. Nothing is loaded. The function only writes."
+        },
+        {
+          "stage": 2,
+          "text": "Start with the highlighted row. It stores the second argument, unchanged, through the first argument. The offset tells you which field of the block receives it.",
+          "highlight": {
+            "start": 0,
+            "end": 1
+          }
+        },
+        {
+          "stage": 3,
+          "text": "The highlighted rows add a constant to the second argument and keep the result in that same argument register. Then the function returns. The store after the return sits in the delay slot, so it still runs, and it writes the adjusted value into a second field through the first argument.",
+          "highlight": {
+            "start": 1,
+            "end": 4
+          }
+        },
+        {
+          "stage": 4,
+          "text": "The body is two assignments to struct fields through a pointer. One assigns a parameter as it is. The other assigns an expression built from a parameter plus a constant. There is no return value, no local variable, and no condition."
+        },
+        {
+          "stage": 5,
+          "text": "Here is the struct declaration. To match an offset to a field, add up the sizes of the fields before it, in order. Pointers and ints take 4 bytes on this machine, shorts take 2, and chars take 1. A field may be pushed forward so it lines up with its own size. A nested struct or array counts its whole size.",
+          "reveal": {
+            "repository": "FoxdieTeam/mgs_reversing",
+            "commit": "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            "path": "source/font/font.h",
+            "sha256": "319feeacd29ae2088be6ea760bf34fddb23ae396f67188e73c24fac305f4094f",
+            "lines": {
+              "start": 8,
+              "end": 27
+            }
+          }
+        },
+        {
+          "stage": 6,
+          "text": "Adding a constant to a pointer moves it by that many elements, so the machine constant is the count times the element size. Arithmetic on a void pointer or a char pointer moves by single bytes, so the constant in the row appears exactly as written. Arithmetic on a pointer to a larger type multiplies the constant, and a sum written as an integer may add a conversion step. Pick the form whose constant matches the highlighted add. In the comparison view, a store with a different offset means the wrong field. An add with a different constant means the wrong step size. Rows that match but sit in different positions mean the statements need rearranging."
+        },
+        {
+          "stage": 9,
+          "text": "Known matching solution:",
+          "reveal": {
+            "repository": "FoxdieTeam/mgs_reversing",
+            "commit": "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            "path": "source/font/font.c",
+            "sha256": "b58804d1688e73a8a5cb93241dab5910c922ab3e753381ac62dded9a58dac21a",
+            "lines": {
+              "start": 264,
+              "end": 268
+            }
+          }
+        }
+      ],
+      "reviewedAt": "2026-09-16"
+    }
+  ]
 }
