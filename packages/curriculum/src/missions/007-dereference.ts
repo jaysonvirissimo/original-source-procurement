@@ -21,6 +21,7 @@ export const dereference: MissionDraft = {
     objective: "Write the minimal C that loads the pointed-to integer.",
     newTechnique: "*p reads the value that a pointer addresses.",
   },
+  terms: ["glossary.pointer", "glossary.address", "glossary.lw"],
   starterSource: "int dereference(int *p)\n{\n    return 0;\n}\n",
   solution: "int dereference(int *p)\n{\n    return *p;\n}\n",
   symbol: "dereference",
@@ -37,6 +38,22 @@ export const dereference: MissionDraft = {
       },
     ],
   },
+  walkthroughs: [
+    {
+      kind: "caller",
+      caption:
+        "Where p comes from, with illustrative values. The caller creates an int x holding 42, takes its address with &x, and passes that address. Here x happens to live at 0x1000.",
+      skill: "C.POINTER.DEREFERENCE",
+      code: "int x = 42;\nint r = dereference(&x);",
+      rows: [
+        { name: "x", before: 42, after: 42, note: "an int stored at 0x1000" },
+        { name: "&x", before: 0x1000, note: "the address of x, passed as p" },
+        { name: "$a0", before: 0x1000, note: "p" },
+        { name: "$v0", after: 42, note: "*p, the return value" },
+        { name: "r", after: 42 },
+      ],
+    },
+  ],
   hints: [
     {
       stage: 1,

@@ -967,6 +967,51 @@ describe("Workspace teaching support", () => {
     ).toContain("Word 0 loads 4 bytes into $v0");
   });
 
+  it("keeps the memory diagrams of 006, 007, 009, and 010 inline at guided", async () => {
+    for (const id of ["006", "007", "009", "010"]) {
+      const { unmount } = await renderWorkspace(shippedMission(id));
+      enter();
+      expect(
+        screen.getByRole("region", { name: "Machine diagram" }),
+        id,
+      ).toBeTruthy();
+      unmount();
+    }
+  });
+
+  it("shows a guided walkthrough inline and names the teaching support", async () => {
+    await renderWorkspace(returnPath);
+    enter();
+
+    const walkthrough = screen.getByRole("region", { name: "Walkthrough" });
+    expect(
+      within(walkthrough).getByRole("table", { name: "Step by step" })
+        .textContent,
+    ).toContain("The delay slot runs");
+    expect(
+      screen.getByText(
+        "Teaching support · Guided: notes and their explanations appear on their own.",
+      ),
+    ).toBeTruthy();
+  });
+
+  it("keeps an assisted mission's walkthrough in Scan, and says support is assisted", async () => {
+    await renderWorkspace(shippedMission("005"));
+    enter();
+
+    expect(screen.queryByRole("region", { name: "Walkthrough" })).toBeNull();
+    expect(
+      screen.getByText(
+        "Teaching support · Assisted: short labels appear; Scan explains them.",
+      ),
+    ).toBeTruthy();
+    fireEvent.click(button("Scan"));
+    fireEvent.click(screen.getByRole("radio", { name: "Walkthrough" }));
+    expect(
+      screen.getByRole("table", { name: "Step by step" }).textContent,
+    ).toContain("5 × 4 = 20");
+  });
+
   it("moves the memory diagram to Scan once the skill is practiced", async () => {
     await renderWorkspace(loadWord, {
       player: practicedSkill("MIPS.LOAD.WORD"),

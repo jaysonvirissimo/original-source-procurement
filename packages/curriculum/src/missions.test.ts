@@ -107,6 +107,63 @@ describe("the first teaching slice", () => {
     );
   });
 
+  it("keeps what each revised mission teaches", () => {
+    expect(
+      Object.fromEntries(
+        missions
+          .filter((entry) => entry.source.kind === "synthetic")
+          .map((entry) => [entry.id, entry.teaches]),
+      ),
+    ).toEqual({
+      "001": ["ABI.RETURN"],
+      "002": ["ABI.ARGUMENT"],
+      "003": ["MIPS.ARITH.ADD_IMMEDIATE"],
+      "004": ["MIPS.ARITH.SHIFT"],
+      "005": [],
+      "006": ["MIPS.LOAD.WORD"],
+      "007": ["C.POINTER.DEREFERENCE"],
+      "008": ["MIPS.STORE.WORD"],
+      "009": ["C.STRUCT.FIELD"],
+      "010": ["MIPS.LOAD.BYTE"],
+      "011": ["MATCH.SIGNEDNESS"],
+      "012": [],
+    });
+  });
+
+  it.each([
+    ["002", ["register", "$a0 to $a3", "$v0", "move"]],
+    ["003", ["immediate", "addiu", "bit", "sign extension"]],
+    ["004", ["sll", "bit"]],
+    ["005", ["temporary", "addiu", "sll"]],
+    [
+      "006",
+      [
+        "lw",
+        "address",
+        "offset",
+        "byte",
+        "word",
+        "nop",
+        "assembler",
+        "compiler",
+      ],
+    ],
+    ["007", ["pointer", "address"]],
+    ["008", ["sw", "pointer", "void"]],
+    ["009", ["struct", "offset"]],
+    ["010", ["lb and lbu", "two's complement", "sign extension", "PsyQ"]],
+    ["011", ["lb and lbu", "PsyQ"]],
+    ["012", ["pointer", "struct", "temporary", "nop"]],
+  ])("links glossary entries for the terms %s introduces", (id, expected) => {
+    const glossary = new Map(
+      manualEntries
+        .filter((entry) => entry.section === "GLOSSARY")
+        .map((entry) => [entry.id, entry.title]),
+    );
+    const titles = (mission(id).terms ?? []).map((term) => glossary.get(term));
+    expect(titles).toEqual(expect.arrayContaining(expected));
+  });
+
   it("writes a body for every manual entry a skill links to", () => {
     const entries = new Map(manualEntries.map((entry) => [entry.id, entry]));
     for (const skill of skills) {

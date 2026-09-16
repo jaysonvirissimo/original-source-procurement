@@ -41,7 +41,11 @@ import {
 import { attemptFrom } from "../progress/attempts";
 import { completionMode } from "../progress/completionMode";
 import { completionEvidence } from "../progress/evidence";
-import { presentationFor, selectScaffold } from "../progress/scaffold";
+import {
+  presentationFor,
+  selectScaffold,
+  supportLabel,
+} from "../progress/scaffold";
 import {
   completionSkillChanges,
   skillStateOf,
@@ -54,6 +58,7 @@ import { missionProvenance } from "../field/provenance";
 import { MemoryLayer } from "../scan/MemoryLayer";
 import scan from "../scan/Scan.module.css";
 import { ScanPanel } from "../scan/ScanPanel";
+import { WalkthroughView } from "../walkthrough/WalkthroughView";
 import {
   UPSTREAM_CONTENT_MISMATCH,
   UPSTREAM_UNAVAILABLE,
@@ -183,12 +188,16 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
   const linkedEntries = useMemo(() => manualLinks(annotations), [annotations]);
   const { example } = mission;
   // A diagram tied to a skill fades with it, like that skill's notes.
-  const showDiagram = presentationFor(
-    (example?.skill === undefined
-      ? undefined
-      : plan.skills.get(example.skill)) ?? plan.layout,
-    plan.automaticTeaching,
-  ).diagrams;
+  const diagramShown = (skill: string | undefined): boolean =>
+    presentationFor(
+      (skill === undefined ? undefined : plan.skills.get(skill)) ?? plan.layout,
+      plan.automaticTeaching,
+    ).diagrams;
+  const showDiagram = diagramShown(example?.skill);
+  const walkthroughs = mission.walkthroughs ?? [];
+  const shownWalkthroughs = walkthroughs.filter(({ skill }) =>
+    diagramShown(skill),
+  );
   const skillNames = useMemo(
     () => new Map(catalog.skills.map((skill) => [skill.id, skill.name])),
     [catalog],
@@ -489,6 +498,18 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
                 <MemoryLayer example={example} facts={facts} />
               </section>
             ) : null}
+            {shownWalkthroughs.length === 0 ? null : (
+              <section className={scan.inline} aria-label="Walkthrough">
+                {shownWalkthroughs.map((walkthrough, index) => (
+                  <WalkthroughView
+                    key={index}
+                    walkthrough={walkthrough}
+                    listing={listing}
+                    facts={facts}
+                  />
+                ))}
+              </section>
+            )}
           </>
         );
     }
@@ -507,6 +528,9 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
         <p className={controls.label}>OSP {mission.id}</p>
         <h1 className={styles.title}>{mission.title}</h1>
         <p className={styles.objective}>{mission.briefing.objective}</p>
+        <p className={styles.support}>
+          Teaching support · {supportLabel(plan)}
+        </p>
         <p className={styles.status} role="status">
           {matchStatus(state, stale)}
         </p>
@@ -627,6 +651,8 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
           annotations={annotations}
           facts={facts}
           example={example}
+          walkthroughs={walkthroughs}
+          listing={listing}
           onClose={() => {
             setOverlay("none");
           }}

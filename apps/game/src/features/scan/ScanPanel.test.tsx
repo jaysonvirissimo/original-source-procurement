@@ -64,6 +64,8 @@ describe("ScanPanel", () => {
         ]}
         facts={qualification}
         example={chain}
+        walkthroughs={[]}
+        listing={[]}
         onClose={onClose}
       />,
     );
@@ -91,6 +93,8 @@ describe("ScanPanel", () => {
         annotations={[]}
         facts={qualification}
         example={chain}
+        walkthroughs={[]}
+        listing={[]}
         onClose={vi.fn()}
       />,
     );
@@ -98,7 +102,7 @@ describe("ScanPanel", () => {
 
     layer("Registers");
     expect(rows("Registers")).toEqual([
-      "RegisterAt entryRead byWritten by",
+      "RegisterExample value at entryRead byWritten by",
       "$a00x3000 (h)word 0—",
       "$v1—words 2, 4word 0",
       "$v0—word 4word 2",
@@ -121,7 +125,7 @@ describe("ScanPanel", () => {
     layer("Stack");
     expect(
       screen.getByText(
-        "This function never changes $sp, so it has no stack frame.",
+        /never changes \$sp, so it has none\. Stack frames are taught in later missions\./,
       ),
     ).toBeTruthy();
   });
@@ -132,6 +136,8 @@ describe("ScanPanel", () => {
         annotations={[]}
         facts={qualification}
         example={undefined}
+        walkthroughs={[]}
+        listing={[]}
         onClose={vi.fn()}
       />,
     );
@@ -145,6 +151,8 @@ describe("ScanPanel", () => {
         annotations={[]}
         facts={qualification}
         example={{ ...chain, registers: [] }}
+        walkthroughs={[]}
+        listing={[]}
         onClose={vi.fn()}
       />,
     );
@@ -159,12 +167,16 @@ describe("ScanPanel", () => {
         annotations={[]}
         facts={wordFacts([0x27bdfff8, 0x03e00008, 0x27bd0008])}
         example={undefined}
+        walkthroughs={[]}
+        listing={[]}
         onClose={vi.fn()}
       />,
     );
     layer("Stack");
     expect(
-      screen.getByText(/changes \$sp, so it has a stack frame/),
+      screen.getByText(
+        /A stack frame is memory .* This function changes \$sp, so it has one\./,
+      ),
     ).toBeTruthy();
 
     rerender(
@@ -172,9 +184,66 @@ describe("ScanPanel", () => {
         annotations={[]}
         facts={undefined}
         example={undefined}
+        walkthroughs={[]}
+        listing={[]}
         onClose={vi.fn()}
       />,
     );
     expect(screen.getByText("The target is not loaded.")).toBeTruthy();
+  });
+
+  it("lists walkthroughs, including before the target loads, and says when there are none", () => {
+    const { rerender } = render(
+      <ScanPanel
+        annotations={[]}
+        facts={undefined}
+        example={undefined}
+        walkthroughs={[
+          {
+            kind: "trace",
+            caption: "The load comes first.",
+            steps: [
+              { range: { start: 0, end: 1 }, text: "Load the pointer." },
+              { text: "The caller resumes." },
+            ],
+          },
+        ]}
+        listing={["lw $v1,0x20($a0)"]}
+        onClose={vi.fn()}
+      />,
+    );
+    layer("Walkthrough");
+    expect(rows("Step by step")).toEqual([
+      "StepWordsWhat happens",
+      "1Word 0: lw $v1,0x20($a0)Load the pointer.",
+      "2—The caller resumes.",
+    ]);
+
+    rerender(
+      <ScanPanel
+        annotations={[]}
+        facts={qualification}
+        example={undefined}
+        walkthroughs={[]}
+        listing={[]}
+        onClose={vi.fn()}
+      />,
+    );
+    expect(screen.getByText("This mission has no walkthrough.")).toBeTruthy();
+  });
+
+  it("marks register values as illustrative", () => {
+    render(
+      <ScanPanel
+        annotations={[]}
+        facts={qualification}
+        example={chain}
+        walkthroughs={[]}
+        listing={[]}
+        onClose={vi.fn()}
+      />,
+    );
+    layer("Registers");
+    expect(screen.getByText(/Example values are illustrative/)).toBeTruthy();
   });
 });

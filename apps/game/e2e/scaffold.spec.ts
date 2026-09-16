@@ -101,3 +101,43 @@ test("an independent mission shows no notes but keeps their manual entries and d
     scan.getByRole("table", { name: "Memory: struct Holder" }),
   ).toContainText("the address of struct Inner");
 });
+
+test("guided missions walk through the return and the bits of a signed byte", async ({
+  page,
+}) => {
+  await openMission(page, "001", "RETURN PATH");
+  await expect(
+    page.getByText("Teaching support · Guided", { exact: false }),
+  ).toBeVisible();
+  const trace = page
+    .getByRole("region", { name: "Walkthrough" })
+    .getByRole("table", { name: "Step by step" });
+  await expect(trace).toContainText("The delay slot runs");
+  await expect(trace).toContainText("finds 42 in $v0");
+
+  await openMission(page, "010", "SIGNED BYTE");
+  await expect(
+    page
+      .getByRole("region", { name: "Walkthrough" })
+      .getByRole("table", { name: "Bits" }),
+  ).toContainText("1111 1111 1111 1111 1111 1111 1111 1101");
+});
+
+test("an assisted mission names its support level and keeps its walkthrough in Scan", async ({
+  page,
+}) => {
+  await openMission(page, "005", "SCALE CHECK");
+
+  await expect(
+    page.getByText("Teaching support · Assisted", { exact: false }),
+  ).toBeVisible();
+  await expect(page.getByRole("region", { name: "Walkthrough" })).toHaveCount(
+    0,
+  );
+  await page.getByRole("button", { name: "Scan" }).click();
+  const scan = page.getByRole("region", { name: "Scan" });
+  await scan.getByRole("radio", { name: "Walkthrough" }).check();
+  await expect(scan.getByRole("table", { name: "Step by step" })).toContainText(
+    "5 × 4 = 20",
+  );
+});

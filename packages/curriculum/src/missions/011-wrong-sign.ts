@@ -22,10 +22,12 @@ export const wrongSign: MissionDraft = {
   completion: "exact",
   compiler: trainingCompiler("wrong_sign.c"),
   briefing: {
-    objective: "Fix plausible source whose byte load has the wrong signedness.",
+    objective:
+      "Fix plausible source whose byte load has the wrong signedness. The struct declaration is part of your source, and you may edit it.",
     newTechnique:
       "A field's declared type decides which load instruction reads it.",
   },
+  terms: ["glossary.lb", "glossary.psyq", "glossary.sign-extension"],
   // Plain char is unsigned in PsyQ, so the starting source loads with lbu.
   starterSource: source("char"),
   solution: source("signed char"),

@@ -1,15 +1,22 @@
 import { usesStack, type WordFacts } from "@osp/matching-core";
-import type { MissionExample } from "@osp/mission-schema";
+import type { MissionExample, MissionWalkthrough } from "@osp/mission-schema";
 import { useId, useState, type ReactElement } from "react";
 import controls from "../../styles/controls.module.css";
 import type { WordAnnotation } from "../diff/annotations";
 import { wordsLabel } from "../diff/diffLabels";
+import { WalkthroughView } from "../walkthrough/WalkthroughView";
 import styles from "../workspace/OverlayPanel.module.css";
 import { MemoryLayer } from "./MemoryLayer";
 import { RegisterLayer } from "./RegisterLayer";
 import scan from "./Scan.module.css";
 
-const LAYERS = ["Notes", "Registers", "Memory", "Stack"] as const;
+const LAYERS = [
+  "Notes",
+  "Walkthrough",
+  "Registers",
+  "Memory",
+  "Stack",
+] as const;
 type Layer = (typeof LAYERS)[number];
 
 interface ScanPanelProps {
@@ -18,6 +25,9 @@ interface ScanPanelProps {
   /** Facts about the target words, once the target is known. */
   readonly facts: readonly WordFacts[] | undefined;
   readonly example: MissionExample | undefined;
+  readonly walkthroughs: readonly MissionWalkthrough[];
+  /** Target instructions as the listing shows them. */
+  readonly listing: readonly string[];
   readonly onClose: () => void;
 }
 
@@ -26,6 +36,8 @@ export function ScanPanel({
   annotations,
   facts,
   example,
+  walkthroughs,
+  listing,
   onClose,
 }: ScanPanelProps): ReactElement {
   const titleId = useId();
@@ -48,6 +60,22 @@ export function ScanPanel({
         </ul>
       );
     }
+    if (layer === "Walkthrough") {
+      return walkthroughs.length === 0 ? (
+        <p className={styles.dim}>This mission has no walkthrough.</p>
+      ) : (
+        <>
+          {walkthroughs.map((walkthrough, index) => (
+            <WalkthroughView
+              key={index}
+              walkthrough={walkthrough}
+              listing={listing}
+              facts={facts}
+            />
+          ))}
+        </>
+      );
+    }
     if (facts === undefined) {
       return <p className={styles.dim}>The target is not loaded.</p>;
     }
@@ -64,8 +92,8 @@ export function ScanPanel({
     return (
       <p>
         {usesStack(facts)
-          ? "This function changes $sp, so it has a stack frame. Stack diagrams arrive with the missions that teach stack frames."
-          : "This function never changes $sp, so it has no stack frame."}
+          ? "A stack frame is memory a function reserves for itself by moving the stack pointer, $sp. This function changes $sp, so it has one. Stack frames are taught in later missions."
+          : "A stack frame is memory a function reserves for itself by moving the stack pointer, $sp. This function never changes $sp, so it has none. Stack frames are taught in later missions."}
       </p>
     );
   };

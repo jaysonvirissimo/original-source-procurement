@@ -17,6 +17,7 @@ import {
 } from "./primitives.ts";
 import { MissionSourceSchema } from "./source.ts";
 import { TargetSchema } from "./target.ts";
+import { checkWalkthrough, MissionWalkthroughSchema } from "./walkthrough.ts";
 
 export const MISSION_SCHEMA_VERSION = 1;
 
@@ -89,6 +90,8 @@ const MissionObjectSchema = z.strictObject({
   annotations: z.array(MissionAnnotationSchema).optional(),
   // Synthetic missions only: made-up values for machine diagrams.
   example: MissionExampleSchema.optional(),
+  // Synthetic missions only: traces, timelines, and tables over the target.
+  walkthroughs: z.array(MissionWalkthroughSchema).optional(),
   difficulty: DifficultyProfileSchema,
 });
 type MissionShape = z.infer<typeof MissionObjectSchema>;
@@ -102,6 +105,7 @@ export const MissionSchema = MissionObjectSchema.superRefine((mission, ctx) => {
   checkTaughtSkills(mission, report);
   checkHints(mission, report);
   checkAnnotations(mission, report);
+  checkWalkthroughs(mission, report);
   if (mission.example !== undefined) {
     if (mission.target.kind === "inline") {
       checkExample(
@@ -158,6 +162,30 @@ function checkAnnotations(mission: MissionShape, report: Report): void {
         "An annotation's skill must be one the mission teaches or practices.",
       );
     }
+  });
+}
+
+function checkWalkthroughs(mission: MissionShape, report: Report): void {
+  if (mission.walkthroughs === undefined) {
+    return;
+  }
+  if (mission.target.kind !== "inline") {
+    report(
+      ["walkthroughs"],
+      "Only missions with an inline target carry walkthroughs.",
+    );
+    return;
+  }
+  const wordCount = mission.target.words.length;
+  const listed = new Set([...mission.teaches, ...mission.practices]);
+  mission.walkthroughs.forEach((walkthrough, index) => {
+    checkWalkthrough(
+      walkthrough,
+      ["walkthroughs", index],
+      wordCount,
+      listed,
+      report,
+    );
   });
 }
 

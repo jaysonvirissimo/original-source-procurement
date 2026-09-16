@@ -34,7 +34,9 @@ export function MatchSummary({
       {Object.entries(summary.byKind).map(([kind, count]) => (
         <Fragment key={kind}>
           <dt>{mismatchLabel(kind).toUpperCase()}</dt>
-          <dd>{count}</dd>
+          <dd>
+            {count} {count === 1 ? "difference" : "differences"}
+          </dd>
         </Fragment>
       ))}
     </dl>

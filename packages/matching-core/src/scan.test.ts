@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { wordsOf } from "./fixtures.test-helpers.ts";
-import { usesStack, wordFacts } from "./scan.ts";
+import { abiRegisterNames, usesStack, wordFacts } from "./scan.ts";
 
 // Every assembly fixture here is OSP-authored.
 
@@ -82,6 +82,21 @@ describe("usesStack", () => {
     );
     expect(usesStack(wordFacts(wordsOf(["lw $2,0($29)", "j $31"])))).toBe(
       false,
+    );
+  });
+});
+
+describe("abiRegisterNames", () => {
+  it("writes numeric register names as listings show them", () => {
+    expect(abiRegisterNames("$3 is written by lw and read by lb")).toBe(
+      "$v1 is written by lw and read by lb",
+    );
+    expect(abiRegisterNames("$0, $29, $31, $4")).toBe("$zero, $sp, $ra, $a0");
+  });
+
+  it("leaves other text and out-of-range numbers alone", () => {
+    expect(abiRegisterNames("$v0 costs $32 or $3a")).toBe(
+      "$v0 costs $32 or $3a",
     );
   });
 });

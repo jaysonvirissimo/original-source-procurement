@@ -63,10 +63,11 @@ Mission and skill behavior comes from validated curriculum data, never from rule
 - a synthetic mission whose `solution` or words do not match their recorded hashes;
 - a mission annotation that points past its target's words, sits on a mission without an inline target, or links an unknown manual entry;
 - a mission `terms` entry that names an unknown manual entry or one outside the GLOSSARY section;
-- an annotation or example tied to a skill the mission neither teaches nor practices;
+- an annotation, example, or walkthrough tied to a skill the mission neither teaches nor practices;
 - an `acknowledge-evidence` mission without an `evidence` prompt, an `evidence` prompt under any other completion rule or on a mission without an inline target, or evidence that points past its target's words;
 - a real-partial or live hint that does not say whether it is verified, or a hint on any other mission that does;
 - example values on a mission without an inline target, or whose registers or region labels repeat, whose cells overlap or do not fit their size or alignment, or whose pointer cell does not hold the address of a region in the same example;
+- walkthroughs on a mission without an inline target, or whose steps or labeled word point past its target's words, whose timeline lanes or caller rows repeat a name, whose bit rows do not fit their width, or whose derived bit row does not follow from an earlier, no-wider row;
 - a real-function pointer whose provenance, solution reference, compiler input, or header keys do not follow upstream's default build;
 - a pointer corpus whose context headers or revealed files name a revision other than the one it was imported from, whose target is pinned to that same revision rather than to an earlier one, or whose missions point at one upstream function twice.
 

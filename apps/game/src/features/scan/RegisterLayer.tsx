@@ -18,12 +18,16 @@ export function RegisterLayer({
 }: RegisterLayerProps): ReactElement {
   return (
     <div className={styles.layer}>
+      <p className={styles.caption}>
+        Example values are illustrative, chosen for one possible call. Nothing
+        runs, so they are not observed.
+      </p>
       <div className={table.tableWrap}>
         <table className={table.table} aria-label="Registers">
           <thead>
             <tr>
               <th scope="col">Register</th>
-              <th scope="col">At entry</th>
+              <th scope="col">Example value at entry</th>
               <th scope="col">Read by</th>
               <th scope="col">Written by</th>
             </tr>
