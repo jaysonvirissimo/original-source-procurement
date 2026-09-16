@@ -2,6 +2,7 @@ import {
   FeasibilityPointerSchema,
   ManualEntrySchema,
   MissionSchema,
+  PointerCorpusSchema,
   SkillSchema,
   type ManualEntry,
   type Mission,
@@ -22,7 +23,9 @@ export type CurriculumIssueCode =
   | "duplicate-path-entry"
   | "unreachable-prerequisite"
   | "solution-hash"
-  | "words-hash";
+  | "words-hash"
+  | "corpus-commit"
+  | "corpus-symbol";
 
 export interface CurriculumIssue {
   readonly code: CurriculumIssueCode;
@@ -38,6 +41,8 @@ export interface CurriculumData {
   readonly defaultPath: readonly string[];
   /** Pointers to real solved functions checked from local checkouts. */
   readonly feasibilityPointers?: readonly unknown[];
+  /** The generated pointer corpus, whose missions are also in `missions`. */
+  readonly pointerCorpus?: unknown;
 }
 
 type PathSegment = string | number | symbol;
@@ -98,6 +103,7 @@ export async function validateCurriculum(
   checkDefaultPath(data.defaultPath, missions, skills, report);
   await checkHashes(missions, report);
   checkFeasibilityPointers(data.feasibilityPointers ?? [], report);
+  checkPointerCorpus(data.pointerCorpus, report);
 
   return issues;
 }
@@ -296,6 +302,88 @@ async function checkHashes(
       );
     }
   }
+}
+
+/**
+ * Checks the generated pointer corpus.
+ *
+ * The schema covers a mission on its own. The rules here are the ones that
+ * span the corpus: every reference must name the revision the corpus was
+ * imported from, a target must be pinned to its own pre-match commit, and no
+ * upstream function may appear twice.
+ */
+function checkPointerCorpus(value: unknown, report: Report): void {
+  if (value === undefined) {
+    return;
+  }
+  const result = PointerCorpusSchema.safeParse(value);
+  if (!result.success) {
+    for (const issue of result.error.issues) {
+      report("schema", ["pointerCorpus", ...issue.path], issue.message);
+    }
+    return;
+  }
+
+  const corpus = result.data;
+  const expected = {
+    "FoxdieTeam/mgs_reversing": corpus.upstreamCommit,
+    "FoxdieTeam/psyq_sdk": corpus.sdkCommit,
+  };
+  const seen = new Set<string>();
+
+  corpus.missions.forEach((mission, index) => {
+    const at = (...rest: readonly PathSegment[]) => [
+      "pointerCorpus",
+      "missions",
+      index,
+      ...rest,
+    ];
+
+    if (seen.has(mission.symbol)) {
+      report(
+        "corpus-symbol",
+        at("symbol"),
+        `Two corpus missions point at ${mission.symbol}.`,
+      );
+    }
+    seen.add(mission.symbol);
+
+    for (const [key, reference] of Object.entries(
+      mission.compiler.remoteHeaders ?? {},
+    )) {
+      if (reference.commit !== expected[reference.repository]) {
+        report(
+          "corpus-commit",
+          at("compiler", "remoteHeaders", key, "commit"),
+          `A context header must come from the revision the corpus was imported from, ${expected[reference.repository]}.`,
+        );
+      }
+    }
+
+    for (const [hintIndex, hint] of mission.hints.entries()) {
+      if (
+        hint.reveal !== undefined &&
+        hint.reveal.commit !== expected[hint.reveal.repository]
+      ) {
+        report(
+          "corpus-commit",
+          at("hints", hintIndex, "reveal", "commit"),
+          `A revealed file must come from the revision the corpus was imported from, ${expected[hint.reveal.repository]}.`,
+        );
+      }
+    }
+
+    if (
+      mission.target.kind === "remote" &&
+      mission.target.commit === corpus.upstreamCommit
+    ) {
+      report(
+        "corpus-commit",
+        at("target", "commit"),
+        "A target is pinned to the commit before its function was matched, which is never the corpus commit.",
+      );
+    }
+  });
 }
 
 function checkFeasibilityPointers(

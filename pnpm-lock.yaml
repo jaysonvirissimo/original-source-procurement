@@ -263,6 +263,9 @@ importers:
         specifier: 4.6.4
         version: 4.6.4
     devDependencies:
+      '@osp/mgs-importer':
+        specifier: workspace:*
+        version: link:../../tools/mgs-importer
       '@playwright/test':
         specifier: 1.63.0
         version: 1.63.0
@@ -353,10 +356,19 @@ importers:
       '@osp/mission-schema':
         specifier: workspace:*
         version: link:../../packages/mission-schema
+      psyq-asm:
+        specifier: 0.2.0
+        version: 0.2.0
+      zod:
+        specifier: 4.6.4
+        version: 4.6.4
     devDependencies:
       '@types/node':
         specifier: 24.13.4
         version: 24.13.4
+      prettier:
+        specifier: 3.9.6
+        version: 3.9.6
       typescript:
         specifier: 6.0.3
         version: 6.0.3

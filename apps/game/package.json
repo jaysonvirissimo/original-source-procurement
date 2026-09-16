@@ -32,6 +32,7 @@
     "zod": "4.6.4"
   },
   "devDependencies": {
+    "@osp/mgs-importer": "workspace:*",
     "@playwright/test": "1.63.0",
     "@testing-library/dom": "10.4.1",
     "@testing-library/react": "16.3.3",

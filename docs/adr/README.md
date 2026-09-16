@@ -24,6 +24,7 @@ Changing a locked decision requires a new record. Accepted records are never rew
 | [0014](0014-mismatch-teaching-hypotheses.md)    | Mismatch teaching hypotheses    | Accepted |
 | [0015](0015-vr-presentation-layer.md)           | VR presentation layer           | Accepted |
 | [0016](0016-mission-map-recommendations.md)     | Mission map and recommendations | Accepted |
+| [0017](0017-real-mission-pointer-corpus.md)     | Real-mission pointer corpus     | Accepted |
 
 ## Template
 

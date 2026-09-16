@@ -38,6 +38,10 @@ export default defineConfig({
         // Command-line entry point that passes the pinned release and the
         // console to runDistributionAudit, which unit tests cover directly.
         "apps/game/build/bin/**",
+        // Command-line entry points that pass the pinned commits, the local
+        // checkouts, and the console to the importer functions, which unit
+        // tests cover directly.
+        "tools/mgs-importer/src/bin/**",
         "**/*.d.ts",
         // Test-only setup that registers Testing Library cleanup; no product behavior.
         "apps/game/src/test/**",
