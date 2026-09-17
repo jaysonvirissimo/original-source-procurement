@@ -9,6 +9,7 @@ import {
   verdictIndex,
   SDK_COMMIT,
   UPSTREAM_COMMIT,
+  fileRecord,
 } from "./testing.ts";
 
 describe("renderReviewReport", () => {
@@ -110,5 +111,126 @@ describe("renderReviewReport", () => {
     expect(
       renderReviewReport(importIndex(), verdictIndex({ functions: many })),
     ).toContain("and 5 more");
+  });
+  describe("the Phase 0–4 shortlist", () => {
+    const exact = (symbol: string, sourcePath = "source/sample/sample.c") => ({
+      symbol,
+      sourcePath,
+      verdict: "exact" as const,
+    });
+    const record = (symbol: string, facts: Partial<typeof SAMPLE_FACTS> = {}) =>
+      functionRecord({
+        symbol,
+        pinned: pinnedTarget({ facts: { ...SAMPLE_FACTS, ...facts } }),
+      });
+    const shortlistOf = (text: string) =>
+      text.slice(text.indexOf("## Phase 0–4 shortlist"));
+
+    it("is left out until the sweep has run", () => {
+      expect(renderReviewReport(importIndex())).not.toContain(
+        "Phase 0–4 shortlist",
+      );
+    });
+
+    it("lists exact, call-free, branch-free functions smallest first", () => {
+      const text = shortlistOf(
+        renderReviewReport(
+          importIndex({
+            files: [
+              fileRecord(),
+              fileRecord({
+                path: "source/other/other.c",
+                compiler: { ...fileRecord().compiler, gpSize: 8 },
+              }),
+            ],
+            functions: [
+              record("larger", { words: 6, stores: 2, narrowLoads: 1 }),
+              record("smaller", { words: 3 }),
+            ],
+          }),
+          verdictIndex({
+            functions: [
+              exact("larger", "source/other/other.c"),
+              exact("smaller"),
+            ],
+          }),
+        ),
+      );
+      expect(text).toContain(
+        "| smaller | 3 | 1 | 0 | 0 | 0 | 1 | source/sample/sample.c |",
+      );
+      expect(text).toContain(
+        "| larger | 6 | 1 | 2 | 1 | 8 | 1 | source/other/other.c |",
+      );
+      expect(text.indexOf("| smaller |")).toBeLessThan(
+        text.indexOf("| larger |"),
+      );
+    });
+
+    it("leaves out mismatches, used symbols, and functions with calls or narrow stores", () => {
+      const text = shortlistOf(
+        renderReviewReport(
+          importIndex({
+            functions: [
+              record("calls", { calls: 1 }),
+              record("narrow_store", { narrowStores: 1 }),
+              record("used"),
+              record("mismatched"),
+            ],
+          }),
+          verdictIndex({
+            functions: [
+              exact("calls"),
+              exact("narrow_store"),
+              exact("used"),
+              {
+                symbol: "mismatched",
+                sourcePath: "source/sample/sample.c",
+                verdict: "mismatch",
+                mismatchKinds: ["REGISTER"],
+              },
+            ],
+          }),
+          new Set(["used"]),
+        ),
+      );
+      expect(text).toContain("None.");
+    });
+
+    it("marks a file missing from the import instead of guessing", () => {
+      const text = shortlistOf(
+        renderReviewReport(
+          importIndex({
+            files: [
+              fileRecord({
+                compiler: {
+                  ...fileRecord().compiler,
+                  remoteHeaders: undefined,
+                },
+              }),
+            ],
+            functions: [
+              record("bare"),
+              record("orphan"),
+              unpinnedRecord({ reason: "no-deletion" }, { symbol: "unpinned" }),
+            ],
+          }),
+          verdictIndex({
+            functions: [
+              exact("bare"),
+              exact("orphan", "source/gone/gone.c"),
+              exact("unpinned"),
+            ],
+          }),
+        ),
+      );
+      expect(text).toContain(
+        "| bare | 4 | 1 | 0 | 0 | 0 | 0 | source/sample/sample.c |",
+      );
+      expect(text).toContain(
+        "| orphan | 4 | 1 | 0 | 0 | ? | ? | source/gone/gone.c |",
+      );
+      expect(text).not.toContain("| unpinned |");
+    });
   });
 });

@@ -5,7 +5,9 @@ import {
   featureTags,
   functionFacts,
   FEATURE_TAGS,
+  phaseZeroToFourCandidate,
 } from "./analysis.ts";
+import { SAMPLE_FACTS } from "./testing.ts";
 
 /** OSP-authored instruction sequences, assembled word by word. */
 function words(
@@ -58,8 +60,23 @@ describe("functionFacts", () => {
     expect(facts.loads).toBe(3);
     expect(facts.loadForms).toBe(3);
     expect(facts.signedLoads).toBe(1);
+    expect(facts.narrowLoads).toBe(2);
+    expect(facts.narrowStores).toBe(0);
     expect(facts.narrowAccesses).toBe(2);
     expect(facts.fieldAccesses).toBe(2);
+  });
+
+  it("counts narrow stores apart from narrow loads", () => {
+    const facts = functionFacts(
+      words(
+        { mnemonic: "lbu", operands: [gpr(2), mem(4, 0)] },
+        { mnemonic: "sh", operands: [gpr(5), mem(4, 2)] },
+        { mnemonic: "sw", operands: [gpr(6), mem(4, 4)] },
+      ),
+    );
+    expect(facts.narrowLoads).toBe(1);
+    expect(facts.narrowStores).toBe(1);
+    expect(facts.narrowAccesses).toBe(2);
   });
 
   it("tells a stack access from a struct field access", () => {
@@ -190,5 +207,28 @@ describe("featureTags", () => {
         functionFacts(words({ mnemonic: "jr", operands: [gpr(31)] }, nop)),
       ),
     ).toEqual([]);
+  });
+});
+
+describe("phaseZeroToFourCandidate", () => {
+  it("accepts loads, stores, and the return jump", () => {
+    expect(
+      phaseZeroToFourCandidate({ ...SAMPLE_FACTS, stores: 2, narrowLoads: 1 }),
+    ).toBe(true);
+  });
+
+  it.each([
+    "calls",
+    "branches",
+    "loops",
+    "stackAccesses",
+    "coprocessor",
+    "multiplyDivide",
+    "assemblerTemporary",
+    "narrowStores",
+  ] as const)("rejects a function with %s", (fact) => {
+    expect(phaseZeroToFourCandidate({ ...SAMPLE_FACTS, [fact]: 1 })).toBe(
+      false,
+    );
   });
 });

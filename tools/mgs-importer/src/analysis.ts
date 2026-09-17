@@ -26,6 +26,11 @@ export interface FunctionFacts {
   readonly loadForms: number;
   readonly storeForms: number;
   readonly signedLoads: number;
+  /** Loads narrower than a word. */
+  readonly narrowLoads: number;
+  /** Stores narrower than a word. */
+  readonly narrowStores: number;
+  /** Narrow loads and narrow stores together. */
   readonly narrowAccesses: number;
   readonly fieldAccesses: number;
   readonly stackAccesses: number;
@@ -74,7 +79,8 @@ export function functionFacts(words: readonly number[]): FunctionFacts {
   let loads = 0;
   let stores = 0;
   let signedLoads = 0;
-  let narrowAccesses = 0;
+  let narrowLoads = 0;
+  let narrowStores = 0;
   let fieldAccesses = 0;
   let stackAccesses = 0;
   let multiplyDivide = 0;
@@ -118,12 +124,12 @@ export function functionFacts(words: readonly number[]): FunctionFacts {
       loads += 1;
       loadForms.add(instruction.mnemonic);
       if (load.signed && load.bytes < 4) signedLoads += 1;
-      if (load.bytes < 4) narrowAccesses += 1;
+      if (load.bytes < 4) narrowLoads += 1;
     }
     if (storeBytes !== undefined) {
       stores += 1;
       storeForms.add(instruction.mnemonic);
-      if (storeBytes < 4) narrowAccesses += 1;
+      if (storeBytes < 4) narrowStores += 1;
     }
 
     // Where the access points, for the loads and stores a mission compares.
@@ -147,7 +153,9 @@ export function functionFacts(words: readonly number[]): FunctionFacts {
     loadForms: loadForms.size,
     storeForms: storeForms.size,
     signedLoads,
-    narrowAccesses,
+    narrowLoads,
+    narrowStores,
+    narrowAccesses: narrowLoads + narrowStores,
     fieldAccesses,
     stackAccesses,
     multiplyDivide,
@@ -219,4 +227,22 @@ export function featureTags(facts: FunctionFacts): FeatureTag[] {
     gte: facts.coprocessor > 0,
   };
   return FEATURE_TAGS.filter((tag) => present[tag]);
+}
+
+/**
+ * Whether a function fits the first field missions: no calls, branches,
+ * loops, stack frame, coprocessor, multiply or divide, assembler temporary,
+ * or narrow stores. Jumps are allowed, because returning is one.
+ */
+export function phaseZeroToFourCandidate(facts: FunctionFacts): boolean {
+  return (
+    facts.calls === 0 &&
+    facts.branches === 0 &&
+    facts.loops === 0 &&
+    facts.stackAccesses === 0 &&
+    facts.coprocessor === 0 &&
+    facts.multiplyDivide === 0 &&
+    facts.assemblerTemporary === 0 &&
+    facts.narrowStores === 0
+  );
 }

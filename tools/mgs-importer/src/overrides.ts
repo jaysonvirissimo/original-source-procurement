@@ -1,12 +1,14 @@
 import {
   ContextTypeNameSchema,
   HintSchema,
+  ManualEntryIdSchema,
   MissionIdSchema,
   realMissionTextIssues,
   SkillIdSchema,
   SymbolSchema,
   REAL_MISSION_KINDS,
   SCAFFOLD_LEVELS,
+  uniqueArray,
 } from "@osp/mission-schema";
 import { z } from "zod";
 
@@ -33,6 +35,8 @@ export const MissionOverrideSchema = z.strictObject({
   }),
   /** Types the offset table lays out: names only, never declarations. */
   contextTypes: z.array(ContextTypeNameSchema).min(1).optional(),
+  /** Glossary entries the mission lists under This mission in the Manual. */
+  terms: uniqueArray(ManualEntryIdSchema).optional(),
   starterSource: z.string(),
   hints: z.array(HintSchema),
   /** When a maintainer last reviewed this entry, as YYYY-MM-DD. */

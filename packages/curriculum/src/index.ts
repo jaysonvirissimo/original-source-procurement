@@ -10,6 +10,11 @@ export { defaultPath } from "./missions.ts";
 export { pointerCorpus } from "./real/corpus.ts";
 export { feasibilityPointers } from "./real/feasibility.ts";
 export { skills } from "./skills.ts";
+export {
+  curriculumCoverage,
+  type CoverageWarning,
+  type CoverageWarningCode,
+} from "./coverage.ts";
 export { findCycle, missionNeeds } from "./graph.ts";
 export { sha256Hex, wordsSha256 } from "./hash.ts";
 export { runValidation, type ValidationOutput } from "./cli.ts";

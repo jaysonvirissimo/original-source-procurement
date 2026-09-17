@@ -56,6 +56,7 @@ export function buildMission(
     ...(override.contextTypes === undefined
       ? {}
       : { contextTypes: [...override.contextTypes] }),
+    ...(override.terms === undefined ? {} : { terms: [...override.terms] }),
     starterSource: override.starterSource,
     symbol: override.symbol,
     target,

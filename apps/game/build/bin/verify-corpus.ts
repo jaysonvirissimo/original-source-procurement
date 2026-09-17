@@ -3,6 +3,7 @@ import { createRequire } from "node:module";
 import {
   checkoutsFromEnvironment,
   readImportIndex,
+  readOverrides,
   renderReviewReport,
   writeReviewReport,
   writeVerdictIndex,
@@ -26,6 +27,9 @@ if (checkouts === undefined) {
   ).version;
 
   const index = await readImportIndex();
+  const usedSymbols = new Set(
+    (await readOverrides()).missions.map((mission) => mission.symbol),
+  );
   const symbols = process.argv.slice(2);
   const service = await createToolchainService({
     createCompiler: () => createCompiler(),
@@ -44,7 +48,7 @@ if (checkouts === undefined) {
     await writeVerdictIndex(verdicts);
     await writeReviewReport(
       index.upstreamCommit,
-      renderReviewReport(index, verdicts),
+      renderReviewReport(index, verdicts, usedSymbols),
     );
     const exact = verdicts.functions.filter(
       (entry) => entry.verdict === "exact",

@@ -44,6 +44,21 @@ describe("parseOverrides", () => {
     ).toThrow(/YYYY-MM-DD/);
   });
 
+  it("reads glossary terms and rejects repeated or malformed ones", () => {
+    expect(
+      parseOverrides(file([{ ...MISSION, terms: ["glossary.delay-slot"] }]))
+        .missions[0]?.terms,
+    ).toEqual(["glossary.delay-slot"]);
+    expect(() =>
+      parseOverrides(
+        file([{ ...MISSION, terms: ["glossary.word", "glossary.word"] }]),
+      ),
+    ).toThrow(/unique/);
+    expect(() =>
+      parseOverrides(file([{ ...MISSION, terms: ["Glossary Word"] }])),
+    ).toThrow(/terms/);
+  });
+
   it("rejects an unknown field, so a typo is never ignored", () => {
     expect(() =>
       parseOverrides(file([{ ...MISSION, teaches: ["ABI.RETURN"] }])),
