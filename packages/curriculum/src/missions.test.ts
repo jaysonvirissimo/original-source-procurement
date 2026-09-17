@@ -67,6 +67,12 @@ describe("the first teaching slice", () => {
       "022",
       "023",
       "024",
+      "025",
+      "026",
+      "027",
+      "028",
+      "029",
+      "030",
       "F04",
       "F01",
       "F02",
@@ -202,6 +208,12 @@ describe("the first teaching slice", () => {
       "022": ["C.SHIFT"],
       "023": ["C.STORAGE.STATIC"],
       "024": [],
+      "025": ["MIPS.COMPARE"],
+      "026": ["MIPS.COMPARE.SIGNEDNESS"],
+      "027": ["MATCH.EXPRESSION_ORDER"],
+      "028": ["MIPS.DELAY_SLOT"],
+      "029": ["MATCH.SEMANTIC_VS_EXACT"],
+      "030": [],
     });
   });
 

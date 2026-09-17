@@ -143,6 +143,18 @@ export const manualEntries: readonly ManualEntry[] = [
     ],
   },
   {
+    id: "c.conditions",
+    section: "C",
+    title: "Conditions",
+    body: [
+      "In C a question such as a < b is an expression with a value, not something that only belongs inside an if. Its value is 1 when the answer is yes and 0 when it is no, and you can return it, assign it, or add it up.",
+      "That is why a function whose whole body is return a < b; compiles to so little: one instruction answers the question and leaves the answer where a return value goes.",
+      "C counts any non-zero value as yes, so !a is another way of asking a == 0, and the compiler emits the same instruction for both. Neither is more correct; they are the same program.",
+      "The operators are <, >, <=, >=, == and !=. Only the first has an instruction of its own. The others are that instruction with the operands reordered, with the answer flipped, or with an extra step first.",
+      "Signedness matters here as much as it does on a load. Whether one value is less than another depends on whether both are read as signed or unsigned, and the declared types of the operands decide which question the compiler asks.",
+    ],
+  },
+  {
     id: "mips.arithmetic",
     section: "MIPS",
     title: "Arithmetic",
@@ -188,6 +200,20 @@ export const manualEntries: readonly ManualEntry[] = [
       "The instruction right after a jump or branch is its delay slot. It runs before control reaches the new address.",
       "jr $ra returns to the caller. The instruction after it still runs first, so the compiler often places the last step of a function there.",
       "When nothing useful can run in the delay slot, the assembler fills it with a nop.",
+      "This is why a two-instruction function reads back to front. The return comes first and the work comes second, and both run. A listing that ends in the middle of the work is not truncated; that last row is the delay slot.",
+    ],
+  },
+  {
+    id: "mips.comparison",
+    section: "MIPS",
+    title: "Tests",
+    body: [
+      "slt $v0,$a0,$a1 writes 1 into $v0 when $a0 is less than $a1, and 0 otherwise. Its name is set on less than. slti compares against a constant instead of a second register.",
+      "There is one test instruction and one direction. No instruction asks whether something is greater, or equal, or not equal; everything else is built from set on less than.",
+      "Greater than needs no extra instruction, only the operands the other way round: a > b is the same question as b < a, so the listing shows slt with its two source registers swapped.",
+      "Adding or-equal takes one more instruction. a <= b is b < a answered and then flipped, and the flip is xori $v0,$v0,0x1, which turns 1 into 0 and 0 into 1.",
+      "Equality is not a test at all. a == b first combines the two values with xor, which gives zero exactly when they are equal, and then asks whether that result is less than 1. Against zero the xor is unnecessary, so a == 0 is a single sltiu $v0,$a0,0x1.",
+      "Against zero the compiler can do better still. a < 0 asks only whether the sign bit is set, and the listing shows srl $v0,$a0,31, a shift, with no test instruction anywhere.",
     ],
   },
   {
@@ -247,6 +273,18 @@ export const manualEntries: readonly ManualEntry[] = [
     ],
   },
   {
+    id: "matching.expression-shape",
+    section: "MATCHING",
+    title: "Expression shape",
+    body: [
+      "Two ways of writing the same question can compile to different words, and only one of them matches. The meaning being right is not the same as the shape being right.",
+      "Order is the common case. a > b and b < a are the same question, and the machine has only one of them, so the listing decides which way round your source has to read. Look at which register the test reads first.",
+      "An extra instruction is the second case. If the listing tests and then flips the answer, the source asked an or-equal question. If it flips first, or does not flip at all, it did not.",
+      "The third case is the one that catches people, because the answer stops looking like a test. Asked whether a value is below zero, the compiler reads the sign bit with a shift. Nothing in the listing resembles the question you asked, and writing a test there will never match.",
+      "So read the listing for the shape, not only for the meaning. When your output and the target both do the right thing but differ by a register order or by one extra instruction, the difference is the shape of the expression, not a mistake about what the function does.",
+    ],
+  },
+  {
     id: "c.storing-addresses",
     section: "C",
     title: "Storing addresses",
@@ -267,6 +305,7 @@ export const manualEntries: readonly ManualEntry[] = [
       "A load also writes to its first operand. lw $v0,0x8($a0) reads memory at the address in $a0 plus 8 and writes the value to $v0.",
       "A store reads from its first operand. sw $a1,0x0($a0) and sb $a1,0x0($a0) write the value in $a1 to memory at the address in $a0. No register changes.",
       "A jump names where to go. jr $ra jumps to the address held in $ra.",
+      "A test writes to its first operand, like arithmetic. slt $v0,$a0,$a1 asks whether $a0 is less than $a1 and writes 1 or 0 to $v0. The order of the two source operands is the order of the question.",
     ],
   },
   {
@@ -806,6 +845,38 @@ export const manualEntries: readonly ManualEntry[] = [
     title: "PsyQ",
     body: [
       "The PlayStation development kit whose C compiler built the game. Some rules, such as plain char being unsigned, are PsyQ behavior rather than rules of all C.",
+    ],
+  },
+  {
+    id: "glossary.slt",
+    section: "GLOSSARY",
+    title: "slt and sltu",
+    body: [
+      "Set on less than. slt writes 1 into its first operand when the second is less than the third, and 0 otherwise. sltu asks the same question reading both values as unsigned. slti and sltiu compare against a constant instead of a register.",
+    ],
+  },
+  {
+    id: "glossary.xor",
+    section: "GLOSSARY",
+    title: "xor and xori",
+    body: [
+      "Exclusive or. Each result bit is 1 when the two source bits differ. Two equal values give zero, which is how equality is tested, and xori against 1 flips the low bit, which is how an answer of 1 or 0 is reversed.",
+    ],
+  },
+  {
+    id: "glossary.nor",
+    section: "GLOSSARY",
+    title: "nor",
+    body: [
+      "Or, then invert. nor $v0,$zero,$a0 ors a value with nothing and inverts the result, so every bit flips. The sign bit of the result is the opposite of the original's.",
+    ],
+  },
+  {
+    id: "glossary.condition",
+    section: "GLOSSARY",
+    title: "condition",
+    body: [
+      "A question with a yes or no answer, such as a < b. In C its value is the number 1 or the number 0, so it can be returned or stored like any other value.",
     ],
   },
 ];

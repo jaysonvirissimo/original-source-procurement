@@ -43,6 +43,30 @@ export function translationDifficulty(size: number): DifficultyProfile {
   };
 }
 
+/**
+ * A conditions-phase profile: a test, and the shaping that hides it.
+ *
+ * `controlFlow` is scored the way the importer scores a real function
+ * (branches, jumps, blocks, and loops twice over), so a synthetic mission and
+ * a field mission sit on the same scale. A function that only returns counts
+ * its own return as the one jump.
+ */
+export function conditionsDifficulty(
+  size: number,
+  compilerShaping: number,
+): DifficultyProfile {
+  return {
+    size,
+    controlFlow: 2,
+    memory: 0,
+    abi: 1,
+    types: 0,
+    compilerShaping,
+    context: 0,
+    specialHardware: 0,
+  };
+}
+
 /** A memory-phase profile: loads and stores through supplied types. */
 export function memoryDifficulty(
   size: number,

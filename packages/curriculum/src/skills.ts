@@ -193,4 +193,44 @@ export const skills: readonly Skill[] = [
     prerequisites: ["MIPS.LOAD.WORD"],
     manualEntry: "c.static-storage",
   },
+  {
+    id: "MIPS.DELAY_SLOT",
+    name: "Delay slots",
+    description:
+      "The instruction after a jump runs before the jump takes effect, so the compiler puts the last step of a function there.",
+    prerequisites: ["ABI.RETURN"],
+    manualEntry: "mips.delay-slots",
+  },
+  {
+    id: "MIPS.COMPARE",
+    name: "Set on less than",
+    description:
+      "slt and slti write 1 or 0 into a register, so a test in C produces a value like any other.",
+    prerequisites: ["MIPS.ARITH.ADD"],
+    manualEntry: "mips.comparison",
+  },
+  {
+    id: "MIPS.COMPARE.SIGNEDNESS",
+    name: "Test signedness",
+    description:
+      "The operands' declared signedness picks sltu over slt, the same rule that picks a load.",
+    prerequisites: ["MIPS.COMPARE", "MIPS.LOAD.SIGNEDNESS"],
+    manualEntry: "matching.signedness",
+  },
+  {
+    id: "MATCH.EXPRESSION_ORDER",
+    name: "Expression order",
+    description:
+      "There is no greater-than instruction, so a > b is written with its operands the other way round.",
+    prerequisites: ["MIPS.COMPARE"],
+    manualEntry: "matching.expression-shape",
+  },
+  {
+    id: "MATCH.SEMANTIC_VS_EXACT",
+    name: "Same meaning, different shape",
+    description:
+      "A test need not compile to a test: against zero the compiler reaches for the sign bit instead.",
+    prerequisites: ["MATCH.EXPRESSION_ORDER"],
+    manualEntry: "matching.expression-shape",
+  },
 ];

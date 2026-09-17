@@ -28,6 +28,12 @@ import { narrowStore } from "./021-narrow-store.ts";
 import { shiftRight } from "./022-shift-right.ts";
 import { staticStorage } from "./023-static-storage.ts";
 import { qualification04 } from "./024-qualification-04.ts";
+import { lessThan } from "./025-less-than.ts";
+import { unsignedTest } from "./026-unsigned-test.ts";
+import { otherWayRound } from "./027-other-way-round.ts";
+import { orEqual } from "./028-or-equal.ts";
+import { signBit } from "./029-sign-bit.ts";
+import { qualification05 } from "./030-qualification-05.ts";
 import type { MissionDraft } from "./authoring.ts";
 
 export type { MissionDraft } from "./authoring.ts";
@@ -67,4 +73,10 @@ export const missionDrafts: readonly MissionDraft[] = [
   shiftRight,
   staticStorage,
   qualification04,
+  lessThan,
+  unsignedTest,
+  otherWayRound,
+  orEqual,
+  signBit,
+  qualification05,
 ];
