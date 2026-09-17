@@ -56,6 +56,11 @@ describe("the first teaching slice", () => {
       "012C",
       "012D",
       "013",
+      "014",
+      "015",
+      "016",
+      "017",
+      "018",
       "F01",
       "F02",
       "F03",
@@ -98,7 +103,7 @@ describe("the first teaching slice", () => {
   });
 
   it("teaches nothing new in its synthesis missions", () => {
-    for (const id of ["005", "012", "013"]) {
+    for (const id of ["005", "012", "013", "018"]) {
       expect(mission(id).kind).toBe("synthesis");
       expect(mission(id).teaches).toEqual([]);
     }
@@ -179,6 +184,11 @@ describe("the first teaching slice", () => {
       "012C": ["C.POINTER.ARITHMETIC"],
       "012D": ["C.TYPEDEF"],
       "013": [],
+      "014": ["MIPS.ARITH.ADD"],
+      "015": ["MIPS.ARITH.SUBTRACT"],
+      "016": ["MIPS.REGISTER.TEMP"],
+      "017": ["C.BITMASK"],
+      "018": [],
     });
   });
 

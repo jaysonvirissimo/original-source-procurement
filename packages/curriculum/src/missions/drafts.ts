@@ -17,6 +17,11 @@ import { padding } from "./012B-padding.ts";
 import { pointerStep } from "./012C-pointer-step.ts";
 import { typeNames } from "./012D-type-names.ts";
 import { qualification02 } from "./013-qualification-02.ts";
+import { addRegisters } from "./014-add-registers.ts";
+import { subtractRegisters } from "./015-subtract-registers.ts";
+import { borrowedRegister } from "./016-borrowed-register.ts";
+import { lowBits } from "./017-low-bits.ts";
+import { qualification03 } from "./018-qualification-03.ts";
 import type { MissionDraft } from "./authoring.ts";
 
 export type { MissionDraft } from "./authoring.ts";
@@ -45,4 +50,9 @@ export const missionDrafts: readonly MissionDraft[] = [
   pointerStep,
   typeNames,
   qualification02,
+  addRegisters,
+  subtractRegisters,
+  borrowedRegister,
+  lowBits,
+  qualification03,
 ];

@@ -337,7 +337,8 @@ test("the primary flow works from the keyboard alone", async ({
 test("a fresh session plays the training missions on the default path, then points to the field", async ({
   page,
 }) => {
-  test.setTimeout(300_000);
+  // Sized for the whole synthetic path, which the Arithmetic phase lengthened.
+  test.setTimeout(420_000);
   const fullPath = defaultPath.map((id) => {
     const mission = missions.find((entry) => entry.id === id);
     if (mission === undefined) {

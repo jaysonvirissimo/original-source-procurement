@@ -119,6 +119,18 @@ export const manualEntries: readonly ManualEntry[] = [
     ],
   },
   {
+    id: "c.bit-operations",
+    section: "C",
+    title: "Bit operations",
+    body: [
+      "A value is a row of bits. & keeps a bit only where both sides have it, | keeps a bit where either side has it, and ^ keeps a bit where exactly one side has it.",
+      "A mask is a constant chosen for its bit pattern rather than its size. a & 0xFF keeps the low 8 bits and clears the rest, because 0xFF is eight 1 bits. The result is whatever those 8 bits held, so it ranges from 0 to 255.",
+      "Masking with a constant that fits in 16 bits compiles to one instruction, andi. A wider mask does not fit inside the instruction, so the compiler first builds the constant in a register and then uses the two-register form, and. Two instructions instead of one, from changing only the constant.",
+      "Between two registers the forms are and, or, and xor, with no constant to carry.",
+      "Masking and shifting are often used together: a shift moves the bits you want into place, and a mask discards the rest.",
+    ],
+  },
+  {
     id: "mips.arithmetic",
     section: "MIPS",
     title: "Arithmetic",
@@ -132,6 +144,9 @@ export const manualEntries: readonly ManualEntry[] = [
       "The listing shows immediates in hexadecimal: 0x5 is 5 and 0x2A is 42. Shift amounts are decimal.",
       "When one expression needs two steps, the compiler keeps the intermediate value in a register, often the destination register itself.",
       "C applies * before +, and + before <<. Parentheses change the order: (a + 3) * 4 adds first, while a + 3 * 4 multiplies 3 by 4 first.",
+      "addu $v0,$a0,$a1 adds two registers instead of a register and a constant, and subu $v0,$a0,$a1 subtracts the second from the first. Neither carries an immediate, so the order of the operands is the order in the source: b - a swaps the two registers rather than negating anything.",
+      "There is no subtract-immediate instruction. a - 5 therefore compiles to an add of a negative constant, and the listing shows it as one: addiu $v0,$a0,-0x5. Subtracting from a constant is different work, because the constant has to reach a register first, so 5 - a takes an extra instruction.",
+      "The compiler may reshape arithmetic into cheaper instructions. a * 2 becomes a single shift, and a * 3 becomes a shift followed by an add, because both are faster than a multiply. Several C expressions can therefore produce the same words, and matching one of them is a match.",
     ],
   },
   {
@@ -678,6 +693,46 @@ export const manualEntries: readonly ManualEntry[] = [
     title: "two's complement",
     body: [
       "How signed integers are stored: the top bit counts as negative. In a byte, 1111 1101 is -128 + 125 = -3.",
+    ],
+  },
+  {
+    id: "glossary.addu",
+    section: "GLOSSARY",
+    title: "addu",
+    body: [
+      "Add. addu $v0,$a0,$a1 writes the sum of two registers to a third. It carries no constant, unlike addiu. The u means an overflow does not stop the program.",
+    ],
+  },
+  {
+    id: "glossary.subu",
+    section: "GLOSSARY",
+    title: "subu",
+    body: [
+      "Subtract. subu $v0,$a0,$a1 writes the first register minus the second to a third. There is no subtract-immediate: subtracting a constant is an add of a negative one.",
+    ],
+  },
+  {
+    id: "glossary.and",
+    section: "GLOSSARY",
+    title: "and and andi",
+    body: [
+      "Bitwise and. andi $v0,$a0,0xFF keeps the bits of $a0 that the 16-bit constant also has, and clears the rest. and $v0,$a0,$a1 does the same between two registers, for a mask too wide to fit in the instruction.",
+    ],
+  },
+  {
+    id: "glossary.mask",
+    section: "GLOSSARY",
+    title: "mask",
+    body: [
+      "A constant chosen for its bit pattern rather than its size, used to keep some bits of a value and discard the others. 0xFF is a mask for the low 8 bits.",
+    ],
+  },
+  {
+    id: "glossary.v1",
+    section: "GLOSSARY",
+    title: "$v1",
+    body: [
+      "The second result register. A function that returns one integer does not need it, so the compiler is free to use it for an intermediate value.",
     ],
   },
   {

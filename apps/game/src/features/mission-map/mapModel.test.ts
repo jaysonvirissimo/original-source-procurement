@@ -228,6 +228,7 @@ describe("mapRegions", () => {
       ["phase", "Translation"],
       ["phase", "Memory"],
       ["phase", "Types and layout"],
+      ["phase", "Arithmetic"],
       ["field", "Field"],
       ["live", "Live"],
     ]);

@@ -123,4 +123,35 @@ export const skills: readonly Skill[] = [
     prerequisites: ["C.STRUCT.FIELD"],
     manualEntry: "c.typedef",
   },
+  {
+    id: "MIPS.ARITH.ADD",
+    name: "Register addition",
+    description: "addu adds two registers. subtracting a constant uses it too.",
+    prerequisites: ["MIPS.ARITH.ADD_IMMEDIATE"],
+    manualEntry: "mips.arithmetic",
+  },
+  {
+    id: "MIPS.ARITH.SUBTRACT",
+    name: "Subtraction",
+    description:
+      "subu subtracts one register from another, and there is no subtract-immediate.",
+    prerequisites: ["MIPS.ARITH.ADD"],
+    manualEntry: "mips.arithmetic",
+  },
+  {
+    id: "MIPS.REGISTER.TEMP",
+    name: "Borrowed registers",
+    description:
+      "An intermediate value lives in whatever register is free, including an argument register.",
+    prerequisites: ["MIPS.ARITH.ADD"],
+    manualEntry: "matching.register-reuse",
+  },
+  {
+    id: "C.BITMASK",
+    name: "Bit masks",
+    description:
+      "& keeps chosen bits of a value, and a constant mask that fits 16 bits compiles to one instruction.",
+    prerequisites: ["MIPS.ARITH.SHIFT"],
+    manualEntry: "c.bit-operations",
+  },
 ];
