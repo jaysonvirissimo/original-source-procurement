@@ -1194,5 +1194,392 @@ export const pointerCorpus: PointerCorpus = {
         specialHardware: 0,
       },
     },
+    {
+      schemaVersion: 1,
+      id: "F04",
+      title: "HAZARD CONTROL",
+      phase: "Memory widths",
+      kind: "real-solved",
+      source: {
+        kind: "mgs-reversing",
+        repository: "FoxdieTeam/mgs_reversing",
+        build: "default",
+        overlay: "main",
+        symbol: "GM_ConfigControlHazard",
+        address: 2147639852,
+        sourcePath: "source/game/control.c",
+      },
+      requires: ["C.STRUCT.LAYOUT", "C.TYPEDEF"],
+      teaches: [],
+      practices: [
+        "ABI.ARGUMENT",
+        "C.POINTER.DEREFERENCE",
+        "C.STRUCT.FIELD",
+        "C.INTEGER.WIDTH",
+        "MIPS.STORE.NARROW",
+      ],
+      scaffold: "field",
+      completion: "exact",
+      compiler: {
+        gpSize: 8,
+        aspsxVersion: "2.77",
+        rawFlags: ["-O2", "-g0", "-Wall"],
+        cppFlags: [
+          "-D__GNUC__=2",
+          "-D__OPTIMIZE__",
+          "-lang-c",
+          "-Dmips",
+          "-D__mips__",
+          "-D__mips",
+          "-Dpsx",
+          "-D__psx__",
+          "-D__psx",
+          "-D_PSYQ",
+          "-D__EXTENSIONS__",
+          "-D_MIPSEL",
+          "-D__CHAR_UNSIGNED__",
+          "-D_LANGUAGE_C",
+          "-DLANGUAGE_C",
+          "-DINTEGRAL",
+          "-Ipsyq/include",
+          "-Isource",
+          "-Isource/include",
+        ],
+        encoding: "eucjp",
+        filename: "control.c",
+        headers: {},
+        remoteHeaders: {
+          "psyq/include/gtemac.h": {
+            repository: "FoxdieTeam/psyq_sdk",
+            commit: "91719fa5bdca0b7e55c5c4b9e045da407db93510",
+            path: "psyq_4.4/include/gtemac.h",
+            sha256:
+              "ba0dec314f45c8433b99903f3ddcca27becf950d931443a3efde143e30969f5c",
+          },
+          "psyq/include/libetc.h": {
+            repository: "FoxdieTeam/psyq_sdk",
+            commit: "91719fa5bdca0b7e55c5c4b9e045da407db93510",
+            path: "psyq_4.4/include/libetc.h",
+            sha256:
+              "aa7c00aa9436562f9226461fdde85e38942d8326388ec0f6e9919eee8fd1e0af",
+          },
+          "psyq/include/libgpu.h": {
+            repository: "FoxdieTeam/psyq_sdk",
+            commit: "91719fa5bdca0b7e55c5c4b9e045da407db93510",
+            path: "psyq_4.4/include/libgpu.h",
+            sha256:
+              "570c094691dbddcce8aab8e50e0e87552464cb43ab07c5f2a33a8dd4899b822c",
+          },
+          "psyq/include/libgte.h": {
+            repository: "FoxdieTeam/psyq_sdk",
+            commit: "91719fa5bdca0b7e55c5c4b9e045da407db93510",
+            path: "psyq_4.4/include/libgte.h",
+            sha256:
+              "73f3f0935d0191f3fbb94541de19e7e5b4532f3e492c6261e97295fd60ef1e38",
+          },
+          "psyq/include/stddef.h": {
+            repository: "FoxdieTeam/psyq_sdk",
+            commit: "91719fa5bdca0b7e55c5c4b9e045da407db93510",
+            path: "psyq_4.4/include/stddef.h",
+            sha256:
+              "5e038138414f79b9e57a6d754081cd2d37d81132fa7380dc8f67e045e9c5d7a5",
+          },
+          "psyq/include/stdio.h": {
+            repository: "FoxdieTeam/psyq_sdk",
+            commit: "91719fa5bdca0b7e55c5c4b9e045da407db93510",
+            path: "psyq_4.4/include/stdio.h",
+            sha256:
+              "04b1c83ac8b0bb134d31d69b77e0f289b701e46037e1a4acfa8afc91ae2559be",
+          },
+          "psyq/include/sys/types.h": {
+            repository: "FoxdieTeam/psyq_sdk",
+            commit: "91719fa5bdca0b7e55c5c4b9e045da407db93510",
+            path: "psyq_4.4/include/sys/types.h",
+            sha256:
+              "815a444d268dfeed62804d44e30b23130ab378f4f29a6fff04e1d9eddebf19b7",
+          },
+          "source/font/font.h": {
+            repository: "FoxdieTeam/mgs_reversing",
+            commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            path: "source/font/font.h",
+            sha256:
+              "319feeacd29ae2088be6ea760bf34fddb23ae396f67188e73c24fac305f4094f",
+          },
+          "source/game/camera.h": {
+            repository: "FoxdieTeam/mgs_reversing",
+            commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            path: "source/game/camera.h",
+            sha256:
+              "bd170009cee346a36e3fac1af835a05a971d06d3389a2e0c1edbfa2c606b8b5a",
+          },
+          "source/game/g_define.h": {
+            repository: "FoxdieTeam/mgs_reversing",
+            commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            path: "source/game/g_define.h",
+            sha256:
+              "fa02623f3c5ee7aaf20fdca3fc9156f6e3c606278e1fd9dba8b6c3977f30aeff",
+          },
+          "source/game/g_extern.h": {
+            repository: "FoxdieTeam/mgs_reversing",
+            commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            path: "source/game/g_extern.h",
+            sha256:
+              "8f34b7cb1c72154c7bcf581d4541e5be66ec047a15b8941a5eff72d733cc11db",
+          },
+          "source/game/g_macro.h": {
+            repository: "FoxdieTeam/mgs_reversing",
+            commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            path: "source/game/g_macro.h",
+            sha256:
+              "4306f2b73b720be91b34324251b81dcefd62a087472066a77a5644527f5c99f5",
+          },
+          "source/game/g_struct.h": {
+            repository: "FoxdieTeam/mgs_reversing",
+            commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            path: "source/game/g_struct.h",
+            sha256:
+              "2127f5ff0cb476db935f9407a7c101033f9030f2daf1ebd245102f0b3751d7f3",
+          },
+          "source/game/game.h": {
+            repository: "FoxdieTeam/mgs_reversing",
+            commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            path: "source/game/game.h",
+            sha256:
+              "5adadd132e1428b9d29ac6fd14dbb0b74bf3d56298c8acd8346e178608971fab",
+          },
+          "source/game/strctrl.h": {
+            repository: "FoxdieTeam/mgs_reversing",
+            commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            path: "source/game/strctrl.h",
+            sha256:
+              "7ab99411e96cacb26f0f3c1aa1124cfd3e21d95d1983da402fd38f43a2224198",
+          },
+          "source/include/charadef.h": {
+            repository: "FoxdieTeam/mgs_reversing",
+            commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            path: "source/include/charadef.h",
+            sha256:
+              "4d41d0b49d481ea967afd19d7eb54ca3782c757940f5384c2ca575e5a01d5999",
+          },
+          "source/include/common.h": {
+            repository: "FoxdieTeam/mgs_reversing",
+            commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            path: "source/include/common.h",
+            sha256:
+              "c61d096de738a318b04e416531fed4f3739659d51253b8a80df1bb2b3cd50a11",
+          },
+          "source/include/fmt_hzd.h": {
+            repository: "FoxdieTeam/mgs_reversing",
+            commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            path: "source/include/fmt_hzd.h",
+            sha256:
+              "80ceb991b44fc0076eaba6438df279cc8c4df092dffa3566169228c94c5fdda2",
+          },
+          "source/include/fmt_img.h": {
+            repository: "FoxdieTeam/mgs_reversing",
+            commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            path: "source/include/fmt_img.h",
+            sha256:
+              "743d658d1da02058dda67ba392374179a50b8c2c081c7829635b0c397713cc6d",
+          },
+          "source/include/fmt_kmd.h": {
+            repository: "FoxdieTeam/mgs_reversing",
+            commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            path: "source/include/fmt_kmd.h",
+            sha256:
+              "64a1b0bf4ca5ed2841b55a5a79eb37cf6fbdbe80b5f5f4bca09bbc95e2daa686",
+          },
+          "source/include/fmt_lit.h": {
+            repository: "FoxdieTeam/mgs_reversing",
+            commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            path: "source/include/fmt_lit.h",
+            sha256:
+              "64f999c8d36203b0546e296bebfbf5e01eed9dfc12ee0004ea90dc588714eefb",
+          },
+          "source/include/fmt_mot.h": {
+            repository: "FoxdieTeam/mgs_reversing",
+            commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            path: "source/include/fmt_mot.h",
+            sha256:
+              "4a15a6b57f1c7f27b2c824a37cbba5cd250846d6b6319fb8b1f4f0d3f864d64e",
+          },
+          "source/include/fmt_tex.h": {
+            repository: "FoxdieTeam/mgs_reversing",
+            commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            path: "source/include/fmt_tex.h",
+            sha256:
+              "eee99c7035d44e923efcca3385a1df6c4d5e6f0e1c49ee993acd66f5ab17874d",
+          },
+          "source/include/inline_n.h": {
+            repository: "FoxdieTeam/mgs_reversing",
+            commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            path: "source/include/inline_n.h",
+            sha256:
+              "133e644d80c23e798cf05a73f7275c1d21fec9976940d58d22d93bc96457f8a0",
+          },
+          "source/include/psxdefs.h": {
+            repository: "FoxdieTeam/mgs_reversing",
+            commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            path: "source/include/psxdefs.h",
+            sha256:
+              "fe3ca48a455788a687f63ae54c7f4d6ef59cedcaf551359b80fa64d94765d9ef",
+          },
+          "source/include/strcode.h": {
+            repository: "FoxdieTeam/mgs_reversing",
+            commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            path: "source/include/strcode.h",
+            sha256:
+              "5ce5c6f8558fbf3b88fb93f5aa876f4e0c4efa03b08dc38eca28e11ed5ffac3e",
+          },
+          "source/libdg/libdg.h": {
+            repository: "FoxdieTeam/mgs_reversing",
+            commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            path: "source/libdg/libdg.h",
+            sha256:
+              "d86aa96996840920d16a284bae6b237021fcdf12772ab62ed6ae45161112fe01",
+          },
+          "source/libgcl/libgcl.h": {
+            repository: "FoxdieTeam/mgs_reversing",
+            commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            path: "source/libgcl/libgcl.h",
+            sha256:
+              "27776158a2c4c2d3bfe188f773284cd24cf1518bd0b1f16c8e9d41b695cf75e1",
+          },
+          "source/libgv/libgv.h": {
+            repository: "FoxdieTeam/mgs_reversing",
+            commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            path: "source/libgv/libgv.h",
+            sha256:
+              "5f2e7dae989094f386bb0c083f78220e680e3a18135a2e6f3ea9609b27d41d89",
+          },
+          "source/libhzd/libhzd.h": {
+            repository: "FoxdieTeam/mgs_reversing",
+            commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            path: "source/libhzd/libhzd.h",
+            sha256:
+              "e4ded2fec99c777e96f2df7417aafec1cc8e11382f90860a2f838087489819e5",
+          },
+          "source/memcard/memcard.h": {
+            repository: "FoxdieTeam/mgs_reversing",
+            commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            path: "source/memcard/memcard.h",
+            sha256:
+              "42b28beeb39ea65c09e8ae7e9c1d173b77f6cd242dd1b970b06570ee80d1e0e1",
+          },
+          "source/menu/face.h": {
+            repository: "FoxdieTeam/mgs_reversing",
+            commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            path: "source/menu/face.h",
+            sha256:
+              "bad79c79fcb63bf6f1a8d468b3ea9b3a9eedece80715ac182411c9c14b854d02",
+          },
+          "source/menu/menuman.h": {
+            repository: "FoxdieTeam/mgs_reversing",
+            commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            path: "source/menu/menuman.h",
+            sha256:
+              "011572dca18adc5ba0219ab853f3afdfc048b4d09052d170454275e6bcfa7437",
+          },
+          "source/sound/g_sound.h": {
+            repository: "FoxdieTeam/mgs_reversing",
+            commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            path: "source/sound/g_sound.h",
+            sha256:
+              "e6aac45d1c8162ef9a78324ec6486bf03a40d6bf4d5f5a39424d020d76573e8e",
+          },
+          "source/sound/sd_cli.h": {
+            repository: "FoxdieTeam/mgs_reversing",
+            commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            path: "source/sound/sd_cli.h",
+            sha256:
+              "e960b095d1704db9b1b9a8702f990a7b508a8f9612c064bbde6b59556f4d6a52",
+          },
+        },
+      },
+      briefing: {
+        objective:
+          "GM_ConfigControlHazard appears to configure hazard-related settings for a control object in the game. Write the function so it compiles to the four listed rows. It writes three argument values into separate half-width destinations in the object addressed by the first argument, without reading memory or doing arithmetic. Use the Context panel to read the declarations and the offset table to locate the destinations.",
+      },
+      contextTypes: ["CONTROL", "SVECTOR", "HZD_EVT"],
+      terms: [
+        "glossary.sb",
+        "glossary.halfword",
+        "glossary.short",
+        "glossary.offset",
+        "glossary.struct",
+        "glossary.embedded-struct",
+        "glossary.pointer",
+        "glossary.delay-slot",
+      ],
+      starterSource:
+        '#include "game/game.h"\n\nvoid GM_ConfigControlHazard(CONTROL *ctrl, int height, int r_sphere, int s_sphere)\n{\n}\n',
+      symbol: "GM_ConfigControlHazard",
+      target: {
+        kind: "remote",
+        commit: "da5ba84c216fda02f203f6fd43be2c2b09e7aac2",
+        path: "asm/Game/GM_ConfigControlHazard_8002622C.s",
+        wordCount: 4,
+        wordsSha256:
+          "ace5fc059d57953dae6ee85f9e0d009a89a4e914bd9562dcbd384e6d09d06d9d",
+      },
+      hints: [
+        {
+          stage: 1,
+          text: "Combine access through a struct pointer, narrow stores, and the rule that the instruction after a return still runs. The destinations determine the width of the writes, even though the incoming values are full-width. There is no memory read, calculation, or filler instruction.",
+        },
+        {
+          stage: 2,
+          text: "The highlighted row stores the second argument through the pointer supplied as the first argument. Match the offset in the highlighted row to the Context panel's offset table, then read the corresponding declaration to check the destination's width. The store's width comes from that destination; signedness does not change the store.",
+          highlight: { start: 0, end: 1 },
+        },
+        {
+          stage: 3,
+          text: "The first of the highlighted rows stores the third argument into another destination through the same pointer. The one that follows is the return. The last stores the fourth argument into a further destination through that pointer, and still runs because it occupies the slot after the return. Match each store to the offset table separately; sharing a pointer and a width does not make their destinations interchangeable.",
+          highlight: { start: 1, end: 4 },
+        },
+        {
+          stage: 4,
+          text: "Use three assignment statements, each writing an incoming value into a destination within the object addressed by the first argument. Keep the assignments in the order of the stores in the listing. The function returns no value and needs no explicit return statement. There are no local calculations, memory reads, conditions, or loops; the compiler can place the final store in the slot after the return.",
+        },
+        {
+          stage: 5,
+          text: "Here is the struct declaration. To match an offset to a field, add up the sizes of the fields before it, in order. Pointers and ints take 4 bytes on this machine, shorts take 2, and chars take 1. A field may be pushed forward so it lines up with its own size. A nested struct or array counts its whole size.",
+          reveal: {
+            repository: "FoxdieTeam/mgs_reversing",
+            commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            path: "source/game/g_struct.h",
+            sha256:
+              "2127f5ff0cb476db935f9407a7c101033f9030f2daf1ebd245102f0b3751d7f3",
+            lines: { start: 31, end: 56 },
+          },
+        },
+        {
+          stage: 6,
+          text: "A different offset suggests that you selected a different destination: revisit the offset table. A different store width suggests that the destination's declared type does not match the listing. If the right operation appears in the wrong position, check the assignment order and account for the slot after the return. Compare both what each row does and where it appears.",
+        },
+        {
+          stage: 9,
+          text: "Known matching solution:",
+          reveal: {
+            repository: "FoxdieTeam/mgs_reversing",
+            commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            path: "source/game/control.c",
+            sha256:
+              "99fe075dc074dd4aea32a549f81b6ec70d0f3446a14f16965b3fc7d5de0b05a6",
+            lines: { start: 467, end: 472 },
+          },
+        },
+      ],
+      difficulty: {
+        size: 4,
+        controlFlow: 2,
+        memory: 4,
+        abi: 0,
+        types: 3,
+        compilerShaping: 1,
+        context: 35,
+        specialHardware: 0,
+      },
+    },
   ],
 };

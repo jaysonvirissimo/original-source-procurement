@@ -28,13 +28,11 @@ describe("runValidation", () => {
   it("reports the shipped curriculum as valid and exits 0", async () => {
     const { output, log, error } = capture();
     await expect(runValidation(curriculum, output)).resolves.toBe(0);
-    expect(log[0]).toBe(
-      "Curriculum is valid: 25 skills, 33 missions, 33 on the default path.",
-    );
-    expect(log).toContain(
-      `warning: defaultPath: No real mission appears before the final phase, "Field work". [no-early-real-mission]`,
-    );
-    expect(log.at(-1)).toBe("Coverage: 1 warning, not yet blocking.");
+    // The last coverage warning was retired when a real mission joined the
+    // path ahead of the final phase, so nothing follows the valid line.
+    expect(log).toEqual([
+      "Curriculum is valid: 25 skills, 34 missions, 34 on the default path.",
+    ]);
     expect(error).toEqual([]);
   });
 

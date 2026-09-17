@@ -1,8 +1,8 @@
 export {
   difficultyOf,
+  earlyFieldCandidate,
   featureTags,
   functionFacts,
-  phaseZeroToFourCandidate,
   FEATURE_TAGS,
   type FeatureTag,
   type FunctionFacts,

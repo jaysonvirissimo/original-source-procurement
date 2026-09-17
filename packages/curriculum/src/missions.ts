@@ -120,6 +120,7 @@ export const defaultPath: readonly string[] = [
   "022",
   "023",
   "024",
+  "F04",
   "F01",
   "F02",
   "F03",

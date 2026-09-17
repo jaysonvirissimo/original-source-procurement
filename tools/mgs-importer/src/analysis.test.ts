@@ -2,10 +2,10 @@ import { encode } from "psyq-asm";
 import { describe, expect, it } from "vitest";
 import {
   difficultyOf,
+  earlyFieldCandidate,
   featureTags,
   functionFacts,
   FEATURE_TAGS,
-  phaseZeroToFourCandidate,
 } from "./analysis.ts";
 import { SAMPLE_FACTS } from "./testing.ts";
 
@@ -272,10 +272,10 @@ describe("featureTags", () => {
   });
 });
 
-describe("phaseZeroToFourCandidate", () => {
+describe("earlyFieldCandidate", () => {
   it("accepts loads, stores, and the return jump", () => {
     expect(
-      phaseZeroToFourCandidate({ ...SAMPLE_FACTS, stores: 2, narrowLoads: 1 }),
+      earlyFieldCandidate({ ...SAMPLE_FACTS, stores: 2, narrowLoads: 1 }),
     ).toBe(true);
   });
 
@@ -283,7 +283,7 @@ describe("phaseZeroToFourCandidate", () => {
     // Neither access is based on an argument register once the chain starts,
     // and following one is taught before the field missions.
     expect(
-      phaseZeroToFourCandidate({
+      earlyFieldCandidate({
         ...SAMPLE_FACTS,
         loads: 2,
         fieldAccesses: 2,
@@ -291,6 +291,13 @@ describe("phaseZeroToFourCandidate", () => {
       }),
     ).toBe(true);
   });
+
+  it.each(["narrowStores", "gpAccesses", "absoluteAccesses"] as const)(
+    "accepts a function with %s, which the course now teaches",
+    (fact) => {
+      expect(earlyFieldCandidate({ ...SAMPLE_FACTS, [fact]: 1 })).toBe(true);
+    },
+  );
 
   it.each([
     "calls",
@@ -300,12 +307,7 @@ describe("phaseZeroToFourCandidate", () => {
     "coprocessor",
     "multiplyDivide",
     "assemblerTemporary",
-    "narrowStores",
-    "gpAccesses",
-    "upperImmediates",
   ] as const)("rejects a function with %s", (fact) => {
-    expect(phaseZeroToFourCandidate({ ...SAMPLE_FACTS, [fact]: 1 })).toBe(
-      false,
-    );
+    expect(earlyFieldCandidate({ ...SAMPLE_FACTS, [fact]: 1 })).toBe(false);
   });
 });

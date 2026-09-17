@@ -112,7 +112,7 @@ describe("renderReviewReport", () => {
       renderReviewReport(importIndex(), verdictIndex({ functions: many })),
     ).toContain("and 5 more");
   });
-  describe("the Phase 0–4 shortlist", () => {
+  describe("the early field shortlist", () => {
     const exact = (symbol: string, sourcePath = "source/sample/sample.c") => ({
       symbol,
       sourcePath,
@@ -124,11 +124,11 @@ describe("renderReviewReport", () => {
         pinned: pinnedTarget({ facts: { ...SAMPLE_FACTS, ...facts } }),
       });
     const shortlistOf = (text: string) =>
-      text.slice(text.indexOf("## Phase 0–4 shortlist"));
+      text.slice(text.indexOf("## Early field shortlist"));
 
     it("is left out until the sweep has run", () => {
       expect(renderReviewReport(importIndex())).not.toContain(
-        "Phase 0–4 shortlist",
+        "Early field shortlist",
       );
     });
 
@@ -157,28 +157,23 @@ describe("renderReviewReport", () => {
         ),
       );
       expect(text).toContain(
-        "| smaller | 3 | 1 | 0 | 0 | 1 | 0 | 1 | source/sample/sample.c |",
+        "| smaller | 3 | 1 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 1 | source/sample/sample.c |",
       );
       expect(text).toContain(
-        "| larger | 6 | 1 | 2 | 1 | 1 | 8 | 1 | source/other/other.c |",
+        "| larger | 6 | 1 | 2 | 1 | 0 | 1 | 0 | 0 | 8 | 1 | source/other/other.c |",
       );
       expect(text.indexOf("| smaller |")).toBeLessThan(
         text.indexOf("| larger |"),
       );
     });
 
-    it("leaves out mismatches, used symbols, and functions reaching past their arguments", () => {
+    it("leaves out mismatches, used symbols, and untaught machinery", () => {
       const text = shortlistOf(
         renderReviewReport(
           importIndex({
             functions: [
               record("calls", { calls: 1 }),
-              record("narrow_store", { narrowStores: 1 }),
-              record("global_pointer", { gpAccesses: 1 }),
-              record("absolute", {
-                upperImmediates: 1,
-                absoluteAccesses: 1,
-              }),
+              record("stack", { stackAccesses: 1 }),
               record("used"),
               record("mismatched"),
             ],
@@ -186,9 +181,7 @@ describe("renderReviewReport", () => {
           verdictIndex({
             functions: [
               exact("calls"),
-              exact("narrow_store"),
-              exact("global_pointer"),
-              exact("absolute"),
+              exact("stack"),
               exact("used"),
               {
                 symbol: "mismatched",
@@ -202,6 +195,38 @@ describe("renderReviewReport", () => {
         ),
       );
       expect(text).toContain("None.");
+    });
+
+    it("keeps narrow stores and global storage, and shows which each uses", () => {
+      // The course teaches both by the memory widths phase, so the shortlist
+      // reports the shape in a column rather than filtering the function out.
+      const text = shortlistOf(
+        renderReviewReport(
+          importIndex({
+            functions: [
+              record("narrow_store", { narrowStores: 1, stores: 1 }),
+              record("global_pointer", { gpAccesses: 1 }),
+              record("absolute", { upperImmediates: 1, absoluteAccesses: 1 }),
+            ],
+          }),
+          verdictIndex({
+            functions: [
+              exact("narrow_store"),
+              exact("global_pointer"),
+              exact("absolute"),
+            ],
+          }),
+        ),
+      );
+      expect(text).toContain(
+        "| narrow_store | 4 | 1 | 1 | 0 | 1 | 1 | 0 | 0 | 0 | 1 | source/sample/sample.c |",
+      );
+      expect(text).toContain(
+        "| global_pointer | 4 | 1 | 0 | 0 | 0 | 1 | 1 | 0 | 0 | 1 | source/sample/sample.c |",
+      );
+      expect(text).toContain(
+        "| absolute | 4 | 1 | 0 | 0 | 0 | 1 | 0 | 1 | 0 | 1 | source/sample/sample.c |",
+      );
     });
 
     it("marks a file missing from the import instead of guessing", () => {
@@ -232,10 +257,10 @@ describe("renderReviewReport", () => {
         ),
       );
       expect(text).toContain(
-        "| bare | 4 | 1 | 0 | 0 | 1 | 0 | 0 | source/sample/sample.c |",
+        "| bare | 4 | 1 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | source/sample/sample.c |",
       );
       expect(text).toContain(
-        "| orphan | 4 | 1 | 0 | 0 | 1 | ? | ? | source/gone/gone.c |",
+        "| orphan | 4 | 1 | 0 | 0 | 0 | 1 | 0 | 0 | ? | ? | source/gone/gone.c |",
       );
       expect(text).not.toContain("| unpinned |");
     });

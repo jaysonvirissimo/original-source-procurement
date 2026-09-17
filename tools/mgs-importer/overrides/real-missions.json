@@ -267,6 +267,96 @@
         }
       ],
       "reviewedAt": "2026-09-17"
+    },
+    {
+      "symbol": "GM_ConfigControlHazard",
+      "id": "F04",
+      "title": "HAZARD CONTROL",
+      "phase": "Memory widths",
+      "kind": "real-solved",
+      "scaffold": "field",
+      "requires": ["C.STRUCT.LAYOUT", "C.TYPEDEF"],
+      "practices": [
+        "ABI.ARGUMENT",
+        "C.POINTER.DEREFERENCE",
+        "C.STRUCT.FIELD",
+        "C.INTEGER.WIDTH",
+        "MIPS.STORE.NARROW"
+      ],
+      "briefing": {
+        "objective": "GM_ConfigControlHazard appears to configure hazard-related settings for a control object in the game. Write the function so it compiles to the four listed rows. It writes three argument values into separate half-width destinations in the object addressed by the first argument, without reading memory or doing arithmetic. Use the Context panel to read the declarations and the offset table to locate the destinations."
+      },
+      "contextTypes": ["CONTROL", "SVECTOR", "HZD_EVT"],
+      "terms": [
+        "glossary.sb",
+        "glossary.halfword",
+        "glossary.short",
+        "glossary.offset",
+        "glossary.struct",
+        "glossary.embedded-struct",
+        "glossary.pointer",
+        "glossary.delay-slot"
+      ],
+      "starterSource": "#include \"game/game.h\"\n\nvoid GM_ConfigControlHazard(CONTROL *ctrl, int height, int r_sphere, int s_sphere)\n{\n}\n",
+      "hints": [
+        {
+          "stage": 1,
+          "text": "Combine access through a struct pointer, narrow stores, and the rule that the instruction after a return still runs. The destinations determine the width of the writes, even though the incoming values are full-width. There is no memory read, calculation, or filler instruction."
+        },
+        {
+          "stage": 2,
+          "text": "The highlighted row stores the second argument through the pointer supplied as the first argument. Match the offset in the highlighted row to the Context panel's offset table, then read the corresponding declaration to check the destination's width. The store's width comes from that destination; signedness does not change the store.",
+          "highlight": {
+            "start": 0,
+            "end": 1
+          }
+        },
+        {
+          "stage": 3,
+          "text": "The first of the highlighted rows stores the third argument into another destination through the same pointer. The one that follows is the return. The last stores the fourth argument into a further destination through that pointer, and still runs because it occupies the slot after the return. Match each store to the offset table separately; sharing a pointer and a width does not make their destinations interchangeable.",
+          "highlight": {
+            "start": 1,
+            "end": 4
+          }
+        },
+        {
+          "stage": 4,
+          "text": "Use three assignment statements, each writing an incoming value into a destination within the object addressed by the first argument. Keep the assignments in the order of the stores in the listing. The function returns no value and needs no explicit return statement. There are no local calculations, memory reads, conditions, or loops; the compiler can place the final store in the slot after the return."
+        },
+        {
+          "stage": 5,
+          "text": "Here is the struct declaration. To match an offset to a field, add up the sizes of the fields before it, in order. Pointers and ints take 4 bytes on this machine, shorts take 2, and chars take 1. A field may be pushed forward so it lines up with its own size. A nested struct or array counts its whole size.",
+          "reveal": {
+            "repository": "FoxdieTeam/mgs_reversing",
+            "commit": "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            "path": "source/game/g_struct.h",
+            "sha256": "2127f5ff0cb476db935f9407a7c101033f9030f2daf1ebd245102f0b3751d7f3",
+            "lines": {
+              "start": 31,
+              "end": 56
+            }
+          }
+        },
+        {
+          "stage": 6,
+          "text": "A different offset suggests that you selected a different destination: revisit the offset table. A different store width suggests that the destination's declared type does not match the listing. If the right operation appears in the wrong position, check the assignment order and account for the slot after the return. Compare both what each row does and where it appears."
+        },
+        {
+          "stage": 9,
+          "text": "Known matching solution:",
+          "reveal": {
+            "repository": "FoxdieTeam/mgs_reversing",
+            "commit": "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            "path": "source/game/control.c",
+            "sha256": "99fe075dc074dd4aea32a549f81b6ec70d0f3446a14f16965b3fc7d5de0b05a6",
+            "lines": {
+              "start": 467,
+              "end": 472
+            }
+          }
+        }
+      ],
+      "reviewedAt": "2026-09-17"
     }
   ]
 }

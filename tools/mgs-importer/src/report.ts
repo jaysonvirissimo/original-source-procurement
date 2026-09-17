@@ -1,4 +1,4 @@
-import { phaseZeroToFourCandidate } from "./analysis.ts";
+import { earlyFieldCandidate } from "./analysis.ts";
 import type {
   FileRecord,
   FunctionRecord,
@@ -137,16 +137,16 @@ function renderVerdicts(
 
   lines.push(
     "",
-    "## Phase 0–4 shortlist (call-free, branch-free, exact)",
+    "## Early field shortlist (call-free, branch-free, exact)",
     "",
-    "Exact functions with no calls, branches, loops, stack frame, coprocessor, multiply or divide, assembler temporary, narrow stores, or global storage, not already used by a reviewed mission. The arg base column counts the loads and stores reached through an argument register; the rest of a function's accesses follow a pointer it loaded.",
+    "Exact functions with no calls, branches, loops, stack frame, coprocessor, multiply or divide, or assembler temporary, not already used by a reviewed mission. Width and base are columns rather than filters, because the course teaches both. The arg base column counts the loads and stores reached through an argument register, gp those reached through the global pointer, and abs those reached through an address the function built; the rest follow a pointer it loaded.",
     "",
   );
   const shortlist = exact
     .flatMap((entry) =>
       entry.pinned !== undefined &&
       !usedSymbols.has(entry.symbol) &&
-      phaseZeroToFourCandidate(entry.pinned.facts)
+      earlyFieldCandidate(entry.pinned.facts)
         ? [{ ...entry, facts: entry.pinned.facts }]
         : [],
     )
@@ -155,13 +155,13 @@ function renderVerdicts(
     lines.push("None.");
   } else {
     lines.push(
-      "| symbol | words | loads | stores | narrow loads | arg base | gpSize | headers | source path |",
-      "| --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+      "| symbol | words | loads | stores | narrow loads | narrow stores | arg base | gp | abs | gpSize | headers | source path |",
+      "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
     );
     for (const { symbol, facts, sourcePath } of shortlist) {
       const file = files.get(sourcePath);
       lines.push(
-        `| ${symbol} | ${String(facts.words)} | ${String(facts.loads)} | ${String(facts.stores)} | ${String(facts.narrowLoads)} | ${String(facts.argumentBaseAccesses)} | ${gpSizeOf(file)} | ${headersOf(file)} | ${sourcePath} |`,
+        `| ${symbol} | ${String(facts.words)} | ${String(facts.loads)} | ${String(facts.stores)} | ${String(facts.narrowLoads)} | ${String(facts.narrowStores)} | ${String(facts.argumentBaseAccesses)} | ${String(facts.gpAccesses)} | ${String(facts.absoluteAccesses)} | ${gpSizeOf(file)} | ${headersOf(file)} | ${sourcePath} |`,
       );
     }
   }

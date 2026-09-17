@@ -99,13 +99,11 @@ describe("curriculumCoverage", () => {
     expect(curriculumCoverage([], ["missing"])).toEqual([]);
   });
 
-  it("pins the shipped curriculum's current findings", () => {
+  it("finds nothing left to warn about in the shipped curriculum", () => {
     expect(
       curriculumCoverage(missions, defaultPath).map(
         ({ code, message }) => `${code}: ${message}`,
       ),
-    ).toEqual([
-      'no-early-real-mission: No real mission appears before the final phase, "Field work".',
-    ]);
+    ).toEqual([]);
   });
 });

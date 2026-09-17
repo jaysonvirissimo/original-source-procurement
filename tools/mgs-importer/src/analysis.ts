@@ -278,19 +278,19 @@ export function featureTags(facts: FunctionFacts): FeatureTag[] {
 }
 
 /**
- * Whether a function fits the first field missions: no calls, branches,
- * loops, stack frame, coprocessor, multiply or divide, assembler temporary,
- * or narrow stores. Jumps are allowed, because returning is one.
+ * Whether a function fits a field mission the course has already prepared a
+ * player for: no calls, branches, loops, stack frame, coprocessor, multiply
+ * or divide, and no assembler temporary. Jumps are allowed, because returning
+ * is one.
  *
- * It must also touch no file-level or global storage. Such a function reads
- * or writes something the caller never handed it, which the early field
- * missions have not taught, and a plain count of offset accesses cannot tell
- * one from a field reached through an argument. A global is reached either
- * through the global pointer or through an address built with an upper
- * immediate, so both are rejected; rejecting every upper immediate also keeps
- * out large constants, which are equally untaught.
+ * Storage shape is deliberately not a gate. The course once taught neither
+ * narrow stores nor variables the caller never handed over, so both were
+ * rejected outright; it now teaches both, and a candidate's width and base
+ * counts are columns in the review report for a maintainer to read. What
+ * stays rejected is control flow and machinery a mission would have to
+ * explain before it could teach anything else.
  */
-export function phaseZeroToFourCandidate(facts: FunctionFacts): boolean {
+export function earlyFieldCandidate(facts: FunctionFacts): boolean {
   return (
     facts.calls === 0 &&
     facts.branches === 0 &&
@@ -298,9 +298,6 @@ export function phaseZeroToFourCandidate(facts: FunctionFacts): boolean {
     facts.stackAccesses === 0 &&
     facts.coprocessor === 0 &&
     facts.multiplyDivide === 0 &&
-    facts.assemblerTemporary === 0 &&
-    facts.narrowStores === 0 &&
-    facts.gpAccesses === 0 &&
-    facts.upperImmediates === 0
+    facts.assemblerTemporary === 0
   );
 }
