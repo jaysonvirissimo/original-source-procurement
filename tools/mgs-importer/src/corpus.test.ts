@@ -68,6 +68,17 @@ describe("buildMission", () => {
     ).toEqual(["SAMPLE", "struct sample"]);
   });
 
+  it("copies glossary terms only when the override lists them", () => {
+    expect(mission.terms).toBeUndefined();
+    expect(
+      buildMission(
+        { ...override, terms: ["glossary.word"] },
+        functionRecord(),
+        fileRecord(),
+      ).terms,
+    ).toEqual(["glossary.word"]);
+  });
+
   it("teaches nothing and carries no known solution", () => {
     expect(mission.teaches).toEqual([]);
     expect(mission.solution).toBeUndefined();

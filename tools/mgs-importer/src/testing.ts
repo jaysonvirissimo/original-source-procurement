@@ -33,6 +33,8 @@ export const SAMPLE_FACTS: FunctionFacts = {
   loadForms: 1,
   storeForms: 0,
   signedLoads: 0,
+  narrowLoads: 0,
+  narrowStores: 0,
   narrowAccesses: 0,
   fieldAccesses: 1,
   stackAccesses: 0,

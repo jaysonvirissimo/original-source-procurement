@@ -79,6 +79,7 @@ export {
   SkillIdSchema,
   SymbolSchema,
   type SkillId,
+  uniqueArray,
 } from "./primitives.ts";
 export {
   RemoteCReferenceSchema,

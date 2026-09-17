@@ -77,6 +77,8 @@ A synthetic mission's source may `#include` OSP-authored headers. Pass them to `
 
 A mission that asks the player to reason about a type's layout lists it in `contextTypes`, by name only, such as `"struct Mixed"` or `"KCB"`. The Context panel then shows a field-offset table computed by the pinned compiler at runtime. Never list members or offsets in mission data: for a real mission they come from upstream headers. Validation checks that a synthetic mission declares each type, and `apps/game/src/features/context/offsetProbe.node.test.ts` measures every shipped real mission's types from local checkouts.
 
+A real mission cannot teach, so its override links glossary entries through `terms` instead. List a term when solving depends on a mechanism the target shows but the listed skills do not name, such as a store that runs in a return delay slot. The Manual panel lists those entries under This mission.
+
 Package sources that `pnpm curriculum:validate` loads run directly on Node.js with type stripping, so relative imports in `mission-schema` and `curriculum` use explicit `.ts` extensions and only erasable TypeScript syntax.
 
 ## Toolchain boundaries

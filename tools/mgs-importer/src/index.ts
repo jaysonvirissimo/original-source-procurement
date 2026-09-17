@@ -2,6 +2,7 @@ export {
   difficultyOf,
   featureTags,
   functionFacts,
+  phaseZeroToFourCandidate,
   FEATURE_TAGS,
   type FeatureTag,
   type FunctionFacts,

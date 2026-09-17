@@ -1,4 +1,10 @@
-import type { FunctionRecord, ImportIndex, VerdictIndex } from "./records.ts";
+import { phaseZeroToFourCandidate } from "./analysis.ts";
+import type {
+  FileRecord,
+  FunctionRecord,
+  ImportIndex,
+  VerdictIndex,
+} from "./records.ts";
 
 /**
  * The reviewer's view of one import.
@@ -7,10 +13,14 @@ import type { FunctionRecord, ImportIndex, VerdictIndex } from "./records.ts";
  * lists no target words: the report is a working file in an ignored
  * directory, and keeping it free of content keeps it safe to paste into an
  * issue or a pull request.
+ *
+ * `usedSymbols` names functions that already back a reviewed mission, so the
+ * shortlist offers only new ones.
  */
 export function renderReviewReport(
   index: ImportIndex,
   verdicts?: VerdictIndex,
+  usedSymbols: ReadonlySet<string> = new Set(),
 ): string {
   const solved = index.functions.filter((entry) => entry.status === "SOLVED");
   const pinned = solved.flatMap((entry) =>
@@ -72,7 +82,7 @@ export function renderReviewReport(
   lines.push("");
 
   if (verdicts !== undefined) {
-    lines.push(...renderVerdicts(verdicts));
+    lines.push(...renderVerdicts(index, verdicts, usedSymbols));
   }
 
   return lines.join("\n");
@@ -86,7 +96,11 @@ function detailOf(entry: FunctionRecord): string {
   return detail === undefined ? "" : ` — ${detail}`;
 }
 
-function renderVerdicts(verdicts: VerdictIndex): string[] {
+function renderVerdicts(
+  index: ImportIndex,
+  verdicts: VerdictIndex,
+  usedSymbols: ReadonlySet<string>,
+): string[] {
   const counts = new Map<string, number>();
   for (const entry of verdicts.functions) {
     counts.set(entry.verdict, (counts.get(entry.verdict) ?? 0) + 1);
@@ -97,14 +111,78 @@ function renderVerdicts(verdicts: VerdictIndex): string[] {
   )) {
     lines.push(`- ${verdict}: ${String(count)}`);
   }
+
+  const pinned = new Map(
+    index.functions.flatMap((entry) =>
+      entry.pinned === undefined ? [] : [[entry.symbol, entry.pinned] as const],
+    ),
+  );
+  const files = new Map(index.files.map((file) => [file.path, file]));
+  const exact = verdicts.functions
+    .filter((entry) => entry.verdict === "exact")
+    .map((entry) => ({ ...entry, pinned: pinned.get(entry.symbol) }))
+    .toSorted(
+      (a, b) =>
+        wordsOf(a.pinned) - wordsOf(b.pinned) ||
+        a.symbol.localeCompare(b.symbol),
+    );
+
   lines.push("", "### Exact candidates, smallest first", "");
-  const exact = verdicts.functions.filter((entry) => entry.verdict === "exact");
   for (const entry of exact.slice(0, CANDIDATE_LIMIT)) {
     lines.push(`- ${entry.symbol} — ${entry.sourcePath}`);
   }
   if (exact.length > CANDIDATE_LIMIT) {
     lines.push(`- … and ${String(exact.length - CANDIDATE_LIMIT)} more`);
   }
+
+  lines.push(
+    "",
+    "## Phase 0–4 shortlist (call-free, branch-free, exact)",
+    "",
+    "Exact functions with no calls, branches, loops, stack frame, coprocessor, multiply or divide, assembler temporary, or narrow stores, not already used by a reviewed mission.",
+    "",
+  );
+  const shortlist = exact
+    .flatMap((entry) =>
+      entry.pinned !== undefined &&
+      !usedSymbols.has(entry.symbol) &&
+      phaseZeroToFourCandidate(entry.pinned.facts)
+        ? [{ ...entry, facts: entry.pinned.facts }]
+        : [],
+    )
+    .slice(0, CANDIDATE_LIMIT);
+  if (shortlist.length === 0) {
+    lines.push("None.");
+  } else {
+    lines.push(
+      "| symbol | words | loads | stores | narrow loads | gpSize | headers | source path |",
+      "| --- | --- | --- | --- | --- | --- | --- | --- |",
+    );
+    for (const { symbol, facts, sourcePath } of shortlist) {
+      const file = files.get(sourcePath);
+      lines.push(
+        `| ${symbol} | ${String(facts.words)} | ${String(facts.loads)} | ${String(facts.stores)} | ${String(facts.narrowLoads)} | ${gpSizeOf(file)} | ${headersOf(file)} | ${sourcePath} |`,
+      );
+    }
+  }
   lines.push("");
   return lines;
+}
+
+/** Candidates without a pinned target sort last. */
+function wordsOf(
+  pinned: { readonly facts: { readonly words: number } } | undefined,
+): number {
+  return pinned?.facts.words ?? Number.POSITIVE_INFINITY;
+}
+
+function gpSizeOf(file: FileRecord | undefined): string {
+  return file === undefined ? "?" : String(file.compiler.gpSize);
+}
+
+function headersOf(file: FileRecord | undefined): string {
+  const headers = file?.compiler.remoteHeaders;
+  return file === undefined
+    ? "?"
+    : String(headers === undefined ? 0 : Object.keys(headers).length);
 }
