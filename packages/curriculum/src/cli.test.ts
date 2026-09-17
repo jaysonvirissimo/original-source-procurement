@@ -29,12 +29,12 @@ describe("runValidation", () => {
     const { output, log, error } = capture();
     await expect(runValidation(curriculum, output)).resolves.toBe(0);
     expect(log[0]).toBe(
-      "Curriculum is valid: 20 skills, 27 missions, 27 on the default path.",
+      "Curriculum is valid: 25 skills, 33 missions, 33 on the default path.",
     );
     expect(log).toContain(
-      "warning: defaultPath[10]: MATCH.SIGNEDNESS is taught by 011 and never practiced later on the default path. [no-later-practice]",
+      `warning: defaultPath: No real mission appears before the final phase, "Field work". [no-early-real-mission]`,
     );
-    expect(log.at(-1)).toBe("Coverage: 2 warnings, not yet blocking.");
+    expect(log.at(-1)).toBe("Coverage: 1 warning, not yet blocking.");
     expect(error).toEqual([]);
   });
 

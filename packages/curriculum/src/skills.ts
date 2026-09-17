@@ -154,4 +154,43 @@ export const skills: readonly Skill[] = [
     prerequisites: ["MIPS.ARITH.SHIFT"],
     manualEntry: "c.bit-operations",
   },
+  {
+    id: "MIPS.LOAD.HALF",
+    name: "Load halfword",
+    description: "lh sign-extends a 16-bit load and lhu zero-extends it.",
+    prerequisites: ["C.INTEGER.WIDTH"],
+    manualEntry: "mips.loads-and-stores",
+  },
+  {
+    id: "MIPS.LOAD.SIGNEDNESS",
+    name: "Load signedness",
+    description:
+      "A field's declared signedness picks the load at every width, not just at a byte.",
+    prerequisites: ["MIPS.LOAD.HALF"],
+    manualEntry: "matching.signedness",
+  },
+  {
+    id: "MIPS.STORE.NARROW",
+    name: "Narrow stores",
+    description:
+      "sb and sh write 1 and 2 bytes, and a store has no signedness of its own.",
+    prerequisites: ["MIPS.STORE.WORD", "MIPS.LOAD.HALF"],
+    manualEntry: "mips.loads-and-stores",
+  },
+  {
+    id: "C.SHIFT",
+    name: "Right shifts",
+    description:
+      "An unsigned value shifts right with srl and a signed one with sra, which keeps its sign.",
+    prerequisites: ["MIPS.ARITH.SHIFT"],
+    manualEntry: "mips.arithmetic",
+  },
+  {
+    id: "C.STORAGE.STATIC",
+    name: "Static storage",
+    description:
+      "A variable declared outside a function sits at a fixed address the function builds for itself.",
+    prerequisites: ["MIPS.LOAD.WORD"],
+    manualEntry: "c.static-storage",
+  },
 ];

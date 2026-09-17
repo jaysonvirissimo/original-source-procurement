@@ -22,6 +22,12 @@ import { subtractRegisters } from "./015-subtract-registers.ts";
 import { borrowedRegister } from "./016-borrowed-register.ts";
 import { lowBits } from "./017-low-bits.ts";
 import { qualification03 } from "./018-qualification-03.ts";
+import { unsignedHalf } from "./019-unsigned-half.ts";
+import { halfSign } from "./020-half-sign.ts";
+import { narrowStore } from "./021-narrow-store.ts";
+import { shiftRight } from "./022-shift-right.ts";
+import { staticStorage } from "./023-static-storage.ts";
+import { qualification04 } from "./024-qualification-04.ts";
 import type { MissionDraft } from "./authoring.ts";
 
 export type { MissionDraft } from "./authoring.ts";
@@ -55,4 +61,10 @@ export const missionDrafts: readonly MissionDraft[] = [
   borrowedRegister,
   lowBits,
   qualification03,
+  unsignedHalf,
+  halfSign,
+  narrowStore,
+  shiftRight,
+  staticStorage,
+  qualification04,
 ];

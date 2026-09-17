@@ -61,6 +61,12 @@ describe("the first teaching slice", () => {
       "016",
       "017",
       "018",
+      "019",
+      "020",
+      "021",
+      "022",
+      "023",
+      "024",
       "F01",
       "F02",
       "F03",
@@ -103,7 +109,7 @@ describe("the first teaching slice", () => {
   });
 
   it("teaches nothing new in its synthesis missions", () => {
-    for (const id of ["005", "012", "013", "018"]) {
+    for (const id of ["005", "012", "013", "018", "024"]) {
       expect(mission(id).kind).toBe("synthesis");
       expect(mission(id).teaches).toEqual([]);
     }
@@ -189,6 +195,12 @@ describe("the first teaching slice", () => {
       "016": ["MIPS.REGISTER.TEMP"],
       "017": ["C.BITMASK"],
       "018": [],
+      "019": ["MIPS.LOAD.HALF"],
+      "020": ["MIPS.LOAD.SIGNEDNESS"],
+      "021": ["MIPS.STORE.NARROW"],
+      "022": ["C.SHIFT"],
+      "023": ["C.STORAGE.STATIC"],
+      "024": [],
     });
   });
 

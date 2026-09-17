@@ -131,6 +131,18 @@ export const manualEntries: readonly ManualEntry[] = [
     ],
   },
   {
+    id: "c.static-storage",
+    section: "C",
+    title: "Static storage",
+    body: [
+      "A variable declared outside every function exists for the whole run, at one fixed place in memory. Nothing passes it in, so a function that uses one has to produce its address itself.",
+      "Reading a field through a pointer takes one instruction, because the address is already in a register. Reading a variable like this takes two: one to build the address, one to use it.",
+      "The address is not known while the function is being compiled, because where the variable lands is decided when the whole program is linked. So both halves of it read as zero in the listing, and the real value is filled in later. The comparison knows this: it checks which variable a row refers to, and ignores the bits that are still to be filled.",
+      "Declaring the variable static changes who else may name it, not where it lives or how it is read. The instructions are the same either way.",
+      "There is a second form. When a file is compiled with small-data addressing, the program keeps one register pointing at a block of such variables, and reading one takes a single instruction with an offset from that register instead of two. The game's own files are built that way, so the field missions show that form rather than this one.",
+    ],
+  },
+  {
     id: "mips.arithmetic",
     section: "MIPS",
     title: "Arithmetic",
@@ -147,6 +159,8 @@ export const manualEntries: readonly ManualEntry[] = [
       "addu $v0,$a0,$a1 adds two registers instead of a register and a constant, and subu $v0,$a0,$a1 subtracts the second from the first. Neither carries an immediate, so the order of the operands is the order in the source: b - a swaps the two registers rather than negating anything.",
       "There is no subtract-immediate instruction. a - 5 therefore compiles to an add of a negative constant, and the listing shows it as one: addiu $v0,$a0,-0x5. Subtracting from a constant is different work, because the constant has to reach a register first, so 5 - a takes an extra instruction.",
       "The compiler may reshape arithmetic into cheaper instructions. a * 2 becomes a single shift, and a * 3 becomes a shift followed by an add, because both are faster than a multiply. Several C expressions can therefore produce the same words, and matching one of them is a match.",
+      "Shifting right has two instructions, and which one appears depends on the type being shifted. srl moves every bit toward the low end and fills the top with zeros. sra fills the top by copying the sign bit instead, so a negative value stays negative.",
+      "An unsigned value shifts with srl and a signed one with sra. That is why a >> 1 is not simply a halving: for a signed value the compiler must keep the sign, and dividing a signed value by a power of two takes more than one instruction because it also has to round toward zero.",
     ],
   },
   {
@@ -160,6 +174,9 @@ export const manualEntries: readonly ManualEntry[] = [
       "sw $a1,0x0($a0) writes the 32 bits in $a1 to the address in $a0. A store's first operand is the source, not a destination: the value flows from $a1 into memory, and no register changes. With p in $a0 and v in $a1, this is *p = v.",
       "lb and lbu read 8 bits. lb sign-extends the byte to 32 bits; lbu zero-extends it.",
       "A signed char loads with lb. An unsigned char or a plain char loads with lbu.",
+      "lh and lhu read 16 bits, the same pair as lb and lbu one width up: lh sign-extends the halfword to 32 bits and lhu zero-extends it. A short field loads with lh and an unsigned short with lhu.",
+      "Stores come in the same widths: sw writes 4 bytes, sh writes 2, and sb writes 1. Each writes the low bits of its source register and leaves the rest of the register alone.",
+      "A store has no signedness. sb writes a byte whether the field is signed char or unsigned char, because signedness decides how a value is read back, never how it is written. There is no sbu or shu.",
       "The offset shows which field is read; the instruction shows its width and signedness.",
     ],
   },
@@ -214,6 +231,8 @@ export const manualEntries: readonly ManualEntry[] = [
       "Two C programs can do the same useful work and still assemble differently. Matching needs the same words.",
       "A byte field declared with the wrong signedness loads with the wrong instruction: lbu instead of lb, or the reverse.",
       "Fix it where the type is declared. If the target uses lb, the field is signed char. If it uses lbu, it is unsigned char or plain char.",
+      "The same rule holds one width up. lh means short and lhu means unsigned short, and a halfword field declared with the wrong signedness misses by exactly one instruction, the way a byte field does.",
+      "Stores are not part of this. A narrow store picks its instruction from the width alone, so a wrong signedness on a field that is only written cannot show up in the listing.",
     ],
   },
   {
@@ -733,6 +752,52 @@ export const manualEntries: readonly ManualEntry[] = [
     title: "$v1",
     body: [
       "The second result register. A function that returns one integer does not need it, so the compiler is free to use it for an intermediate value.",
+    ],
+  },
+  {
+    id: "glossary.sb",
+    section: "GLOSSARY",
+    title: "sb and sh",
+    body: [
+      "Narrow stores. sb writes the low 1 byte of a register to memory and sh writes the low 2. Neither has a signed and unsigned form, because a store only writes bits.",
+    ],
+  },
+  {
+    id: "glossary.halfword",
+    section: "GLOSSARY",
+    title: "halfword",
+    body: ["Two bytes, 16 bits: the width of a short. Half of a word."],
+  },
+  {
+    id: "glossary.sra",
+    section: "GLOSSARY",
+    title: "sra and srl",
+    body: [
+      "Right shifts. srl fills the vacated top bits with zeros. sra copies the sign bit into them instead, so a negative value stays negative. A signed value shifts with sra and an unsigned one with srl.",
+    ],
+  },
+  {
+    id: "glossary.global",
+    section: "GLOSSARY",
+    title: "global variable",
+    body: [
+      "A variable declared outside every function. It exists for the whole run at one fixed address, and nothing has to pass it in.",
+    ],
+  },
+  {
+    id: "glossary.lui",
+    section: "GLOSSARY",
+    title: "lui",
+    body: [
+      "Load upper immediate. It puts a 16-bit constant into the top half of a register and zeros the bottom, which is how a full 32-bit address or constant gets built from instructions that only carry 16 bits.",
+    ],
+  },
+  {
+    id: "glossary.relocation",
+    section: "GLOSSARY",
+    title: "relocation",
+    body: [
+      "A note that a constant in an instruction is not final. The compiler leaves the field zero and records which symbol it refers to; the linker fills it in once it has placed everything. The comparison checks the symbol, not the zeros.",
     ],
   },
   {

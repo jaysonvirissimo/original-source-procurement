@@ -123,4 +123,29 @@ describe("shipped missions with the real toolchain", () => {
       "LIKELY_EXPRESSION_SHAPE",
     );
   });
+
+  it("mission 023: reading the wrong variable assembles to the same words and still fails", async () => {
+    const mission = missions.find((entry) => entry.id === "023");
+    if (mission?.solution === undefined) {
+      throw new Error("The curriculum has no mission 023 with a solution.");
+    }
+    // A second variable of the same type, read in place of the first. Nothing
+    // outside the relocated fields differs, so the words are identical and
+    // only the symbol each row refers to tells the two apart.
+    const otherVariable = `int other;\n${mission.solution.replace(
+      "return level;",
+      "return other;",
+    )}`;
+    expect(otherVariable).not.toBe(mission.solution);
+
+    const result = await compare(mission, otherVariable);
+
+    expect(result.exact).toBe(false);
+    // One per relocated field: the address is built in two halves, and each
+    // half names the variable separately.
+    expect(result.mismatches.map((mismatch) => mismatch.kind)).toEqual([
+      "RELOCATION_TARGET",
+      "RELOCATION_TARGET",
+    ]);
+  });
 });

@@ -229,6 +229,7 @@ describe("mapRegions", () => {
       ["phase", "Memory"],
       ["phase", "Types and layout"],
       ["phase", "Arithmetic"],
+      ["phase", "Memory widths"],
       ["field", "Field"],
       ["live", "Live"],
     ]);
@@ -268,7 +269,9 @@ describe("searchEntries", () => {
     expect(search("  FIELD   Offset ")).toEqual(["009"]);
     expect(search("012")).toEqual(["012", "012A", "012B", "012C", "012D"]);
     expect(search("memory")).toEqual(
-      entries.filter((entry) => entry.mission.phase === "Memory").map(idOf),
+      entries
+        .filter((entry) => entry.mission.phase.toLowerCase().includes("memory"))
+        .map(idOf),
     );
     expect(search("no such mission")).toEqual([]);
   });
