@@ -16,6 +16,22 @@ export function hintLabel(hints: readonly Hint[], hint: Hint): string {
   return `Hint ${String(position)} of ${String(numbered.length)} · ${hintStagePurpose(hint.stage)}`;
 }
 
+/**
+ * How far an attempt's hints went, for its saved `hintStage`, such as
+ * "Hints opened through Hint 2 of 4 · Where to look". A ladder edited since
+ * the attempt may no longer have that stage, so the label names the last hint
+ * at or before it.
+ */
+export function openedHintsLabel(
+  hints: readonly Hint[],
+  stage: number,
+): string {
+  const reached = hints.filter((hint) => hint.stage <= stage).at(-1);
+  return reached === undefined
+    ? "Hints opened"
+    : `Hints opened through ${hintLabel(hints, reached)}`;
+}
+
 /** Whether the next hint to reveal is the solution. */
 export function revealsSolution(hint: Hint | undefined): boolean {
   return hint?.stage === SOLUTION_STAGE;

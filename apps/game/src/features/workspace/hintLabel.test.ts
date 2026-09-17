@@ -1,7 +1,7 @@
 import { missions } from "@osp/curriculum";
 import type { Hint } from "@osp/mission-schema";
 import { describe, expect, it } from "vitest";
-import { hintLabel, revealsSolution } from "./hintLabel";
+import { hintLabel, openedHintsLabel, revealsSolution } from "./hintLabel";
 
 const ladder: Hint[] = [
   { stage: 1, text: "Skill." },
@@ -16,6 +16,20 @@ describe("hintLabel", () => {
       "Hint 2 of 2 · Where to look",
       "Solution reveal",
     ]);
+  });
+
+  it("describes how far an attempt's hints went without a stage number", () => {
+    expect(openedHintsLabel(ladder, 2)).toBe(
+      "Hints opened through Hint 2 of 2 · Where to look",
+    );
+    expect(openedHintsLabel(ladder, 9)).toBe(
+      "Hints opened through Solution reveal",
+    );
+    // A stage the ladder no longer has names the last hint before it.
+    expect(openedHintsLabel(ladder, 5)).toBe(
+      "Hints opened through Hint 2 of 2 · Where to look",
+    );
+    expect(openedHintsLabel(ladder.slice(1), 1)).toBe("Hints opened");
   });
 
   it("recognizes the solution as the next reveal", () => {

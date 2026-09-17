@@ -745,6 +745,7 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
                   attempts={
                     progress.state.missions[mission.id]?.attempts ?? NO_ATTEMPTS
                   }
+                  hints={mission.hints}
                   onPin={(attemptId, pinned) => {
                     record({
                       type: "attempt-pinned",

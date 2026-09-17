@@ -1,12 +1,16 @@
+import type { Hint } from "@osp/mission-schema";
 import { useId, useState, type ReactElement } from "react";
 import { classNames } from "../../styles/classNames";
 import controls from "../../styles/controls.module.css";
 import type { Attempt } from "../persistence/schema";
+import { openedHintsLabel } from "./hintLabel";
 import history from "./HistoryPanel.module.css";
 import styles from "./ReferencePane.module.css";
 
 interface HistoryPanelProps {
   readonly attempts: readonly Attempt[];
+  /** The mission's hint ladder, for naming how far each attempt's hints went. */
+  readonly hints: readonly Hint[];
   readonly onPin: (attemptId: string, pinned: boolean) => void;
   readonly onRestore: (attempt: Attempt) => void;
   /** Removes every unpinned attempt. */
@@ -17,6 +21,7 @@ interface HistoryPanelProps {
 /** The mission's saved attempts, newest first, beside the listing. */
 export function HistoryPanel({
   attempts,
+  hints,
   onPin,
   onRestore,
   onClear,
@@ -62,7 +67,7 @@ export function HistoryPanel({
               </p>
               {(attempt.hintStage ?? 0) === 0 ? null : (
                 <p className={styles.dim}>
-                  Hints opened to stage {attempt.hintStage}
+                  {openedHintsLabel(hints, attempt.hintStage ?? 0)}
                 </p>
               )}
               <div className={history.actions}>
