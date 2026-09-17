@@ -1,8 +1,15 @@
+import type { Hint } from "@osp/mission-schema";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { attempt, timestamp } from "../persistence/persistence.test-helpers";
 import type { Attempt } from "../persistence/schema";
 import { HistoryPanel } from "./HistoryPanel";
+
+const ladder: Hint[] = [
+  { stage: 1, text: "Skill." },
+  { stage: 2, text: "Rows." },
+  { stage: 9, text: "Answer.", revealSolution: true },
+];
 
 function renderPanel(attempts: readonly Attempt[]) {
   const handlers = {
@@ -11,7 +18,7 @@ function renderPanel(attempts: readonly Attempt[]) {
     onClear: vi.fn(),
     onClose: vi.fn(),
   };
-  render(<HistoryPanel attempts={attempts} {...handlers} />);
+  render(<HistoryPanel attempts={attempts} hints={ladder} {...handlers} />);
   return handlers;
 }
 
@@ -49,17 +56,24 @@ describe("HistoryPanel", () => {
     expect(rows()[3]?.textContent).toContain("1 of 2 words match");
   });
 
-  it("notes the hint stage an attempt was built with, when there was one", () => {
+  it("notes how far an attempt's hints went, when it used any", () => {
     renderPanel([
-      attempt({ id: "helped", createdAt: timestamp(2), hintStage: 4 }),
+      attempt({ id: "revealed", createdAt: timestamp(3), hintStage: 9 }),
+      attempt({ id: "helped", createdAt: timestamp(2), hintStage: 2 }),
       attempt({ id: "unhelped", createdAt: timestamp(1), hintStage: 0 }),
       attempt({ id: "older-save", createdAt: timestamp(0) }),
     ]);
 
     expect(
       rows().map((row) => row.textContent.includes("Hints opened")),
-    ).toEqual([true, false, false]);
-    expect(rows()[0]?.textContent).toContain("Hints opened to stage 4");
+    ).toEqual([true, true, false, false]);
+    expect(rows()[0]?.textContent).toContain(
+      "Hints opened through Solution reveal",
+    );
+    expect(rows()[1]?.textContent).toContain(
+      "Hints opened through Hint 2 of 2 · Where to look",
+    );
+    expect(history().textContent).not.toMatch(/stage/i);
   });
 
   it("pins, unpins, and restores an attempt", () => {
