@@ -6,6 +6,6 @@ describe("hasContext", () => {
   it("offers Context to shipped missions with headers or context types", () => {
     expect(
       missions.filter((mission) => hasContext(mission)).map(({ id }) => id),
-    ).toEqual(["012B", "012D", "F01"]);
+    ).toEqual(["012B", "012D", "013", "F01"]);
   });
 });

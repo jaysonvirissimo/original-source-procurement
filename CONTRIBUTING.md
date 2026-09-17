@@ -12,16 +12,33 @@ Use Node.js 24. The exact version is in `.nvmrc` and `.tool-versions`.
 
 ## Workflow
 
-- Work on a branch. Never commit or push directly to `main`.
-- Open a pull request and complete its template, including the upstream content attestation.
-- Before requesting review, run:
+The maintainer commits to `main` directly. Outside contributors work on a branch and open a pull
+request, whose template carries the same attestation as the commit checklist below.
+
+- Before every commit, run:
 
   ```sh
   pnpm check
   pnpm test:browser   # after pnpm build, for changes that affect the running game
   ```
 
+- Confirm each item of the attestation below. It is the only record that a change was checked for
+  upstream content, so make it per commit rather than once per batch of work.
 - Keep changes narrow. Avoid unrelated refactors and mass reformatting.
+- Commit only when asked to.
+
+### Upstream content attestation
+
+Confirm, for every file the commit changes:
+
+- No content was copied, adapted, or transformed from `mgs_reversing` or `psyq_sdk` into it. That
+  covers mission data, hints, manual entries, teaching text, source, tests, fixtures, mocks,
+  snapshots, screenshots, reports, and generated or build output.
+- Transformed content counts: decoded word arrays, disassembly listings, excerpts, translations into
+  pseudocode or another language, reformatting, renaming, and text an AI rewrote from an original.
+- Real missions carry pointers and hashes only. Their content is fetched at runtime.
+- `pnpm audit:upstream` passes. It catches target files, target word runs, and whole upstream files,
+  but it cannot see an excerpt or a rewrite. Those are what this attestation is for.
 
 ## Writing commits, comments, and documentation
 

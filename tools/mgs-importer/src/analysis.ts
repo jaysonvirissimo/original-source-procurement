@@ -34,6 +34,14 @@ export interface FunctionFacts {
   readonly narrowAccesses: number;
   readonly fieldAccesses: number;
   readonly stackAccesses: number;
+  /** Loads and stores reached through an argument register. */
+  readonly argumentBaseAccesses: number;
+  /** Loads and stores reached through the global pointer. */
+  readonly gpAccesses: number;
+  /** Loads and stores reached through an address built with an upper immediate. */
+  readonly absoluteAccesses: number;
+  /** Upper immediates, which build an absolute address or a large constant. */
+  readonly upperImmediates: number;
   readonly multiplyDivide: number;
   readonly coprocessor: number;
   readonly nops: number;
@@ -43,6 +51,8 @@ export interface FunctionFacts {
 
 const AT = 1;
 const SP = 29;
+const GP = 28;
+const ARGUMENT_REGISTERS = new Set([4, 5, 6, 7]);
 
 function isNop(instruction: Decoded | undefined): boolean {
   return (
@@ -83,7 +93,19 @@ export function functionFacts(words: readonly number[]): FunctionFacts {
   let narrowStores = 0;
   let fieldAccesses = 0;
   let stackAccesses = 0;
+  let argumentBaseAccesses = 0;
+  let gpAccesses = 0;
+  let absoluteAccesses = 0;
+  let upperImmediates = 0;
   let multiplyDivide = 0;
+  /*
+   * Registers whose latest write was an upper immediate, so a load or store
+   * based on one reaches an absolute address rather than a field of something
+   * the function was handed. The scan is forward and per-register, with no
+   * model of branches, which is enough for the straight-line functions the
+   * early field missions draw from.
+   */
+  const upperImmediateRegisters = new Set<number>();
   let coprocessor = 0;
   let nops = 0;
   let filledDelaySlots = 0;
@@ -137,6 +159,28 @@ export function functionFacts(words: readonly number[]): FunctionFacts {
       const memory = memoryOperand(instruction);
       if (memory?.base === SP) stackAccesses += 1;
       else if (memory !== undefined && memory.offset !== 0) fieldAccesses += 1;
+
+      // What the access is based on, which decides whether reading it needs a
+      // storage skill. Read before the write below, so `lw $v0,n($v0)` after an
+      // upper immediate still counts against the register it came from.
+      if (memory !== undefined && memory.base !== SP) {
+        if (ARGUMENT_REGISTERS.has(memory.base)) argumentBaseAccesses += 1;
+        else if (memory.base === GP) gpAccesses += 1;
+        else if (upperImmediateRegisters.has(memory.base)) {
+          absoluteAccesses += 1;
+        }
+      }
+    }
+
+    if (instruction.mnemonic === "lui") {
+      upperImmediates += 1;
+      for (const register of instruction.writes) {
+        upperImmediateRegisters.add(register);
+      }
+    } else {
+      for (const register of instruction.writes) {
+        upperImmediateRegisters.delete(register);
+      }
     }
   });
 
@@ -158,6 +202,10 @@ export function functionFacts(words: readonly number[]): FunctionFacts {
     narrowAccesses: narrowLoads + narrowStores,
     fieldAccesses,
     stackAccesses,
+    argumentBaseAccesses,
+    gpAccesses,
+    absoluteAccesses,
+    upperImmediates,
     multiplyDivide,
     coprocessor,
     nops,
@@ -233,6 +281,14 @@ export function featureTags(facts: FunctionFacts): FeatureTag[] {
  * Whether a function fits the first field missions: no calls, branches,
  * loops, stack frame, coprocessor, multiply or divide, assembler temporary,
  * or narrow stores. Jumps are allowed, because returning is one.
+ *
+ * It must also touch no file-level or global storage. Such a function reads
+ * or writes something the caller never handed it, which the early field
+ * missions have not taught, and a plain count of offset accesses cannot tell
+ * one from a field reached through an argument. A global is reached either
+ * through the global pointer or through an address built with an upper
+ * immediate, so both are rejected; rejecting every upper immediate also keeps
+ * out large constants, which are equally untaught.
  */
 export function phaseZeroToFourCandidate(facts: FunctionFacts): boolean {
   return (
@@ -243,6 +299,8 @@ export function phaseZeroToFourCandidate(facts: FunctionFacts): boolean {
     facts.coprocessor === 0 &&
     facts.multiplyDivide === 0 &&
     facts.assemblerTemporary === 0 &&
-    facts.narrowStores === 0
+    facts.narrowStores === 0 &&
+    facts.gpAccesses === 0 &&
+    facts.upperImmediates === 0
   );
 }

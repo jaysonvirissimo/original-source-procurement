@@ -19,6 +19,7 @@ import { target as target012A } from "./missions/targets/012A.ts";
 import { target as target012B } from "./missions/targets/012B.ts";
 import { target as target012C } from "./missions/targets/012C.ts";
 import { target as target012D } from "./missions/targets/012D.ts";
+import { target as target013 } from "./missions/targets/013.ts";
 
 /** Targets generated from each synthetic mission's solution, by mission ID. */
 const generatedTargets: Readonly<Record<string, InlineTarget>> = {
@@ -40,6 +41,7 @@ const generatedTargets: Readonly<Record<string, InlineTarget>> = {
   "012B": target012B,
   "012C": target012C,
   "012D": target012D,
+  "013": target013,
 };
 
 export function withTarget(
@@ -84,5 +86,6 @@ export const defaultPath: readonly string[] = [
   "012B",
   "012C",
   "012D",
+  "013",
   "F01",
 ];

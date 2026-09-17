@@ -4,7 +4,7 @@ import type { PointerCorpus } from "@osp/mission-schema";
 
 export const pointerCorpus: PointerCorpus = {
   schemaVersion: 1,
-  importerVersion: "1.1.0",
+  importerVersion: "1.2.0",
   upstreamCommit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
   sdkCommit: "91719fa5bdca0b7e55c5c4b9e045da407db93510",
   missions: [

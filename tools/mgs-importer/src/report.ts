@@ -139,7 +139,7 @@ function renderVerdicts(
     "",
     "## Phase 0–4 shortlist (call-free, branch-free, exact)",
     "",
-    "Exact functions with no calls, branches, loops, stack frame, coprocessor, multiply or divide, assembler temporary, or narrow stores, not already used by a reviewed mission.",
+    "Exact functions with no calls, branches, loops, stack frame, coprocessor, multiply or divide, assembler temporary, narrow stores, or global storage, not already used by a reviewed mission. The arg base column counts the loads and stores reached through an argument register; the rest of a function's accesses follow a pointer it loaded.",
     "",
   );
   const shortlist = exact
@@ -155,13 +155,13 @@ function renderVerdicts(
     lines.push("None.");
   } else {
     lines.push(
-      "| symbol | words | loads | stores | narrow loads | gpSize | headers | source path |",
-      "| --- | --- | --- | --- | --- | --- | --- | --- |",
+      "| symbol | words | loads | stores | narrow loads | arg base | gpSize | headers | source path |",
+      "| --- | --- | --- | --- | --- | --- | --- | --- | --- |",
     );
     for (const { symbol, facts, sourcePath } of shortlist) {
       const file = files.get(sourcePath);
       lines.push(
-        `| ${symbol} | ${String(facts.words)} | ${String(facts.loads)} | ${String(facts.stores)} | ${String(facts.narrowLoads)} | ${gpSizeOf(file)} | ${headersOf(file)} | ${sourcePath} |`,
+        `| ${symbol} | ${String(facts.words)} | ${String(facts.loads)} | ${String(facts.stores)} | ${String(facts.narrowLoads)} | ${String(facts.argumentBaseAccesses)} | ${gpSizeOf(file)} | ${headersOf(file)} | ${sourcePath} |`,
       );
     }
   }

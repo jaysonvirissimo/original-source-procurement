@@ -92,6 +92,68 @@ describe("functionFacts", () => {
     expect(facts.storeForms).toBe(1);
   });
 
+  it("tells an argument-based access from a global-pointer one", () => {
+    const facts = functionFacts(
+      words(
+        { mnemonic: "lw", operands: [gpr(2), mem(4, 8)] },
+        { mnemonic: "sw", operands: [gpr(2), mem(28, 16)] },
+      ),
+    );
+    expect(facts.argumentBaseAccesses).toBe(1);
+    expect(facts.gpAccesses).toBe(1);
+    expect(facts.absoluteAccesses).toBe(0);
+    expect(facts.upperImmediates).toBe(0);
+    // Both still read as offset accesses, which is what the older count saw.
+    expect(facts.fieldAccesses).toBe(2);
+  });
+
+  it("counts an access through an address built with an upper immediate", () => {
+    const facts = functionFacts(
+      words(
+        { mnemonic: "lui", operands: [gpr(2), imm(0x1234)] },
+        { mnemonic: "lw", operands: [gpr(3), mem(2, 0x10)] },
+      ),
+    );
+    expect(facts.absoluteAccesses).toBe(1);
+    expect(facts.upperImmediates).toBe(1);
+    expect(facts.argumentBaseAccesses).toBe(0);
+    expect(facts.gpAccesses).toBe(0);
+  });
+
+  it("counts an access that loads into the register it was based on", () => {
+    expect(
+      functionFacts(
+        words(
+          { mnemonic: "lui", operands: [gpr(2), imm(0x1234)] },
+          { mnemonic: "lw", operands: [gpr(2), mem(2, 0x10)] },
+          { mnemonic: "lw", operands: [gpr(3), mem(2, 4)] },
+        ),
+      ).absoluteAccesses,
+    ).toBe(1);
+  });
+
+  it("stops treating a register as absolute once something else writes it", () => {
+    const facts = functionFacts(
+      words(
+        { mnemonic: "lui", operands: [gpr(2), imm(0x1234)] },
+        { mnemonic: "addiu", operands: [gpr(2), gpr(4), imm(8)] },
+        { mnemonic: "lw", operands: [gpr(3), mem(2, 4)] },
+      ),
+    );
+    expect(facts.absoluteAccesses).toBe(0);
+    expect(facts.argumentBaseAccesses).toBe(0);
+  });
+
+  it("counts no base for a stack access", () => {
+    const facts = functionFacts(
+      words({ mnemonic: "sw", operands: [gpr(31), mem(29, 20)] }),
+    );
+    expect(facts.stackAccesses).toBe(1);
+    expect(facts.argumentBaseAccesses).toBe(0);
+    expect(facts.gpAccesses).toBe(0);
+    expect(facts.absoluteAccesses).toBe(0);
+  });
+
   it("counts a backward branch as a loop and splits the blocks", () => {
     const facts = functionFacts(
       words(
@@ -217,6 +279,19 @@ describe("phaseZeroToFourCandidate", () => {
     ).toBe(true);
   });
 
+  it("accepts a field reached through a pointer the function loaded", () => {
+    // Neither access is based on an argument register once the chain starts,
+    // and following one is taught before the field missions.
+    expect(
+      phaseZeroToFourCandidate({
+        ...SAMPLE_FACTS,
+        loads: 2,
+        fieldAccesses: 2,
+        argumentBaseAccesses: 1,
+      }),
+    ).toBe(true);
+  });
+
   it.each([
     "calls",
     "branches",
@@ -226,6 +301,8 @@ describe("phaseZeroToFourCandidate", () => {
     "multiplyDivide",
     "assemblerTemporary",
     "narrowStores",
+    "gpAccesses",
+    "upperImmediates",
   ] as const)("rejects a function with %s", (fact) => {
     expect(phaseZeroToFourCandidate({ ...SAMPLE_FACTS, [fact]: 1 })).toBe(
       false,

@@ -55,6 +55,7 @@ describe("the first teaching slice", () => {
       "012B",
       "012C",
       "012D",
+      "013",
       "F01",
     ]);
   });
@@ -95,7 +96,7 @@ describe("the first teaching slice", () => {
   });
 
   it("teaches nothing new in its synthesis missions", () => {
-    for (const id of ["005", "012"]) {
+    for (const id of ["005", "012", "013"]) {
       expect(mission(id).kind).toBe("synthesis");
       expect(mission(id).teaches).toEqual([]);
     }
@@ -175,6 +176,7 @@ describe("the first teaching slice", () => {
       "012B": ["C.STRUCT.LAYOUT"],
       "012C": ["C.POINTER.ARITHMETIC"],
       "012D": ["C.TYPEDEF"],
+      "013": [],
     });
   });
 

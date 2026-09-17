@@ -1,6 +1,6 @@
 # ADR 0023: Context panel and offset probe
 
-Status: Proposed
+Status: Accepted
 
 ## Context
 

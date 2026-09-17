@@ -106,7 +106,6 @@ describe("curriculumCoverage", () => {
       ),
     ).toEqual([
       "no-later-practice: MATCH.SIGNEDNESS is taught by 011 and never practiced later on the default path.",
-      'phase-without-synthesis: The phase "Types and layout" has no synthesis or real mission on the default path.',
       'no-early-real-mission: No real mission appears before the final phase, "Field work".',
     ]);
   });

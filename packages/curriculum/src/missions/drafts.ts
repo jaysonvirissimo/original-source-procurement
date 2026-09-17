@@ -16,6 +16,7 @@ import { halfWidth } from "./012A-half-width.ts";
 import { padding } from "./012B-padding.ts";
 import { pointerStep } from "./012C-pointer-step.ts";
 import { typeNames } from "./012D-type-names.ts";
+import { qualification02 } from "./013-qualification-02.ts";
 import type { MissionDraft } from "./authoring.ts";
 
 export type { MissionDraft } from "./authoring.ts";
@@ -43,4 +44,5 @@ export const missionDrafts: readonly MissionDraft[] = [
   padding,
   pointerStep,
   typeNames,
+  qualification02,
 ];

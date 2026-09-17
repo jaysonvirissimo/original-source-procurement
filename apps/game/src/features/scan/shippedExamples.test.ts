@@ -31,6 +31,7 @@ describe("shipped machine diagram examples", () => {
       "012A",
       "012B",
       "012D",
+      "013",
     ]);
   });
 
@@ -109,6 +110,7 @@ describe("shipped walkthroughs", () => {
       "012A",
       "012C",
       "012D",
+      "013",
     ]);
   });
 

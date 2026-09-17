@@ -157,23 +157,28 @@ describe("renderReviewReport", () => {
         ),
       );
       expect(text).toContain(
-        "| smaller | 3 | 1 | 0 | 0 | 0 | 1 | source/sample/sample.c |",
+        "| smaller | 3 | 1 | 0 | 0 | 1 | 0 | 1 | source/sample/sample.c |",
       );
       expect(text).toContain(
-        "| larger | 6 | 1 | 2 | 1 | 8 | 1 | source/other/other.c |",
+        "| larger | 6 | 1 | 2 | 1 | 1 | 8 | 1 | source/other/other.c |",
       );
       expect(text.indexOf("| smaller |")).toBeLessThan(
         text.indexOf("| larger |"),
       );
     });
 
-    it("leaves out mismatches, used symbols, and functions with calls or narrow stores", () => {
+    it("leaves out mismatches, used symbols, and functions reaching past their arguments", () => {
       const text = shortlistOf(
         renderReviewReport(
           importIndex({
             functions: [
               record("calls", { calls: 1 }),
               record("narrow_store", { narrowStores: 1 }),
+              record("global_pointer", { gpAccesses: 1 }),
+              record("absolute", {
+                upperImmediates: 1,
+                absoluteAccesses: 1,
+              }),
               record("used"),
               record("mismatched"),
             ],
@@ -182,6 +187,8 @@ describe("renderReviewReport", () => {
             functions: [
               exact("calls"),
               exact("narrow_store"),
+              exact("global_pointer"),
+              exact("absolute"),
               exact("used"),
               {
                 symbol: "mismatched",
@@ -225,10 +232,10 @@ describe("renderReviewReport", () => {
         ),
       );
       expect(text).toContain(
-        "| bare | 4 | 1 | 0 | 0 | 0 | 0 | source/sample/sample.c |",
+        "| bare | 4 | 1 | 0 | 0 | 1 | 0 | 0 | source/sample/sample.c |",
       );
       expect(text).toContain(
-        "| orphan | 4 | 1 | 0 | 0 | ? | ? | source/gone/gone.c |",
+        "| orphan | 4 | 1 | 0 | 0 | 1 | ? | ? | source/gone/gone.c |",
       );
       expect(text).not.toContain("| unpinned |");
     });
