@@ -8,6 +8,7 @@ import { checkExample, MissionExampleSchema } from "./example.ts";
 import { HintSchema } from "./hint.ts";
 import { PredictionPromptSchema } from "./prediction.ts";
 import {
+  ContextTypeNameSchema,
   ManualEntryIdSchema,
   MissionIdSchema,
   SkillIdSchema,
@@ -76,6 +77,8 @@ const MissionObjectSchema = z.strictObject({
   }),
   // GLOSSARY entries for the terms the mission text uses.
   terms: uniqueArray(ManualEntryIdSchema).optional(),
+  // Types the Context panel lays out in a field-offset table, by name only.
+  contextTypes: uniqueArray(ContextTypeNameSchema).min(1).optional(),
   // OSP-authored; for real missions, a signature stub.
   starterSource: z.string(),
   // Synthetic missions only: OSP-authored, shown by hint stage 9.
@@ -131,6 +134,7 @@ export const MissionSchema = MissionObjectSchema.superRefine((mission, ctx) => {
     );
   }
   checkEvidence(mission, report);
+  checkContextTypes(mission, report);
 });
 export type Mission = z.infer<typeof MissionSchema>;
 
@@ -187,6 +191,42 @@ function checkWalkthroughs(mission: MissionShape, report: Report): void {
       report,
     );
   });
+}
+
+/**
+ * A synthetic mission carries all of its C, so each context type must be
+ * declared there. A real mission's headers are fetched at runtime, so only
+ * the offset probe can tell whether its types exist.
+ */
+function checkContextTypes(mission: MissionShape, report: Report): void {
+  if (mission.contextTypes === undefined || isRealMissionKind(mission.kind)) {
+    return;
+  }
+  const text = [
+    mission.starterSource,
+    ...Object.values(mission.compiler.headers),
+  ].join("\n");
+  mission.contextTypes.forEach((name, index) => {
+    // A malformed name already has its own issue, and is not a safe pattern.
+    if (
+      ContextTypeNameSchema.safeParse(name).success &&
+      !declares(text, name)
+    ) {
+      report(
+        ["contextTypes", index],
+        `The starter and headers do not declare ${name}.`,
+      );
+    }
+  });
+}
+
+/** Whether C text gives a tagged aggregate a body, or ends a typedef. */
+function declares(text: string, name: string): boolean {
+  const tagged = /^(?:struct|union) /.test(name);
+  const pattern = tagged
+    ? new RegExp(`\\b${name.replace(" ", "\\s+")}\\s*\\{`)
+    : new RegExp(`\\}\\s*${name}\\s*;`);
+  return pattern.test(text);
 }
 
 function checkEvidence(mission: MissionShape, report: Report): void {

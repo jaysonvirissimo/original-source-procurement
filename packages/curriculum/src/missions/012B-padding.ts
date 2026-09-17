@@ -32,6 +32,7 @@ export const padding: MissionDraft = {
     "glossary.embedded-struct",
     "glossary.short",
   ],
+  contextTypes: ["struct Mixed", "struct Pair16"],
   starterSource: `${STRUCTS}int padding(struct Mixed *m)\n{\n    return m->span;\n}\n`,
   solution: `${STRUCTS}int padding(struct Mixed *m)\n{\n    return m->in.b;\n}\n`,
   symbol: "padding",

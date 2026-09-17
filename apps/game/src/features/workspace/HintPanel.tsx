@@ -1,8 +1,4 @@
-import {
-  hintStagePurpose,
-  type Mission,
-  type RemoteCReference,
-} from "@osp/mission-schema";
+import type { Mission, RemoteCReference } from "@osp/mission-schema";
 import { useEffect, useId, useRef, useState, type ReactElement } from "react";
 import { classNames } from "../../styles/classNames";
 import controls from "../../styles/controls.module.css";
@@ -12,7 +8,9 @@ import {
   UPSTREAM_HINT_UNAVAILABLE,
 } from "../upstream/messages";
 import type { UpstreamOutcome } from "../upstream/types";
+import { UpstreamErrorState } from "../upstream/UpstreamErrorState";
 import { useUpstream } from "../upstream/upstreamContext";
+import { hintLabel, revealsSolution } from "./hintLabel";
 import styles from "./ReferencePane.module.css";
 
 interface HintPanelProps {
@@ -75,7 +73,7 @@ export function HintPanel({
                 ref={index === revealed.length - 1 ? newest : undefined}
                 tabIndex={-1}
               >
-                Stage {hint.stage} · {hintStagePurpose(hint.stage)}
+                {hintLabel(mission.hints, hint)}
               </p>
               {hint.verified === undefined ? null : (
                 <p className={controls.label}>
@@ -100,6 +98,12 @@ export function HintPanel({
           ))}
         </ol>
       )}
+      {revealsSolution(next) ? (
+        <p className={prose.prose}>
+          The next step reveals the solution. Hints never block completion, but
+          a completion that uses a revealed solution does not advance skills.
+        </p>
+      ) : null}
       <button
         className={controls.button}
         type="button"
@@ -108,7 +112,7 @@ export function HintPanel({
       >
         {next === undefined
           ? "No more hints"
-          : next.stage === 9
+          : revealsSolution(next)
             ? "Reveal the solution"
             : "Reveal next hint"}
       </button>
@@ -159,23 +163,17 @@ function UpstreamReveal({
           {outcome.value}
         </pre>
       ) : (
-        <div role="alert">
-          <p>
-            {outcome.kind === "content-mismatch"
+        <UpstreamErrorState
+          message={
+            outcome.kind === "content-mismatch"
               ? UPSTREAM_CONTENT_MISMATCH
-              : UPSTREAM_HINT_UNAVAILABLE}
-          </p>
-          <button
-            className={controls.button}
-            type="button"
-            onClick={() => {
-              setOutcome(undefined);
-              setRequest((count) => count + 1);
-            }}
-          >
-            Retry
-          </button>
-        </div>
+              : UPSTREAM_HINT_UNAVAILABLE
+          }
+          onRetry={() => {
+            setOutcome(undefined);
+            setRequest((count) => count + 1);
+          }}
+        />
       )}
     </>
   );

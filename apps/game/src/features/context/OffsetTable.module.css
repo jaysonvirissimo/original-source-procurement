@@ -1,0 +1,34 @@
+.section {
+  display: grid;
+  gap: var(--osp-space-2);
+  justify-self: stretch;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.table caption {
+  padding-bottom: var(--osp-space-1);
+  text-align: left;
+}
+
+.table th,
+.table td {
+  padding: var(--osp-space-1) var(--osp-space-2);
+  border-bottom: var(--osp-border) solid var(--osp-surface-2);
+  text-align: left;
+  font-weight: normal;
+  overflow-wrap: anywhere;
+}
+
+.table thead th {
+  color: var(--osp-text-dim);
+}
+
+.padding td {
+  color: var(--osp-text-dim);
+  font-style: italic;
+}

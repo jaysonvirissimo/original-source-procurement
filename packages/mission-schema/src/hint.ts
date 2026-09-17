@@ -27,7 +27,7 @@ export const HINT_STAGE_PURPOSES = [
   "Expression shape",
   "Source skeleton",
   "Most of the source",
-  "Solution",
+  "Solution reveal",
 ] as const;
 
 /** The purpose of a stage from 1 to 9. */

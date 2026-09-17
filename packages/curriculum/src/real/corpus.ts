@@ -317,8 +317,9 @@ export const pointerCorpus: PointerCorpus = {
       },
       briefing: {
         objective:
-          "Write font_set_buffer so it compiles to the four target rows. It takes a font control block and a buffer, and it stores into two fields of the block before returning.",
+          "font_set_buffer sets the buffer for a font control block in the game. Write font_set_buffer so it compiles to the four target rows. It takes a font control block and a buffer, and it stores into two fields of the block before returning. Open Context to read the block's declaration and each field's offset.",
       },
+      contextTypes: ["KCB", "RECT"],
       starterSource:
         '#include "font.h"\n\nvoid font_set_buffer(KCB *kcb, void *buffer)\n{\n}\n',
       symbol: "font_set_buffer",

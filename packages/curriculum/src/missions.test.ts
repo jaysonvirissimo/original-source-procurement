@@ -74,6 +74,15 @@ describe("the first teaching slice", () => {
     );
   });
 
+  it("names the types the padding bridge and the first field mission lay out", () => {
+    expect(mission("012B").contextTypes).toEqual([
+      "struct Mixed",
+      "struct Pair16",
+    ]);
+    const f01 = pointerCorpus.missions.find((entry) => entry.id === "F01");
+    expect(f01?.contextTypes).toEqual(["KCB", "RECT"]);
+  });
+
   it("supplies the type names mission's header as authored compiler input", () => {
     const typeNames = mission("012D");
     expect(Object.keys(typeNames.compiler.headers)).toEqual(["bridge_types.h"]);
@@ -202,6 +211,20 @@ describe("the first teaching slice", () => {
     );
     const titles = (mission(id).terms ?? []).map((term) => glossary.get(term));
     expect(titles).toEqual(expect.arrayContaining(expected));
+  });
+
+  it("points from pointer arithmetic to register reuse and storing addresses", () => {
+    const entry = (id: string) =>
+      manualEntries.find((candidate) => candidate.id === id);
+    const reuse = entry("matching.register-reuse");
+    const storing = entry("c.storing-addresses");
+    expect(reuse?.section).toBe("MATCHING");
+    expect(storing?.section).toBe("C");
+    const pointerArithmetic = entry("c.pointer-arithmetic")?.body.join(" ");
+    expect(pointerArithmetic).toContain(
+      `${String(reuse?.title)}, under MATCHING`,
+    );
+    expect(pointerArithmetic).toContain(`${String(storing?.title)}, under C`);
   });
 
   it("writes a body for every manual entry a skill links to", () => {

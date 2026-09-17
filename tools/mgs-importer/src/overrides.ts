@@ -1,4 +1,5 @@
 import {
+  ContextTypeNameSchema,
   HintSchema,
   MissionIdSchema,
   realMissionTextIssues,
@@ -30,6 +31,8 @@ export const MissionOverrideSchema = z.strictObject({
     objective: z.string().min(1),
     newTechnique: z.string().min(1).optional(),
   }),
+  /** Types the offset table lays out: names only, never declarations. */
+  contextTypes: z.array(ContextTypeNameSchema).min(1).optional(),
   starterSource: z.string(),
   hints: z.array(HintSchema),
   /** When a maintainer last reviewed this entry, as YYYY-MM-DD. */

@@ -73,7 +73,9 @@ Mission and skill behavior comes from validated curriculum data, never from rule
 
 Prerequisites are the source of truth for progression. The default path is a recommended order that must stay consistent with them.
 
-A synthetic mission's source may `#include` OSP-authored headers. Pass them to `trainingCompiler(filename, headers)`, keyed by the name the source includes. The target generator builds with them, and the workspace supplies them to every compile. Show a header's text to the player in mission text, such as a walkthrough or hint, because the workspace does not display headers.
+A synthetic mission's source may `#include` OSP-authored headers. Pass them to `trainingCompiler(filename, headers)`, keyed by the name the source includes. The target generator builds with them, the workspace supplies them to every compile, and the Context panel shows them.
+
+A mission that asks the player to reason about a type's layout lists it in `contextTypes`, by name only, such as `"struct Mixed"` or `"KCB"`. The Context panel then shows a field-offset table computed by the pinned compiler at runtime. Never list members or offsets in mission data: for a real mission they come from upstream headers. Validation checks that a synthetic mission declares each type, and `apps/game/src/features/context/offsetProbe.node.test.ts` measures every shipped real mission's types from local checkouts.
 
 Package sources that `pnpm curriculum:validate` loads run directly on Node.js with type stripping, so relative imports in `mission-schema` and `curriculum` use explicit `.ts` extensions and only erasable TypeScript syntax.
 

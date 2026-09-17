@@ -238,13 +238,13 @@ test("hints climb from a weak hint to the solution, and completion still works",
   await page.getByRole("button", { name: "Hint" }).click();
   const hints = page.getByRole("region", { name: "Hints" });
   await hints.getByRole("button", { name: "Reveal next hint" }).click();
-  await expect(hints.getByText("Stage 1 · Skill")).toBeVisible();
+  await expect(hints.getByText("Hint 1 of 4 · Skill")).toBeVisible();
   for (let stage = 0; stage < 3; stage += 1) {
     await hints.getByRole("button", { name: "Reveal next hint" }).click();
   }
   await expect(hints.getByLabel("Solution")).toHaveCount(0);
   await hints.getByRole("button", { name: "Reveal the solution" }).click();
-  await expect(hints.getByText("Stage 9 · Solution")).toBeVisible();
+  await expect(hints.getByText("Solution reveal")).toBeVisible();
   await expect(hints.getByLabel("Solution")).toContainText("return a + 5;");
   await expect(
     hints.getByRole("button", { name: "No more hints" }),
@@ -432,6 +432,37 @@ test("a bridge mission compiles against its authored header and shows the header
   await compile(page);
   await missionComplete(page);
   await expect(status(page)).toHaveText("EXACT MATCH");
+});
+
+test("the padding bridge's Context panel lays out its structs with the compiler", async ({
+  page,
+}) => {
+  await openMission(page, "012B", "PADDING");
+  await page.getByRole("button", { name: "Context" }).click();
+  const context = page.getByRole("region", { name: "Context" });
+  await expect(context).toContainText("This mission has no headers.");
+
+  const mixed = context.getByRole("table", {
+    name: "struct Mixed · 16 bytes",
+  });
+  await expect(mixed).toBeVisible({ timeout: 60_000 });
+  await expect(mixed.getByRole("row")).toHaveText([
+    "OffsetSizeFieldTypeKind",
+    "0x01tagchar",
+    "0x13padding",
+    "0x44countint",
+    "0x82spanshort",
+    "0xA4instruct Pair16embedded",
+    "0xE2padding",
+  ]);
+  await expectListingUncovered(page, context);
+
+  // The table survives the player's build, which pauses the probe.
+  await compile(page);
+  await expect(status(page)).toHaveText("NOT AN EXACT MATCH", {
+    timeout: 30_000,
+  });
+  await expect(mixed).toBeVisible();
 });
 
 test("help panels dock beside the listing without covering it", async ({

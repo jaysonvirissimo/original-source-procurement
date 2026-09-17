@@ -37,6 +37,8 @@ export type BuildOutcome =
       readonly kind: "success";
       readonly object: AssembledObject;
       readonly compilerText: string;
+      /** The exact bytes the compiler read after preprocessing. */
+      readonly preprocessed?: Uint8Array | undefined;
       readonly diagnostics: readonly CompilerDiagnostic[];
     }
   | {

@@ -70,9 +70,9 @@ describe("HintPanel", () => {
 
     const items = within(region()).getAllByRole("listitem");
     expect(items.map((item) => item.firstElementChild?.textContent)).toEqual([
-      "Stage 1 · Skill",
-      "Stage 3 · Machine behavior",
-      "Stage 9 · Solution",
+      "Hint 1 of 2 · Skill",
+      "Hint 2 of 2 · Machine behavior",
+      "Solution reveal",
     ]);
     expect(items[0]?.textContent).toContain("VERIFIED");
     expect(items[1]?.textContent).toContain("HYPOTHESIS");
@@ -80,6 +80,27 @@ describe("HintPanel", () => {
     expect(within(region()).getByLabelText("Solution").textContent).toBe(
       "int f(void) { return 0; }\n",
     );
+  });
+
+  it("warns about the skill consequence only before the solution reveal", () => {
+    const ladder: Hint[] = [
+      { stage: 1, text: "Name the skill." },
+      { stage: 9, text: "The answer.", revealSolution: true },
+    ];
+    const notice = /does not advance skills/;
+    const { rerender } = render(
+      panel(0, offlineUpstream, { hints: ladder, solution: "" }),
+    );
+    expect(within(region()).queryByText(notice)).toBeNull();
+
+    rerender(panel(1, offlineUpstream, { hints: ladder, solution: "" }));
+    expect(within(region()).getByText(notice)).toBeTruthy();
+    expect(
+      within(region()).getByRole("button", { name: "Reveal the solution" }),
+    ).toBeTruthy();
+
+    rerender(panel(9, offlineUpstream, { hints: ladder, solution: "" }));
+    expect(within(region()).queryByText(notice)).toBeNull();
   });
 
   it("loads upstream source only once its stage is revealed, and shows it read-only", async () => {

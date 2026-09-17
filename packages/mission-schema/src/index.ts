@@ -71,6 +71,7 @@ export {
 export { PredictionPromptSchema, type PredictionPrompt } from "./prediction.ts";
 export {
   CommitShaSchema,
+  ContextTypeNameSchema,
   isSafeRelativePath,
   ManualEntryIdSchema,
   MissionIdSchema,

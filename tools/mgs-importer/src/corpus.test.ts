@@ -57,6 +57,17 @@ describe("buildMission", () => {
     expect(mission.hints).toEqual(override.hints);
   });
 
+  it("copies context type names only when the override lists them", () => {
+    expect(mission.contextTypes).toBeUndefined();
+    expect(
+      buildMission(
+        { ...override, contextTypes: ["SAMPLE", "struct sample"] },
+        functionRecord(),
+        fileRecord(),
+      ).contextTypes,
+    ).toEqual(["SAMPLE", "struct sample"]);
+  });
+
   it("teaches nothing and carries no known solution", () => {
     expect(mission.teaches).toEqual([]);
     expect(mission.solution).toBeUndefined();
