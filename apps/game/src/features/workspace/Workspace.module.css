@@ -117,3 +117,9 @@
 .attempt {
   margin-left: auto;
 }
+
+/* Keeps "ATTEMPT 00 THIS VISIT" from reading as part of the save state. */
+.saved {
+  padding-left: var(--osp-space-3);
+  border-left: var(--osp-border) solid var(--osp-line);
+}

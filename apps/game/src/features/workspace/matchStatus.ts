@@ -23,3 +23,12 @@ export function matchStatus(state: WorkspaceState, stale: boolean): string {
   }
   return stale ? `${label} · STALE` : label;
 }
+
+/** The header line shown while the workspace still shows saved work. */
+export function restoredLabel(earlierAttempts: number): string {
+  if (earlierAttempts === 0) {
+    return "Saved work restored";
+  }
+  const noun = earlierAttempts === 1 ? "attempt" : "attempts";
+  return `Saved work restored · ${String(earlierAttempts)} earlier ${noun} in History`;
+}

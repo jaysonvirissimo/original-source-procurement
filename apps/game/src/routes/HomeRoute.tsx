@@ -34,12 +34,12 @@ export function HomeRoute(): ReactElement {
             Read the orientation
           </a>
         </section>
-      ) : (
-        <nav className={styles.reference} aria-label="Reference">
-          <a href="#/orientation">Orientation</a>
-          <a href="#/manual">Manual</a>
-        </nav>
-      )}
+      ) : null}
+      <nav className={styles.reference} aria-label="Reference">
+        <a href="#/orientation">Orientation</a>
+        <a href="#/manual">Manual</a>
+        <a href="#/settings">Settings</a>
+      </nav>
       <MissionMap />
     </div>
   );

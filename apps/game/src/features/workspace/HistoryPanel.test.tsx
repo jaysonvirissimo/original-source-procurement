@@ -56,7 +56,7 @@ describe("HistoryPanel", () => {
     expect(rows()[3]?.textContent).toContain("1 of 2 words match");
   });
 
-  it("notes how far an attempt's hints went, when it used any", () => {
+  it("notes how far an attempt's hints went, or that it used none", () => {
     renderPanel([
       attempt({ id: "revealed", createdAt: timestamp(3), hintStage: 9 }),
       attempt({ id: "helped", createdAt: timestamp(2), hintStage: 2 }),
@@ -73,6 +73,12 @@ describe("HistoryPanel", () => {
     expect(rows()[1]?.textContent).toContain(
       "Hints opened through Hint 2 of 2 · Where to look",
     );
+    expect(rows().map((row) => row.textContent.includes("No hints"))).toEqual([
+      false,
+      false,
+      true,
+      false,
+    ]);
     expect(history().textContent).not.toMatch(/stage/i);
   });
 

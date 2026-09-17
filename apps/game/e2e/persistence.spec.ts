@@ -238,6 +238,43 @@ test("reloading keeps edited source and mission progress", async ({ page }) => {
   );
 });
 
+test("a reopened mission says its saved work and attempts were restored", async ({
+  page,
+}) => {
+  await openMission(page, "003", "ADD IMMEDIATE");
+  await setSource(page, addImmediate(4));
+  await compile(page);
+  await expect(page.getByRole("status")).toHaveText("NOT AN EXACT MATCH", {
+    timeout: 30_000,
+  });
+  await expect.poll(() => storedAttemptIds(page, "003")).toHaveLength(1);
+
+  await page.reload();
+  await page.getByRole("button", { name: "Enter" }).click();
+  await expect(compileButton(page)).toBeEnabled({ timeout: 30_000 });
+  const notice = page.getByText(
+    "Saved work restored · 1 earlier attempt in History",
+  );
+  await expect(notice).toBeVisible();
+  await expect(page.getByRole("status")).toHaveText("NOT COMPILED");
+  await expect(page.getByText("ATTEMPT 00 THIS VISIT")).toBeVisible();
+  for (const locator of [
+    notice,
+    page.getByRole("table", { name: "Target instructions" }),
+    compileButton(page),
+  ]) {
+    await expect(locator).toBeInViewport();
+  }
+
+  await page.getByRole("button", { name: "History" }).click();
+  await expect(
+    page.getByRole("region", { name: "History" }).getByRole("listitem"),
+  ).toContainText("No hints");
+
+  await setSource(page, addImmediate(5));
+  await expect(page.getByText(/Saved work restored/)).toHaveCount(0);
+});
+
 test("export, reset, and import restore progress, and exports leave out downloaded data", async ({
   page,
 }) => {

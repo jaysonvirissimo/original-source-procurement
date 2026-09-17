@@ -25,6 +25,7 @@ import type { BuildOutcome, ToolchainService } from "../compiler/types";
 import { probeBuild } from "../context/probe.test-helpers";
 import { saveDataError } from "../persistence/errors";
 import {
+  attempt,
   missionProgress,
   skillEvidence,
   timestamp,
@@ -1368,6 +1369,46 @@ describe("Workspace progress", () => {
         "listitem",
       ),
     ).toHaveLength(2);
+  });
+
+  it("says when saved work is restored, until the player edits it", async () => {
+    const player = {
+      ...emptyPlayerState(),
+      missions: {
+        "003": missionProgress({
+          source: edited(9),
+          attempts: [attempt(), attempt({ id: "attempt-2" })],
+        }),
+      },
+    };
+    await renderWorkspace(addImmediate, { player });
+    enter();
+
+    expect(
+      screen.getByText("Saved work restored · 2 earlier attempts in History"),
+    ).toBeTruthy();
+    expect(screen.getByText("ATTEMPT 00 THIS VISIT")).toBeTruthy();
+    expect(screen.getByRole("status").textContent).toBe("NOT COMPILED");
+
+    replaceSource(edited(10));
+    expect(screen.queryByText(/Saved work restored/)).toBeNull();
+    expect(screen.getByText("ATTEMPT 00 THIS VISIT")).toBeTruthy();
+  });
+
+  it("names restored source without attempts, and says nothing for a fresh mission", async () => {
+    const player = {
+      ...emptyPlayerState(),
+      missions: { "003": missionProgress({ source: edited(9) }) },
+    };
+    const { unmount } = await renderWorkspace(addImmediate, { player });
+    enter();
+    expect(screen.getByText("Saved work restored")).toBeTruthy();
+    expect(screen.getByText("ATTEMPT 00")).toBeTruthy();
+    unmount();
+
+    await renderWorkspace(addImmediate);
+    enter();
+    expect(screen.queryByText(/Saved work restored/)).toBeNull();
   });
 
   it("saves edited source after a pause, and at once when the workspace closes", async () => {

@@ -66,6 +66,9 @@ export function App({
               </PersistenceProvider>
             </main>
             <footer className={styles.footer}>
+              <a className={styles.footerLink} href="#/settings">
+                Settings
+              </a>
               <a className={styles.footerLink} href="./THIRD_PARTY_NOTICES.txt">
                 Third-party notices
               </a>
