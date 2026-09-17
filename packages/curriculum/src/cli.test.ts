@@ -29,7 +29,7 @@ describe("runValidation", () => {
     const { output, log, error } = capture();
     await expect(runValidation(curriculum, output)).resolves.toBe(0);
     expect(log[0]).toBe(
-      "Curriculum is valid: 16 skills, 20 missions, 20 on the default path.",
+      "Curriculum is valid: 16 skills, 22 missions, 22 on the default path.",
     );
     expect(log).toContain(
       "warning: defaultPath[10]: MATCH.SIGNEDNESS is taught by 011 and never practiced later on the default path. [no-later-practice]",

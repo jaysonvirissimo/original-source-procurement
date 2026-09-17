@@ -57,6 +57,8 @@ describe("the first teaching slice", () => {
       "012D",
       "013",
       "F01",
+      "F02",
+      "F03",
     ]);
   });
 

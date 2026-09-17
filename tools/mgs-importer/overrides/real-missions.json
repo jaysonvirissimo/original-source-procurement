@@ -86,6 +86,187 @@
         }
       ],
       "reviewedAt": "2026-09-16"
+    },
+    {
+      "symbol": "font_get_buffer_ptr",
+      "id": "F02",
+      "title": "BUFFER READ",
+      "phase": "Field work",
+      "kind": "real-solved",
+      "scaffold": "field",
+      "requires": ["C.STRUCT.LAYOUT", "C.TYPEDEF"],
+      "practices": [
+        "ABI.ARGUMENT",
+        "ABI.RETURN",
+        "C.POINTER.DEREFERENCE",
+        "C.STRUCT.FIELD",
+        "MIPS.LOAD.WORD"
+      ],
+      "briefing": {
+        "objective": "font_get_buffer_ptr returns the buffer pointer stored in a font control block in the game. Write font_get_buffer_ptr so it compiles to the three target rows. It reads one word from the structure reached through the first argument and returns that value, without writing to memory or doing arithmetic. Use the Context panel to read the declarations and the offset table to identify the field."
+      },
+      "contextTypes": ["KCB", "RECT"],
+      "terms": [
+        "glossary.word",
+        "glossary.offset",
+        "glossary.struct",
+        "glossary.pointer",
+        "glossary.generic-pointer",
+        "glossary.address",
+        "glossary.delay-slot",
+        "glossary.nop"
+      ],
+      "starterSource": "#include \"font.h\"\n\nvoid *font_get_buffer_ptr(KCB *kcb)\n{\n}\n",
+      "hints": [
+        {
+          "stage": 1,
+          "text": "Combine structure-field access with returning a generic pointer. The function reads a stored value; it does not follow that value to read more memory, modify the structure, or calculate a new address."
+        },
+        {
+          "stage": 2,
+          "text": "Start with the highlighted row. It loads a word from the structure reached through the first argument and places it where the return value is expected. Find the matching offset in the offset table, then read that field's declaration in the Context panel.",
+          "highlight": {
+            "start": 0,
+            "end": 1
+          }
+        },
+        {
+          "stage": 3,
+          "text": "The first highlighted row returns, with the value already loaded. The one after it occupies the slot following the return and does nothing. That slot still runs, but it adds no work for your source to express.",
+          "highlight": {
+            "start": 1,
+            "end": 3
+          }
+        },
+        {
+          "stage": 4,
+          "text": "Use one return statement that reads the selected field through the first argument. Return the stored value itself. There is no assignment, arithmetic, or second memory read, and the filler instruction needs no separate source statement."
+        },
+        {
+          "stage": 5,
+          "text": "Here is the struct declaration. To match an offset to a field, add up the sizes of the fields before it, in order. Pointers and ints take 4 bytes on this machine, shorts take 2, and chars take 1. A field may be pushed forward so it lines up with its own size. A nested struct or array counts its whole size.",
+          "reveal": {
+            "repository": "FoxdieTeam/mgs_reversing",
+            "commit": "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            "path": "source/font/font.h",
+            "sha256": "319feeacd29ae2088be6ea760bf34fddb23ae396f67188e73c24fac305f4094f",
+            "lines": {
+              "start": 8,
+              "end": 27
+            }
+          }
+        },
+        {
+          "stage": 6,
+          "text": "Compare your result with the highlighted row. If your load uses a different offset, check the offset table: you may have selected a different field. If arithmetic on the first argument replaces the load, you are returning where the field sits rather than what it holds. If a second load appears, you are following the stored value one step further instead of returning it. If your load moves a different number of bytes, check the field's type in Context: you may have selected a field of a different type."
+        },
+        {
+          "stage": 9,
+          "text": "Known matching solution:",
+          "reveal": {
+            "repository": "FoxdieTeam/mgs_reversing",
+            "commit": "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            "path": "source/font/font.c",
+            "sha256": "b58804d1688e73a8a5cb93241dab5910c922ab3e753381ac62dded9a58dac21a",
+            "lines": {
+              "start": 270,
+              "end": 273
+            }
+          }
+        }
+      ],
+      "reviewedAt": "2026-09-17"
+    },
+    {
+      "symbol": "GM_ConfigMotionAdjust",
+      "id": "F03",
+      "title": "MOTION ADJUST",
+      "phase": "Field work",
+      "kind": "real-solved",
+      "scaffold": "field",
+      "requires": ["C.STRUCT.LAYOUT", "C.STRUCT.NESTED", "C.TYPEDEF"],
+      "practices": [
+        "ABI.ARGUMENT",
+        "ABI.RETURN",
+        "C.POINTER.DEREFERENCE",
+        "C.STRUCT.FIELD",
+        "MIPS.LOAD.WORD",
+        "MIPS.STORE.WORD"
+      ],
+      "briefing": {
+        "objective": "GM_ConfigMotionAdjust appears to configure an object's motion adjustment using a supplied vector. Write GM_ConfigMotionAdjust so it compiles to the five target rows. It reads a pointer through the first argument, stores the second argument unchanged through that pointer, and returns a fixed value. Use the Context panel to read the declarations and the offset table to locate the fields involved."
+      },
+      "contextTypes": ["OBJECT", "DG_OBJS", "SVECTOR"],
+      "terms": [
+        "glossary.word",
+        "glossary.offset",
+        "glossary.struct",
+        "glossary.pointer",
+        "glossary.address",
+        "glossary.embedded-struct",
+        "glossary.delay-slot",
+        "glossary.nop"
+      ],
+      "starterSource": "#include \"common.h\"\n#include \"game.h\"\n#include \"libgv/libgv.h\"\n\nint GM_ConfigMotionAdjust(OBJECT *object, SVECTOR *adjust)\n{\n}\n",
+      "hints": [
+        {
+          "stage": 1,
+          "text": "Combine the two-step pointer access you have already learned with a memory write and a constant return value. The second argument is itself the value being stored; the listing does not read the vector's contents or perform arithmetic."
+        },
+        {
+          "stage": 2,
+          "text": "Start with the highlighted row. It reads a pointer from the object addressed by the first argument. Match the offset it shows to the offset table, then check the corresponding declaration in the Context panel to see what that pointer refers to.",
+          "highlight": {
+            "start": 0,
+            "end": 1
+          }
+        },
+        {
+          "stage": 3,
+          "text": "The first highlighted row is a filler instruction that gives the loaded pointer time to become available. The next uses that pointer as the base for a store of the unchanged second argument; use its displayed offset and the pointed-to type's offset table to locate the destination. The one after it begins the return. The last still runs in the slot following the return, and supplies zero as the return value.",
+          "highlight": {
+            "start": 1,
+            "end": 5
+          }
+        },
+        {
+          "stage": 4,
+          "text": "Aim for two statements: an assignment through the pointer stored in the first argument, followed by a return of zero. The assignment stores the second argument itself. There is no calculation, conditional, loop, or separate source statement for the filler instruction or the slot after the return."
+        },
+        {
+          "stage": 5,
+          "text": "Here is the struct declaration. To match an offset to a field, add up the sizes of the fields before it, in order. Pointers and ints take 4 bytes on this machine, shorts take 2, and chars take 1. A field may be pushed forward so it lines up with its own size. A nested struct or array counts its whole size.",
+          "reveal": {
+            "repository": "FoxdieTeam/mgs_reversing",
+            "commit": "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            "path": "source/libdg/libdg.h",
+            "sha256": "d86aa96996840920d16a284bae6b237021fcdf12772ab62ed6ae45161112fe01",
+            "lines": {
+              "start": 89,
+              "end": 104
+            }
+          }
+        },
+        {
+          "stage": 6,
+          "text": "A different offset suggests that you selected a different field or used the wrong base pointer. A different access width suggests that the selected declaration or expression has the wrong type. The expected operation in a different position points to an ordering or scheduling difference; check dependencies and any extra source operations, remembering that the compiler can place useful work after the return."
+        },
+        {
+          "stage": 9,
+          "text": "Known matching solution:",
+          "reveal": {
+            "repository": "FoxdieTeam/mgs_reversing",
+            "commit": "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            "path": "source/game/motion.c",
+            "sha256": "72e9746d296d001b6f93fc57a1a136c8d03e58265f44e8b78d1fe276220e73b3",
+            "lines": {
+              "start": 225,
+              "end": 229
+            }
+          }
+        }
+      ],
+      "reviewedAt": "2026-09-17"
     }
   ]
 }

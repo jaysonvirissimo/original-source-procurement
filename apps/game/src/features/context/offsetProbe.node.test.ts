@@ -223,12 +223,19 @@ describe.skipIf(checkouts === undefined)(
         );
         for (const type of types.map(measured)) {
           expect(type.fields.length).toBeGreaterThan(0);
-          const inside = type.fields.every(
-            (field, index, fields) =>
-              field.size > 0 &&
+          const inside = type.fields.every((field, index, fields) => {
+            // A struct may end with a zero-length array, which marks where
+            // variable-length data begins rather than holding anything. It
+            // sits at the type's own size, so it is the one member allowed to
+            // be empty, and only in last place.
+            const empty = field.size === 0;
+            const last = index === fields.length - 1;
+            return (
+              (!empty || last) &&
               field.offset + field.size <= type.size &&
-              field.offset >= (fields[index - 1]?.offset ?? 0),
-          );
+              field.offset >= (fields[index - 1]?.offset ?? 0)
+            );
+          });
           expect(inside, `${type.name} fields lie inside it, in order`).toBe(
             true,
           );
