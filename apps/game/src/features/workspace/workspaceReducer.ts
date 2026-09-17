@@ -26,8 +26,14 @@ export type WorkspaceMission = Pick<
   | "evidence"
 >;
 
-/** What a workspace resumes from: the saved source and the hints already opened. */
-export type SavedWorkspace = Pick<MissionProgress, "source" | "hintMaxStage">;
+/**
+ * What a workspace resumes from: the saved source, the hints already opened,
+ * and the attempts already in History.
+ */
+export type SavedWorkspace = Pick<
+  MissionProgress,
+  "source" | "hintMaxStage" | "attempts"
+>;
 
 export type ContextState =
   | { readonly kind: "resolving" }
@@ -57,7 +63,15 @@ export interface WorkspaceState {
   readonly result: MissionResult | undefined;
   /** The score of the last comparison before `result`, if there was one. */
   readonly previousScore: number | undefined;
+  /** Compiles started during this visit. */
   readonly attempts: number;
+  /** Attempts already in History when the workspace opened. */
+  readonly earlierAttempts: number;
+  /**
+   * The workspace opened on saved work, and the player has not yet edited,
+   * compiled, restored, or started practice.
+   */
+  readonly restored: boolean;
   readonly actions: RecordedActions;
   /** The last selection acknowledged outside the evidence, for feedback. */
   readonly evidenceMiss:
@@ -120,6 +134,10 @@ export function initialWorkspaceState(
     result: undefined,
     previousScore: undefined,
     attempts: 0,
+    earlierAttempts: saved?.attempts.length ?? 0,
+    restored:
+      saved !== undefined &&
+      (saved.source !== mission.starterSource || saved.attempts.length > 0),
     actions: {},
     evidenceMiss: undefined,
     correctionMiss: undefined,
@@ -201,7 +219,12 @@ function apply(state: WorkspaceState, action: WorkspaceAction): WorkspaceState {
     case "edited":
       return action.source === state.source
         ? state
-        : { ...state, source: action.source, sourceSha256: undefined };
+        : {
+            ...state,
+            source: action.source,
+            sourceSha256: undefined,
+            restored: false,
+          };
     case "source-hashed":
       // Only the hash of the latest source applies.
       return action.source === state.source
@@ -240,6 +263,7 @@ function apply(state: WorkspaceState, action: WorkspaceAction): WorkspaceState {
             ...state,
             source: action.source,
             sourceSha256: undefined,
+            restored: false,
             replacement: {
               revision: (state.replacement?.revision ?? 0) + 1,
               source: action.source,
@@ -288,6 +312,7 @@ function startCompile(
     latestBuildId: request.buildId,
     compiling: request,
     attempts: state.attempts + 1,
+    restored: false,
   };
 }
 
@@ -404,8 +429,10 @@ function startPractice(state: WorkspaceState): WorkspaceState {
     ...initialWorkspaceState(state.mission, {
       source: starterSource,
       hintMaxStage: 0,
+      attempts: [],
     }),
     entered: state.entered,
+    earlierAttempts: state.earlierAttempts,
     context: state.context,
     split: state.split,
     latestBuildId: state.latestBuildId,

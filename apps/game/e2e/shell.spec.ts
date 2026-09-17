@@ -53,6 +53,24 @@ for (const [hash, heading, settled] of [
   });
 }
 
+test("the footer links to settings from any screen", async ({ page }) => {
+  for (const hash of ["#/", "#/mission/001"]) {
+    await page.goto(`./${hash}`);
+    await page
+      .getByRole("contentinfo")
+      .getByRole("link", { name: "Settings" })
+      .click();
+    await expect(
+      page.getByRole("heading", { level: 1, name: "Settings" }),
+    ).toBeVisible();
+    // Settings starts the compiler; leaving before it loads makes WebKit log
+    // the cancelled imports as console errors.
+    await expect(page.getByText("Compiler build")).toBeVisible({
+      timeout: 30_000,
+    });
+  }
+});
+
 test("in-page links navigate between hash routes", async ({ page }) => {
   await page.goto("./#/manual/glossary.register");
   await expect(

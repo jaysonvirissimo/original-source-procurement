@@ -79,7 +79,7 @@ import { EvidencePanel } from "./EvidencePanel";
 import { HintPanel } from "./HintPanel";
 import { HistoryPanel } from "./HistoryPanel";
 import { ManualPanel } from "./ManualPanel";
-import { matchStatus } from "./matchStatus";
+import { matchStatus, restoredLabel } from "./matchStatus";
 import { loadMissionContext } from "./missionContext";
 import {
   missionMatchTarget,
@@ -562,6 +562,11 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
         <p className={styles.status} role="status">
           {matchStatus(state, stale)}
         </p>
+        {state.restored ? (
+          <p className={styles.support}>
+            {restoredLabel(state.earlierAttempts)}
+          </p>
+        ) : null}
         <a className={styles.mapLink} href="#/">
           Mission map
         </a>
@@ -894,6 +899,7 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
         )}
         <p className={styles.attempt}>
           ATTEMPT {String(state.attempts).padStart(2, "0")}
+          {state.earlierAttempts > 0 ? " THIS VISIT" : ""}
         </p>
         <p className={styles.saved}>
           {saveLabel(progress.saveStatus, progress.persistent)}

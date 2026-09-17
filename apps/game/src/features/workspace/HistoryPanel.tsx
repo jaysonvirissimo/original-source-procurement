@@ -65,9 +65,12 @@ export function HistoryPanel({
                   ? "EXACT MATCH"
                   : `${String(attempt.mismatchSummary.equalWords)} of ${String(attempt.mismatchSummary.targetWords)} words match`}
               </p>
-              {(attempt.hintStage ?? 0) === 0 ? null : (
+              {/* Attempts saved before hint stages were recorded say nothing. */}
+              {attempt.hintStage === undefined ? null : (
                 <p className={styles.dim}>
-                  {openedHintsLabel(hints, attempt.hintStage ?? 0)}
+                  {attempt.hintStage === 0
+                    ? "No hints"
+                    : openedHintsLabel(hints, attempt.hintStage)}
                 </p>
               )}
               <div className={history.actions}>

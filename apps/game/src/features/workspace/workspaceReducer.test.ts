@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { CompilationInput } from "../compiler/types";
+import { attempt } from "../persistence/persistence.test-helpers";
 import type { MissionResult } from "./missionResult";
 import {
   matchedResult,
@@ -455,6 +456,7 @@ describe("saved progress and history", () => {
     const state = initialWorkspaceState(exactMission, {
       source: "int saved;\n",
       hintMaxStage: 2,
+      attempts: [],
     });
 
     expect(state).toMatchObject({
@@ -464,6 +466,60 @@ describe("saved progress and history", () => {
       replacement: undefined,
     });
     expect(hintsUsed(state)).toBe(2);
+  });
+
+  it("marks saved work as restored until the player acts on it", () => {
+    const saved = initialWorkspaceState(exactMission, {
+      source: "int saved;\n",
+      hintMaxStage: 0,
+      attempts: [attempt(), attempt({ id: "second" })],
+    });
+
+    expect(saved).toMatchObject({ restored: true, earlierAttempts: 2 });
+    expect(initialWorkspaceState(exactMission)).toMatchObject({
+      restored: false,
+      earlierAttempts: 0,
+    });
+    expect(
+      initialWorkspaceState(exactMission, {
+        source: exactMission.starterSource,
+        hintMaxStage: 0,
+        attempts: [],
+      }).restored,
+    ).toBe(false);
+    expect(
+      initialWorkspaceState(exactMission, {
+        source: exactMission.starterSource,
+        hintMaxStage: 0,
+        attempts: [attempt()],
+      }),
+    ).toMatchObject({ restored: true, earlierAttempts: 1 });
+
+    expect(run(saved, { type: "edited", source: saved.source })).toBe(saved);
+    expect(
+      run(
+        saved,
+        { type: "compile-started", request: request(exactMission, 1, SOURCE) },
+        { type: "compile-started", request: request(exactMission, 1, SOURCE) },
+      ).restored,
+    ).toBe(false);
+    expect(
+      run(saved, {
+        type: "compile-started",
+        request: request(shippedMission("004"), 1, SOURCE),
+      }).restored,
+    ).toBe(true);
+    for (const action of [
+      { type: "edited", source: "int changed;\n" },
+      { type: "compile-started", request: request(exactMission, 1, SOURCE) },
+      { type: "attempt-restored", source: "int other;\n" },
+      { type: "practice-started" },
+    ] satisfies WorkspaceAction[]) {
+      expect(run(saved, action)).toMatchObject({
+        restored: false,
+        earlierAttempts: 2,
+      });
+    }
   });
 
   it("restores an attempt's source as a new editor revision and stales the result", () => {

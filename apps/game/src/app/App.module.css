@@ -32,6 +32,7 @@
 .footer {
   display: flex;
   justify-content: flex-end;
+  gap: var(--osp-space-5);
   padding: var(--osp-space-3) var(--osp-space-5);
   border-top: var(--osp-border) solid var(--osp-grid-dim);
   background: var(--osp-surface-0);

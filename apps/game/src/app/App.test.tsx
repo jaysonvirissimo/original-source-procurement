@@ -39,10 +39,14 @@ describe("App", () => {
         .getByRole("link", { name: "Read the orientation" })
         .getAttribute("href"),
     ).toBe("#/orientation");
-    expect(screen.queryByRole("navigation", { name: "Reference" })).toBeNull();
+    expect(
+      within(screen.getByRole("navigation", { name: "Reference" }))
+        .getAllByRole("link")
+        .map((link) => link.getAttribute("href")),
+    ).toEqual(["#/orientation", "#/manual", "#/settings"]);
   });
 
-  it("keeps the orientation and manual one link away once missions are started", async () => {
+  it("keeps the orientation, manual, and settings one link away once missions are started", async () => {
     render(<App openStorage={memoryProgress(samplePlayer()).openStorage} />);
 
     const reference = await screen.findByRole("navigation", {
@@ -52,7 +56,7 @@ describe("App", () => {
       within(reference)
         .getAllByRole("link")
         .map((link) => link.getAttribute("href")),
-    ).toEqual(["#/orientation", "#/manual"]);
+    ).toEqual(["#/orientation", "#/manual", "#/settings"]);
     expect(screen.queryByRole("region", { name: "Start here" })).toBeNull();
   });
 
@@ -91,12 +95,18 @@ describe("App", () => {
     expect((await screen.findByRole("alert")).textContent).toContain(
       "isn't letting OSP store data",
     );
+    const footer = screen.getByRole("contentinfo");
     expect(
-      screen.getByRole("link", { name: "Third-party notices" }),
+      within(footer).getByRole("link", { name: "Third-party notices" }),
     ).toBeTruthy();
+    expect(
+      within(footer)
+        .getByRole("link", { name: "Settings" })
+        .getAttribute("href"),
+    ).toBe("#/settings");
   });
 
-  it("links to the third-party notices shipped with the build", () => {
+  it("links to settings and the third-party notices from the footer", () => {
     render(
       <App
         createToolchain={createToolchain}
@@ -104,8 +114,10 @@ describe("App", () => {
       />,
     );
 
-    const link = screen.getByRole("link", { name: "Third-party notices" });
-    expect(link.getAttribute("href")).toBe("./THIRD_PARTY_NOTICES.txt");
+    const footer = within(screen.getByRole("contentinfo"));
+    expect(
+      footer.getAllByRole("link").map((link) => link.getAttribute("href")),
+    ).toEqual(["#/settings", "./THIRD_PARTY_NOTICES.txt"]);
   });
 
   it("follows hash navigation", async () => {
