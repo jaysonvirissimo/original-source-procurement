@@ -9,3 +9,7 @@ export const UPSTREAM_HINT_UNAVAILABLE =
 /** Upstream content arrived but failed its recorded hash. */
 export const UPSTREAM_CONTENT_MISMATCH =
   "The game data OSP downloaded for this mission didn't match what it expected, so it wasn't used. Try again later.";
+
+/** Upstream content could not be reached, shown where the headers would be. */
+export const UPSTREAM_CONTEXT_UNAVAILABLE =
+  "This mission's target and headers load from the mgs_reversing and psyq_sdk projects on GitHub, and OSP couldn't reach them. Check your connection and try again.";

@@ -97,6 +97,7 @@ function assembleOutput(
         kind: "success",
         object: assembled.object,
         compilerText: compiled.text,
+        preprocessed: compiled.preprocessed,
         diagnostics: compiled.diagnostics,
       }
     : {

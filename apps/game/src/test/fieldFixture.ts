@@ -29,6 +29,16 @@ export const FIELD_HEADER = [
   "    int right;",
   "} OspPair;",
   "",
+  // A layout with padding, an embedded struct, and a pointer, for the offset
+  // table. OspPair keeps lines 5 to 9, which hint stage 5 reveals.
+  "typedef struct OspSlot",
+  "{",
+  "    char tag;",
+  "    int count;",
+  "    OspPair pair;",
+  "    OspPair *next;",
+  "} OspSlot;",
+  "",
   "#endif",
   "",
 ].join("\r\n");
@@ -123,6 +133,7 @@ export async function fieldMission(): Promise<Mission> {
       remoteHeaders: { "psyq/include/osp_pair.h": header },
     },
     briefing: { objective: "Return the sum of two fields." },
+    contextTypes: ["OspSlot", "OspPair"],
     starterSource: FIELD_STARTER,
     symbol: FIELD_SYMBOL,
     target: {

@@ -67,6 +67,11 @@ import {
   UPSTREAM_UNAVAILABLE,
 } from "../upstream/messages";
 import { useUpstream } from "../upstream/upstreamContext";
+import { UpstreamErrorState } from "../upstream/UpstreamErrorState";
+import { ContextPanel } from "../context/ContextPanel";
+import { hasContext } from "../context/hasContext";
+import { OffsetTable } from "../context/OffsetTable";
+import { useOffsetProbe } from "../context/useOffsetProbe";
 import { missionTier, phaseFrom } from "../../vr/presentation";
 import { usePublishPresentation } from "../../vr/presentationContext";
 import { canAcknowledge, canCorrectPrediction } from "./completion";
@@ -161,6 +166,13 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
   // target only once it has loaded.
   const inlineTarget = useMemo(() => missionMatchTarget(mission), [mission]);
   const target = context.kind === "ready" ? context.target : inlineTarget;
+  const offsetProbe = useOffsetProbe({
+    service: toolchain.status === "ready" ? toolchain.service : undefined,
+    input: context.kind === "ready" ? context.input : undefined,
+    starterSource: mission.starterSource,
+    typeNames: mission.contextTypes,
+    paused: state.compiling !== undefined,
+  });
   const listing = useMemo(
     () => (target === undefined ? [] : targetListing(target.words)),
     [target],
@@ -345,6 +357,8 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
     };
     dispatch({ type: "compile-started", request });
     playCue("compile");
+    // The probe starts again once this build finishes.
+    offsetProbe.cancel();
     const outcome = await toolchain.service.build(
       { ...context.input, source },
       controller.signal,
@@ -455,23 +469,16 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
       case "unavailable":
       case "content-mismatch":
         return (
-          <div className={styles.alert} role="alert">
-            <p>
-              {context.kind === "unavailable"
+          <UpstreamErrorState
+            className={styles.alert}
+            message={
+              context.kind === "unavailable"
                 ? UPSTREAM_UNAVAILABLE
-                : UPSTREAM_CONTENT_MISMATCH}
-            </p>
-            <p>
-              <code>{context.path}</code>
-            </p>
-            <button
-              className={controls.button}
-              type="button"
-              onClick={retryContext}
-            >
-              Retry
-            </button>
-          </div>
+                : UPSTREAM_CONTENT_MISMATCH
+            }
+            path={context.path}
+            onRetry={retryContext}
+          />
         );
       case "resolving":
       case "ready":
@@ -761,6 +768,21 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
                   }}
                 />
               ) : null}
+              {state.overlay === "context" ? (
+                <ContextPanel
+                  context={context}
+                  starterSource={mission.starterSource}
+                  onRetry={retryContext}
+                  onClose={() => {
+                    closePane("context");
+                  }}
+                >
+                  {context.kind === "ready" &&
+                  offsetProbe.state !== undefined ? (
+                    <OffsetTable state={offsetProbe.state} />
+                  ) : null}
+                </ContextPanel>
+              ) : null}
             </ReferencePane>
           </>
         )}
@@ -840,6 +862,21 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
         >
           History
         </button>
+        {hasContext(mission) ? (
+          <button
+            className={controls.button}
+            type="button"
+            aria-pressed={state.overlay === "context"}
+            ref={(button) => {
+              paneToggles.current.context = button;
+            }}
+            onClick={() => {
+              toggleOverlay("context");
+            }}
+          >
+            Context
+          </button>
+        ) : null}
         {toolchain.status === "failed" ? (
           <div className={styles.alert} role="alert">
             <p>The compiler did not start: {toolchain.message}</p>

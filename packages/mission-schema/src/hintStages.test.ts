@@ -6,7 +6,7 @@ describe("hint stage purposes", () => {
     expect(HINT_STAGE_PURPOSES).toHaveLength(9);
     expect(hintStagePurpose(1)).toBe("Skill");
     expect(hintStagePurpose(5)).toBe("Type or declaration");
-    expect(hintStagePurpose(9)).toBe("Solution");
+    expect(hintStagePurpose(9)).toBe("Solution reveal");
   });
 
   it("names no stage outside 1 to 9", () => {

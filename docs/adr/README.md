@@ -30,6 +30,7 @@ Changing a locked decision requires a new record. Accepted records are never rew
 | [0020](0020-orientation-glossary-and-manual-search.md) | Orientation, glossary, and manual search | Accepted |
 | [0021](0021-walkthrough-diagrams.md)                   | Walkthrough diagrams                     | Accepted |
 | [0022](0022-docked-reference-pane.md)                  | Docked reference pane                    | Accepted |
+| [0023](0023-context-panel-and-offset-probe.md)         | Context panel and offset probe           | Proposed |
 
 ## Template
 

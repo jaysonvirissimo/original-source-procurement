@@ -280,6 +280,55 @@ describe("terms", () => {
   });
 });
 
+describe("contextTypes", () => {
+  it("accepts typedef names and tagged aggregates the synthetic C declares", () => {
+    const mission = syntheticMission({
+      contextTypes: ["struct Pair", "Slot"],
+      starterSource: "struct Pair { int a; int b; };\nint f(void);\n",
+    });
+    mission.compiler.headers = {
+      "slot.h": "typedef struct { void *data; } Slot;\n",
+    };
+    expect(issues(mission)).toEqual([]);
+  });
+
+  it("rejects malformed, repeated, empty, or undeclared names", () => {
+    expect(issues(syntheticMission({ contextTypes: ["struct"] }))).toEqual([
+      issue("contextTypes.0", "The starter and headers do not declare struct."),
+    ]);
+    expect(issues(syntheticMission({ contextTypes: ["enum Color"] }))).toEqual([
+      issue(
+        "contextTypes.0",
+        "Context types are a C type name, optionally after 'struct ' or 'union '.",
+      ),
+    ]);
+    expect(issues(syntheticMission({ contextTypes: [] }))).toEqual([
+      issue("contextTypes", expect.stringMatching(/>=1/) as string),
+    ]);
+    expect(
+      issues(
+        syntheticMission({
+          contextTypes: ["struct Missing", "Missing"],
+          starterSource: "int f(void);\n",
+        }),
+      ),
+    ).toEqual([
+      issue(
+        "contextTypes.0",
+        "The starter and headers do not declare struct Missing.",
+      ),
+      issue(
+        "contextTypes.1",
+        "The starter and headers do not declare Missing.",
+      ),
+    ]);
+  });
+
+  it("leaves a real mission's types to the runtime probe", () => {
+    expect(issues(realMission({ contextTypes: ["KCB_LIKE"] }))).toEqual([]);
+  });
+});
+
 describe("source and target", () => {
   it("rejects a synthetic mission with upstream provenance or a remote target", () => {
     expect(

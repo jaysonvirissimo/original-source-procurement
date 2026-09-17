@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import {
   FIELD_COMMITS,
@@ -375,4 +376,111 @@ test("a completion with the revealed solution says so, practices again, and is m
   await expect(page.getByRole("region", { name: "Mission map" })).toContainText(
     "SOLUTION REVEALED",
   );
+});
+
+/** Every record in OSP's database except the verified upstream cache. */
+function storedPlayerData(page: Page): Promise<string> {
+  return page.evaluate(
+    () =>
+      new Promise<string>((resolve, reject) => {
+        const opening = indexedDB.open("osp");
+        opening.onerror = () => {
+          reject(new Error("The test could not open OSP's database."));
+        };
+        opening.onsuccess = () => {
+          const db = opening.result;
+          const names = Array.from(db.objectStoreNames).filter(
+            (name) => name !== "upstreamCache",
+          );
+          const tx = db.transaction(names);
+          const records: unknown[] = [];
+          for (const name of names) {
+            tx.objectStore(name).getAll().onsuccess = (event) => {
+              records.push((event.target as IDBRequest).result);
+            };
+          }
+          tx.oncomplete = () => {
+            db.close();
+            resolve(JSON.stringify(records));
+          };
+        };
+      }),
+  );
+}
+
+async function exportedSave(page: Page): Promise<string> {
+  await page.goto("./#/settings");
+  const panel = page.getByRole("region", { name: "Save data" });
+  await expect(page.getByText("Compiler build")).toBeVisible({
+    timeout: 30_000,
+  });
+  const downloading = page.waitForEvent("download");
+  await panel.getByRole("button", { name: "Export save" }).click();
+  const download = await downloading;
+  return readFile(await download.path(), "utf8");
+}
+
+test("the Context panel shows the headers and compiler-computed offsets without a hint", async ({
+  page,
+}) => {
+  await openField(page);
+  await expect(compileButton(page)).toBeEnabled({ timeout: 30_000 });
+  await page.getByRole("button", { name: "Context" }).click();
+  const context = page.getByRole("region", { name: "Context" });
+
+  await expect(context.getByLabel("psyq/include/osp_pair.h")).toContainText(
+    "typedef struct OspSlot",
+  );
+  const slot = context.getByRole("table", { name: "OspSlot · 20 bytes" });
+  await expect(slot).toBeVisible({ timeout: 60_000 });
+  await expect(slot.getByRole("row")).toHaveText([
+    "OffsetSizeFieldTypeKind",
+    "0x01tagchar",
+    "0x13padding",
+    "0x44countint",
+    "0x88pairOspPairembedded",
+    "0x104nextOspPair *pointer",
+  ]);
+  await expect(
+    context.getByRole("table", { name: "OspPair · 8 bytes" }),
+  ).toBeVisible();
+  await expect(context.getByRole("button")).toHaveText(["Close"]);
+  expect(requestsTo("raw", FIELD_PATHS.source)).toEqual([]);
+  expect(requestsTo("cdn", FIELD_PATHS.source)).toEqual([]);
+  await expectListingUncovered(page, context);
+
+  // Reading context records no hint, and the offsets stay out of saves.
+  const marker = "/* context-test */";
+  await setSource(page, `${marker}\n${FIELD_STARTER}`);
+  await expect.poll(() => storedPlayerData(page)).toContain(marker);
+  const stored = await storedPlayerData(page);
+  expect(stored).not.toMatch(/"hintMaxStage":[1-9]/);
+  for (const text of ["OspSlot", "Field offsets"]) {
+    expect(stored).not.toContain(text);
+  }
+  const exported = await exportedSave(page);
+  expect(exported).toContain("context-test");
+  for (const text of ["OspSlot", "osp_offset_probe", "Field offsets"]) {
+    expect(exported).not.toContain(text);
+  }
+});
+
+test("with both hosts unreachable the Context panel says so, and Retry there restores it", async ({
+  page,
+}) => {
+  upstream.behave("raw", "block");
+  upstream.behave("cdn", "missing");
+  await openField(page);
+  await page.getByRole("button", { name: "Context" }).click();
+  const context = page.getByRole("region", { name: "Context" });
+  const alert = context.getByRole("alert");
+  await expect(alert).toContainText("couldn't reach them");
+
+  upstream.behave("raw", "serve");
+  await alert.getByRole("button", { name: "Retry" }).click();
+  await expect(context.getByLabel("psyq/include/osp_pair.h")).toBeVisible();
+  await expect(
+    context.getByRole("table", { name: "OspSlot · 20 bytes" }),
+  ).toBeVisible({ timeout: 60_000 });
+  await expect(compileButton(page)).toBeEnabled({ timeout: 30_000 });
 });

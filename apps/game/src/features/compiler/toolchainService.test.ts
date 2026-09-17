@@ -27,6 +27,7 @@ const INPUT: CompilationInput = {
 };
 
 const ASM = new TextEncoder().encode("\tjr\t$31\r\n");
+const PREPROCESSED = new TextEncoder().encode("int f(int a) { return a; }\n");
 const TIMINGS = { instantiateMs: 0, compileMs: 0, totalMs: 0 };
 
 function compiled(): CompileResult {
@@ -35,6 +36,7 @@ function compiled(): CompileResult {
     exitCode: 0,
     asm: ASM,
     text: "\tjr\t$31\n",
+    preprocessed: PREPROCESSED,
     diagnostics: [{ severity: "warning", message: "unused" }],
     rawStdout: "",
     rawStderr: "",
@@ -116,6 +118,7 @@ describe("createToolchainService", () => {
       kind: "success",
       object: OBJECT,
       compilerText: "\tjr\t$31\n",
+      preprocessed: PREPROCESSED,
       diagnostics: [{ severity: "warning", message: "unused" }],
     });
   });

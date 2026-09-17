@@ -53,6 +53,9 @@ export function buildMission(
     completion: "exact",
     compiler: file.compiler,
     briefing: override.briefing,
+    ...(override.contextTypes === undefined
+      ? {}
+      : { contextTypes: [...override.contextTypes] }),
     starterSource: override.starterSource,
     symbol: override.symbol,
     target,

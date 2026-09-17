@@ -1,0 +1,9 @@
+/* Headers can be long, so each one folds; the path stays readable. */
+.headers summary {
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.headers pre {
+  margin-top: var(--osp-space-2);
+}

@@ -101,8 +101,8 @@ export const manualEntries: readonly ManualEntry[] = [
       "Adding n to a pointer moves it n elements of the type it points to. For int *words, words + 3 is 12 bytes further. For char *text, text + 3 is 3 bytes further.",
       "The listing shows the byte count, because the compiler has already multiplied. Divide by the element size to get the n in the source.",
       "words + 3 is the address of words[3]. It computes an address and copies no data.",
-      "The compiler can compute words + 3 in a register without changing words. A source expression and the register that holds its result are different things.",
-      "Storing a pointer into a field copies the address. The data at that address stays where it is.",
+      "The compiler can compute words + 3 in a register without changing words. Register reuse, under MATCHING, explains why.",
+      "Storing a pointer into a field copies the address, not the data at that address. Storing addresses, under C, has more.",
       "void * has no element size, so standard C forbids adding to it. PsyQ, a GNU compiler, accepts it and moves 1 byte per step. That is compiler-specific behavior.",
     ],
   },
@@ -199,6 +199,28 @@ export const manualEntries: readonly ManualEntry[] = [
       "Two C programs can do the same useful work and still assemble differently. Matching needs the same words.",
       "A byte field declared with the wrong signedness loads with the wrong instruction: lbu instead of lb, or the reverse.",
       "Fix it where the type is declared. If the target uses lb, the field is signed char. If it uses lbu, it is unsigned char or plain char.",
+    ],
+  },
+  {
+    id: "matching.register-reuse",
+    section: "MATCHING",
+    title: "Register reuse",
+    body: [
+      "A register holds whatever the compiler last put in it. The compiler picks registers for values, not for the names in your source.",
+      "When an expression such as p + 4 is needed once, the compiler may compute it in the register that held p. After that instruction the register holds the new address, but the variable p in your source has not changed.",
+      "So when a listing writes a new value into an argument register, do not look for an assignment to that parameter. Look for the expression whose result the register now holds.",
+      "Naming the result first, as in char *end = p + 4;, often assembles to the same words, because the compiler does not keep the extra name.",
+    ],
+  },
+  {
+    id: "c.storing-addresses",
+    section: "C",
+    title: "Storing addresses",
+    body: [
+      "A pointer is an address. Assigning one, as in o->data = p;, copies that address: 4 bytes on this machine, stored with one sw.",
+      "The memory at that address is not copied. Afterwards o->data and p name the same bytes, so a change made through one is visible through the other.",
+      "Copying the contents takes more: a loop, a struct assignment, or a call such as memcpy. Each of those assembles to more than a single store.",
+      "Storing p + n stores a different address, n elements further along. The data still stays where it is.",
     ],
   },
   {
@@ -315,6 +337,7 @@ export const manualEntries: readonly ManualEntry[] = [
       "Scan explains the target listing itself: notes on its instructions and example values for registers and memory.",
       "Hint gives progressive help for the current mission, one stage at a time. Opening hints is recorded, and the last stage reveals the solution, which completes without advancing your skills.",
       "History lists your earlier compiles for this mission, so you can return to an attempt that got closer.",
+      "Context appears on missions that use headers or struct layouts. It shows the headers exactly as the compiler receives them, and a table of each named type's field offsets. Reading it is free and is not recorded as a hint, so open it before Hint when a mission asks you to choose fields.",
     ],
   },
   {

@@ -22,6 +22,7 @@ import { AudioServiceContext } from "../audio/audioContext";
 import { silentAudio, type AudioService } from "../audio/sounds";
 import { ToolchainProvider } from "../compiler/ToolchainProvider";
 import type { BuildOutcome, ToolchainService } from "../compiler/types";
+import { probeBuild } from "../context/probe.test-helpers";
 import { saveDataError } from "../persistence/errors";
 import {
   missionProgress,
@@ -639,7 +640,7 @@ describe("Workspace", () => {
       fireEvent.click(reveal);
       expect(hints.contains(document.activeElement)).toBe(true);
     }
-    expect(document.activeElement?.textContent).toContain("Stage 9");
+    expect(document.activeElement?.textContent).toContain("Solution reveal");
 
     fireEvent.keyDown(focused(), { key: "Escape" });
     expect(screen.queryByRole("region", { name: "Hints" })).toBeNull();
@@ -822,6 +823,167 @@ describe("Workspace", () => {
       });
     },
   );
+
+  it("offers Context only to missions with headers, and shows them without a fetch or a hint", async () => {
+    const view = await renderWorkspace(addImmediate);
+    enter();
+    expect(screen.queryByRole("button", { name: "Context" })).toBeNull();
+    view.unmount();
+
+    const loadC = vi.fn<UpstreamService["loadC"]>().mockResolvedValue({
+      kind: "loaded",
+      value: "#define OSP_CONTEXT 1\n",
+      source: "cache",
+    });
+    const { progress } = await renderWorkspace(withRemoteHeader, {
+      upstream: { ...offlineUpstream, loadC },
+    });
+    enter();
+    await whenEnabled(compileButton);
+
+    fireEvent.click(button("Context"));
+    const context = screen.getByRole("region", { name: "Context" });
+    expect(document.activeElement).toBe(
+      within(context).getByRole("heading", { name: "Context" }),
+    );
+    expect(within(context).getByLabelText("osp_context.h").textContent).toBe(
+      "#define OSP_CONTEXT 1\n",
+    );
+    expect(loadC).toHaveBeenCalledOnce();
+    expect(
+      progress.backing.player.missions[withRemoteHeader.id]?.hintMaxStage ?? 0,
+    ).toBe(0);
+
+    fireEvent.keyDown(focused(), { key: "Escape" });
+    expect(screen.queryByRole("region", { name: "Context" })).toBeNull();
+    expect(document.activeElement).toBe(button("Context"));
+
+    fireEvent.click(button("Context"));
+    fireEvent.click(
+      within(screen.getByRole("region", { name: "Context" })).getByRole(
+        "button",
+        { name: "Close" },
+      ),
+    );
+    expect(screen.queryByRole("region", { name: "Context" })).toBeNull();
+    expect(document.activeElement).toBe(button("Context"));
+  });
+
+  describe("with context types", () => {
+    const padding = shippedMission("012B");
+    // Sizes, then offset and size pairs, for struct Mixed and struct Pair16.
+    const offsets = [16, 0, 1, 4, 4, 8, 2, 0xa, 4, 4, 0, 2, 2, 2];
+
+    it("shows the compiler's field offsets in the Context panel", async () => {
+      const service = fakeToolchain();
+      service.build.mockImplementation(
+        probeBuild(padding.starterSource, padding.starterSource, offsets),
+      );
+      await renderWorkspace(padding, { service });
+      enter();
+
+      fireEvent.click(button("Context"));
+      const context = screen.getByRole("region", { name: "Context" });
+      expect(context.textContent).toContain("This mission has no headers.");
+      const table = await within(context).findByRole("table", {
+        name: "struct Mixed · 16 bytes",
+      });
+      // A header row, four fields, and padding after tag and at the end.
+      expect(within(table).getAllByRole("row")).toHaveLength(7);
+      expect(table.textContent).toContain("padding");
+      expect(
+        within(context).getByRole("table", { name: "struct Pair16 · 4 bytes" }),
+      ).toBeTruthy();
+    });
+
+    it("says offsets are unavailable when the probe fails, and still compiles", async () => {
+      const exact = successWith(objectWith("padding", inlineWords(padding)));
+      const service = fakeToolchain();
+      service.build.mockImplementation((input) =>
+        Promise.resolve(
+          input.source === padding.starterSource
+            ? {
+                kind: "compiler-failure",
+                diagnostics: [{ severity: "error", message: "parse error" }],
+              }
+            : exact,
+        ),
+      );
+      await renderWorkspace(padding, { service });
+      enter();
+
+      fireEvent.click(button("Context"));
+      const context = screen.getByRole("region", { name: "Context" });
+      expect(
+        await within(context).findByText(/^Offsets unavailable\./),
+      ).toBeTruthy();
+      expect(within(context).getByText("parse error")).toBeTruthy();
+
+      replaceSource(padding.solution ?? "");
+      await compileWhenReady();
+      expect(
+        await screen.findByRole("heading", { name: "Mission complete" }),
+      ).toBeTruthy();
+    });
+
+    it("stops measuring for the player's build, then measures again", async () => {
+      const probeSignals: AbortSignal[] = [];
+      const service = fakeToolchain(mismatch003);
+      service.build.mockImplementation((input, signal) => {
+        if (input.source !== padding.starterSource) {
+          return Promise.resolve(mismatch003);
+        }
+        if (signal !== undefined) {
+          probeSignals.push(signal);
+        }
+        return new Promise(() => undefined);
+      });
+      await renderWorkspace(padding, { service });
+      enter();
+      await waitFor(() => {
+        expect(probeSignals).toHaveLength(1);
+      });
+
+      replaceSource(padding.solution ?? "");
+      await compileWhenReady();
+      await waitFor(() => {
+        expect(probeSignals[0]?.aborted).toBe(true);
+      });
+      await waitFor(() => {
+        expect(probeSignals).toHaveLength(2);
+      });
+      expect(probeSignals[1]?.aborted).toBe(false);
+      expect(service.build).toHaveBeenCalledWith(
+        expect.objectContaining({ source: padding.solution }),
+        expect.any(AbortSignal),
+      );
+    });
+  });
+
+  it("shows a failed header in the Context panel and retries from there", async () => {
+    const loadC = vi
+      .fn<UpstreamService["loadC"]>()
+      .mockResolvedValueOnce({ kind: "unavailable", attempts: [] })
+      .mockResolvedValue({
+        kind: "loaded",
+        value: "#define OSP_CONTEXT 1\n",
+        source: "cache",
+      });
+    await renderWorkspace(withRemoteHeader, {
+      upstream: { ...offlineUpstream, loadC },
+    });
+    enter();
+    await screen.findByRole("alert");
+
+    fireEvent.click(button("Context"));
+    const context = screen.getByRole("region", { name: "Context" });
+    const alert = within(context).getByRole("alert");
+    expect(alert.textContent).toContain("couldn't reach them");
+    expect(alert.textContent).toContain("osp_context.h");
+
+    fireEvent.click(within(alert).getByRole("button", { name: "Retry" }));
+    expect(await within(context).findByLabelText("osp_context.h")).toBeTruthy();
+  });
 
   it("says so while mission context is still loading", async () => {
     const loadC = vi.fn<UpstreamService["loadC"]>(

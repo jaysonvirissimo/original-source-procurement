@@ -33,6 +33,17 @@ export const SymbolSchema = z
   .string()
   .regex(/^[A-Za-z_][A-Za-z0-9_]*$/, "Expected a C identifier.");
 
+/**
+ * A type the player reasons about by layout: a typedef name such as `KCB`,
+ * or a tagged aggregate such as `struct Mixed`. Names only, never members.
+ */
+export const ContextTypeNameSchema = z
+  .string()
+  .regex(
+    /^(?:(?:struct|union) )?[A-Za-z_][A-Za-z0-9_]*$/,
+    "Context types are a C type name, optionally after 'struct ' or 'union '.",
+  );
+
 export const Sha256HexSchema = z
   .string()
   .regex(/^[0-9a-f]{64}$/, "Expected a lowercase hexadecimal SHA-256 digest.");

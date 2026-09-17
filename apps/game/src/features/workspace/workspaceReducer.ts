@@ -41,7 +41,8 @@ export type ContextState =
       readonly path: string;
     };
 
-export type Overlay = "none" | "scan" | "manual" | "hint" | "history";
+export type Overlay =
+  "none" | "scan" | "manual" | "hint" | "history" | "context";
 
 export interface WorkspaceState {
   readonly mission: WorkspaceMission;
