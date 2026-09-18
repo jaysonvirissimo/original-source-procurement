@@ -1,5 +1,6 @@
 import { decode, REGISTER_NAMES } from "psyq-asm";
 import { LOAD_FORMS, STORE_BYTES } from "./classes.ts";
+import type { FunctionRelocation } from "./types.ts";
 
 /** A load from memory or a store to it, read from one instruction's operands. */
 export interface MemoryAccess {
@@ -27,6 +28,18 @@ export interface BranchTest {
   readonly target: number;
 }
 
+/**
+ * An unconditional jump, whose destination the word itself does not hold.
+ *
+ * In an unlinked object a `j` reads `0x0` because the linker fills the field
+ * in. The destination comes from the jump's `MIPS26` relocation, whose section
+ * offset counts bytes from the start of the section. A synthetic target is the
+ * only function in its section, so that offset over four is a word index.
+ */
+export interface JumpTarget {
+  readonly target: number;
+}
+
 /** What one target word does with registers and memory. */
 export interface WordFacts {
   readonly index: number;
@@ -34,6 +47,7 @@ export interface WordFacts {
   readonly writes: readonly string[];
   readonly memory?: MemoryAccess;
   readonly branch?: BranchTest;
+  readonly jump?: JumpTarget;
   /**
    * The earlier word that last wrote the memory base register. Absent when
    * the base still holds its value from function entry.
@@ -59,9 +73,13 @@ export function abiRegisterNames(text: string): string {
 
 /**
  * Static facts about each word, in order, for teaching diagrams. Words are
- * decoded, never executed: no register or memory value is computed.
+ * decoded, never executed: no register or memory value is computed. Passing
+ * an unlinked target's relocations resolves where each `j` goes.
  */
-export function wordFacts(words: ArrayLike<number>): WordFacts[] {
+export function wordFacts(
+  words: ArrayLike<number>,
+  relocations: readonly FunctionRelocation[] = [],
+): WordFacts[] {
   const lastWriter = new Map<number, number>();
   return Array.from(words, (word, index): WordFacts => {
     const instruction = decode(word);
@@ -107,6 +125,13 @@ export function wordFacts(words: ArrayLike<number>): WordFacts[] {
           target: index + 1 + displacement.displacement,
         },
       };
+    }
+    const jump = relocations.find(
+      (relocation) =>
+        relocation.offset === index * 4 && relocation.kind === "MIPS26",
+    );
+    if (instruction.mnemonic === "j" && jump?.target.kind === "section") {
+      facts = { ...facts, jump: { target: jump.target.offset / 4 } };
     }
     for (const register of instruction.writes) {
       lastWriter.set(register, index);

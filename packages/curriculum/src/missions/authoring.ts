@@ -90,6 +90,34 @@ export function branchDifficulty(
   };
 }
 
+/**
+ * A loop-phase profile: rows that repeat, and paths that skip each other.
+ *
+ * Each axis is scored from the target the way the importer scores a real
+ * function, so the callers pass counts rather than a shared constant: a guard,
+ * a backward branch and a jump each change `controlFlow` differently.
+ * `controlFlow` is branches plus jumps plus basic blocks, with a loop counted
+ * twice; `compilerShaping` is nops plus filled delay slots; `memory` is
+ * accesses plus the distinct forms used.
+ */
+export function loopDifficulty(
+  size: number,
+  controlFlow: number,
+  compilerShaping: number,
+  memory = 0,
+): DifficultyProfile {
+  return {
+    size,
+    controlFlow,
+    memory,
+    abi: 1,
+    types: 0,
+    compilerShaping,
+    context: 0,
+    specialHardware: 0,
+  };
+}
+
 /** A memory-phase profile: loads and stores through supplied types. */
 export function memoryDifficulty(
   size: number,

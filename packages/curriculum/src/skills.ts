@@ -265,4 +265,44 @@ export const skills: readonly Skill[] = [
     prerequisites: ["MATCH.SCHEDULING"],
     manualEntry: "matching.branch-sense",
   },
+  {
+    id: "MIPS.BRANCH.BACKWARD",
+    name: "Branching backward",
+    description:
+      "A branch with a negative distance lands on a row that has already run, so the rows between repeat: a loop.",
+    prerequisites: ["MIPS.BRANCH.ZERO"],
+    manualEntry: "mips.loops",
+  },
+  {
+    id: "C.LOOP",
+    name: "Loops and their guard",
+    description:
+      "A while or for loop compiles as a do/while with one extra branch in front, which skips the loop when it would not run at all.",
+    prerequisites: ["MIPS.BRANCH.BACKWARD"],
+    manualEntry: "mips.loops",
+  },
+  {
+    id: "MATCH.LOOP_UNDO",
+    name: "Work taken back",
+    description:
+      "The back edge's delay slot runs on the way out too, so work the compiler put there is taken back out after the loop.",
+    prerequisites: ["C.LOOP", "MATCH.SCHEDULING"],
+    manualEntry: "matching.loop-shape",
+  },
+  {
+    id: "MATCH.LOOP_INDEX",
+    name: "An index becomes a pointer",
+    description:
+      "An array indexed by a counter compiles to a pointer stepped by the element size. The listing has no multiply.",
+    prerequisites: ["C.LOOP", "C.POINTER.ARITHMETIC"],
+    manualEntry: "matching.loop-shape",
+  },
+  {
+    id: "MIPS.JUMP",
+    name: "Jumps",
+    description:
+      "j always goes. It is how the first arm of an if/else skips the second, and the linker fills in where it lands.",
+    prerequisites: ["MIPS.BRANCH", "MIPS.DELAY_SLOT"],
+    manualEntry: "mips.jumps",
+  },
 ];

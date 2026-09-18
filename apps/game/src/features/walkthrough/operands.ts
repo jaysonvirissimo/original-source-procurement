@@ -1,4 +1,4 @@
-import type { BranchTest, WordFacts } from "@osp/matching-core";
+import type { BranchTest, JumpTarget, WordFacts } from "@osp/matching-core";
 import { hex } from "../scan/format";
 
 /** One labeled part of an instruction's operands. */
@@ -15,7 +15,8 @@ export interface OperandReading {
 }
 
 /**
- * The operands of a load, a store, or a branch, labeled from decoded facts.
+ * The operands of a load, a store, a branch or a jump, labeled from decoded
+ * facts.
  * Other words have no reading, because these are the forms taught this way.
  */
 export function operandReading(
@@ -23,6 +24,9 @@ export function operandReading(
 ): OperandReading | undefined {
   if (facts?.branch !== undefined) {
     return branchReading(facts.branch);
+  }
+  if (facts?.jump !== undefined) {
+    return jumpReading(facts.jump, facts.index);
   }
   const memory = facts?.memory;
   if (memory === undefined) {
@@ -76,7 +80,7 @@ export function operandReading(
 function branchReading(branch: BranchTest): OperandReading {
   const rows = branch.displacement / 4;
   const forward = branch.displacement > 0;
-  const distance = `${forward ? "" : "back "}${String(Math.abs(rows))} ${Math.abs(rows) === 1 ? "row" : "rows"}`;
+  const distance = rowCount(rows);
   const tested =
     branch.registers.length === 0
       ? "the values it compares"
@@ -103,4 +107,28 @@ function branchReading(branch: BranchTest): OperandReading {
     ],
     summary: `Read ${tested}; when the branch is taken, continue ${distance} further ${forward ? "down" : "up"}, at word ${String(branch.target)}. The row directly below runs either way.`,
   };
+}
+
+/**
+ * A jump's destination. The word prints as j 0x0 because the linker has not
+ * filled the field in yet, so the row comes from the relocation instead.
+ */
+function jumpReading(jump: JumpTarget, index: number): OperandReading {
+  const rows = jump.target - index;
+  return {
+    parts: [
+      {
+        role: "destination",
+        value: "0x0",
+        meaning:
+          "Left zero until the program is linked. A relocation records where it goes, and the comparison checks that instead.",
+      },
+    ],
+    summary: `Always go, with no question asked: continue ${rowCount(rows)} further ${rows > 0 ? "down" : "up"}, at word ${String(jump.target)}. The row directly below runs first.`,
+  };
+}
+
+function rowCount(rows: number): string {
+  const count = Math.abs(rows);
+  return `${String(count)} ${count === 1 ? "row" : "rows"}`;
 }

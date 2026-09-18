@@ -32,6 +32,7 @@ export {
   usesStack,
   wordFacts,
   type BranchTest,
+  type JumpTarget,
   type MemoryAccess,
   type WordFacts,
 } from "./scan.ts";

@@ -169,4 +169,46 @@ describe("shipped missions with the real toolchain", () => {
       "The branch conditions differ.",
     );
   });
+
+  // Each loop-phase starter is one contained step from its target, because a
+  // structurally different listing cascades into findings that are only
+  // consequences. The hints read these findings, so what they are is pinned.
+  it.each([
+    ["036", ["BRANCH_CONDITION"]],
+    // The guard is the one row a do/while lacks.
+    ["037", ["MISSING_INSTRUCTION"]],
+    // With the body swapped, nothing lands in the back edge's slot that the
+    // exit has to take back: the peeled add and the undo both go.
+    ["038", ["MISSING_INSTRUCTION", "DELAY_SLOT"]],
+    // The counter's step and the pointer's step, 4 bytes apart.
+    ["039", ["IMMEDIATE", "IMMEDIATE"]],
+    ["040", ["BRANCH_TARGET", "DELAY_SLOT", "INSTRUCTION_ORDER"]],
+    // The missing guard moves every row below it, so the jump's destination
+    // differs on both sides.
+    ["041", ["MISSING_INSTRUCTION", "RELOCATION_TARGET", "RELOCATION_TARGET"]],
+  ])(
+    "mission %s: the starting source reports the step it is missing",
+    async (id, kinds) => {
+      const mission = missions.find((entry) => entry.id === id);
+      if (mission === undefined) {
+        throw new Error(`The curriculum has no mission ${id}.`);
+      }
+      const result = await compare(mission, mission.starterSource);
+
+      expect(result.mismatches.map((mismatch) => mismatch.kind)).toEqual(kinds);
+    },
+  );
+
+  it("mission 039: the two steps differ by the size of an int", async () => {
+    const mission = missions.find((entry) => entry.id === "039");
+    if (mission === undefined) {
+      throw new Error("The curriculum has no mission 039.");
+    }
+    const result = await compare(mission, mission.starterSource);
+
+    expect(result.mismatches.map((m) => m.evidence.join(" "))).toEqual([
+      "Immediate values differ. Target: addiu $v1,$v1,0x1; yours: addiu $v1,$v1,0x2.",
+      "Immediate values differ. Target: addiu $a0,$a0,0x4; yours: addiu $a0,$a0,0x8.",
+    ]);
+  });
 });

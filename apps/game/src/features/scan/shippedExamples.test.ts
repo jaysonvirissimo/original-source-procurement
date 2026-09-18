@@ -128,6 +128,11 @@ describe("shipped walkthroughs", () => {
       "031",
       "032",
       "033",
+      "036",
+      "037",
+      "038",
+      "039",
+      "040",
     ]);
   });
 
@@ -136,7 +141,10 @@ describe("shipped walkthroughs", () => {
     (_name, mission: Mission, walkthrough: MissionWalkthrough) => {
       const words =
         mission.target.kind === "inline" ? mission.target.words : [];
-      const facts = wordFacts(words);
+      const facts = wordFacts(
+        words,
+        mission.target.kind === "inline" ? mission.target.relocations : [],
+      );
       const inTarget = ({ range }: WalkthroughStep) =>
         range === undefined || range.end <= words.length;
       switch (walkthrough.kind) {
@@ -151,10 +159,10 @@ describe("shipped walkthroughs", () => {
         case "bits":
           return;
         case "operands": {
-          // A word has a reading when it accesses memory or branches; those
-          // are the two forms the operand table knows how to label.
+          // A word has a reading when it accesses memory, branches or jumps;
+          // those are the forms the operand table knows how to label.
           const word = facts[walkthrough.word];
-          expect(word?.memory ?? word?.branch).toBeDefined();
+          expect(word?.memory ?? word?.branch ?? word?.jump).toBeDefined();
           return;
         }
         case "caller": {

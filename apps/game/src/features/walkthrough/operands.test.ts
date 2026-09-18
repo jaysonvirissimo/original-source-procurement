@@ -68,6 +68,34 @@ describe("operandReading", () => {
       "distance",
     ]);
   });
+
+  it("reads a backward branch as going up, without saying back twice", () => {
+    // ...; addiu $a0,$a0,-0x1; bgtz $a0,.-4; ...
+    const loop = wordFacts(inlineWords(shippedMission("036")));
+
+    expect(operandReading(loop[2])?.summary).toBe(
+      "Read $a0; when the branch is taken, continue 1 row further up, at word 1. The row directly below runs either way.",
+    );
+  });
+
+  it("reads a jump's destination from the target's relocation", () => {
+    // andi; beqz; nop; j 0x0 (relocated to row 6); addiu; addiu; jr; sra
+    const mission = shippedMission("040");
+    const relocations =
+      mission.target.kind === "inline" ? mission.target.relocations : [];
+    const reading = operandReading(
+      wordFacts(inlineWords(mission), relocations)[3],
+    );
+
+    expect(reading?.parts.map(({ role, value }) => [role, value])).toEqual([
+      ["destination", "0x0"],
+    ]);
+    expect(reading?.summary).toBe(
+      "Always go, with no question asked: continue 3 rows further down, at word 6. The row directly below runs first.",
+    );
+    // Without the relocation the word has no destination to read.
+    expect(operandReading(wordFacts(inlineWords(mission))[3])).toBeUndefined();
+  });
 });
 
 describe("bitGroups", () => {

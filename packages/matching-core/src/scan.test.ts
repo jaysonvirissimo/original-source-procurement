@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { wordsOf } from "./fixtures.test-helpers.ts";
+import { generatedFrom, wordsOf } from "./fixtures.test-helpers.ts";
 import { abiRegisterNames, usesStack, wordFacts } from "./scan.ts";
 
 // Every assembly fixture here is OSP-authored.
@@ -51,6 +51,32 @@ describe("wordFacts", () => {
       displacement: 12,
       target: 3,
     });
+  });
+
+  it("resolves a jump from its relocation, since the word holds 0x0", () => {
+    const generated = generatedFrom([
+      "beq $4,$0,other",
+      "j done",
+      "addiu $2,$5,1",
+      "other:",
+      "addiu $2,$5,-1",
+      "done:",
+      "j $31",
+    ]);
+    const words = generated.words.map((word) => word.word);
+    const facts = wordFacts(words, generated.relocations);
+    const jump = facts.findIndex((word) => word.jump !== undefined);
+
+    expect(jump).toBeGreaterThan(0);
+    expect(facts[jump]?.jump).toEqual({
+      target: facts.findIndex(
+        (word, index) => index > jump + 1 && word.reads.includes("$ra"),
+      ),
+    });
+    // Without the relocations there is nothing to read the destination from.
+    expect(wordFacts(words).some((word) => word.jump !== undefined)).toBe(
+      false,
+    );
   });
 
   it("links an access to the earlier load that set its base register", () => {

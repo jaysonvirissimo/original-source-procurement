@@ -178,7 +178,13 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
     [target],
   );
   const facts = useMemo(
-    () => (target === undefined ? undefined : wordFacts(target.words)),
+    () =>
+      target === undefined
+        ? undefined
+        : wordFacts(
+            target.words,
+            target.kind === "unlinked" ? target.relocations : [],
+          ),
     [target],
   );
   // Help is chosen once per visit, so evidence recorded when the mission

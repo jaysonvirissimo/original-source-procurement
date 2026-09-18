@@ -203,6 +203,8 @@ export const manualEntries: readonly ManualEntry[] = [
       "This is why a two-instruction function reads back to front. The return comes first and the work comes second, and both run. A listing that ends in the middle of the work is not truncated; that last row is the delay slot.",
       "A branch has one too, and it is stranger. The row after a branch belongs to neither path: it runs whether or not the branch is taken. The compiler knows that, so it often puts work there that one path needs and the other simply overwrites.",
       "So a row after a branch is not part of the block it sits beside. Read it as happening first, before the question is settled.",
+      "At the bottom of a loop the slot is stranger again. It runs on every pass and once more on the way out, because the last pass still runs the row after the branch that decided to stop. Work the compiler puts there must either be harmless on that final run or be taken back out afterwards.",
+      "j has a delay slot too. The row after it runs before the jump lands, so it belongs to the path the jump ends, not to whatever is written below it.",
     ],
   },
   {
@@ -228,6 +230,33 @@ export const manualEntries: readonly ManualEntry[] = [
       "Against zero there is no test at all. bltz goes when a value is negative, bgez when it is not, bgtz when it is above zero, and blez when it is at most zero. One instruction asks and jumps, where a comparison against anything else needs two.",
       "The number on a branch is a distance, not an address. It counts bytes from the branch's own row, and a row is 4 bytes, so .+12 lands three rows further down. It is written in decimal even though other constants are hexadecimal.",
       "Counting those rows is how you find where a path ends. The listing does not draw it for you.",
+      "A distance can be negative. .-4 lands one row up, on a row that has already run, so the rows from there down to the branch run again. That is a loop, and it is the only way this compiler writes one.",
+    ],
+  },
+  {
+    id: "mips.loops",
+    section: "MIPS",
+    title: "Loops",
+    body: [
+      "A loop is a branch that points backward. It sits at the bottom of the rows it repeats, asks its question there, and while the answer is yes goes back up to the first of them. When the answer is no, the row after it runs and the function carries on below.",
+      "That is a do/while: the body runs once before the question is ever asked. do { a = a - 1; } while (a > 0); compiles to the subtraction, then bgtz $a0 pointing back at it.",
+      "A while loop asks first, and a body that runs zero times is a different program. The compiler does not build a second kind of loop for it. It writes the same do/while, and puts one extra branch in front, the guard, which asks the opposite question and skips the whole loop when the body should not run at all.",
+      "So while (a > 0) begins with blez $a0: at most zero, skip everything. The branch at the bottom is still bgtz. The two ask opposite questions about the same value, and a listing that has both is a while; a listing with only the one at the bottom is a do/while.",
+      "A for loop is a while loop with its first and last steps written in the header. for (i = 0; i < n; i = i + 1) sets i before the guard and adds 1 at the bottom of every pass, so it compiles to the same guard, body and backward branch.",
+      "The guard has a delay slot like any branch, and it runs whether or not the loop is skipped. The compiler usually puts the loop's starting value there, which is correct on both paths.",
+    ],
+  },
+  {
+    id: "mips.jumps",
+    section: "MIPS",
+    title: "Jumps",
+    body: [
+      "j goes somewhere else with no question asked. jr $ra is the one you already know: it goes to the address held in a register. j carries its destination inside the instruction instead.",
+      "An if/else needs one. The branch at the top chooses between the two arms, but when the first arm finishes, something has to stop it running straight on into the second. That something is j, pointing past the else.",
+      "In the target it reads j 0x0. The destination is an address, and addresses are not known until the linker has placed every function, so the compiler leaves the field zero and records a relocation saying where it should point. The comparison checks that relocation, not the zeros, exactly as it did for a global's address.",
+      "The comparison describes the destination as .text plus a number of bytes. .text is where the code lives, and in a mission's listing the function starts at byte 0, so .text+0x18 is 24 bytes in: row 6.",
+      "Like every jump, j has a delay slot, and the compiler usually puts the last step of the first arm there. So the row after j belongs to the arm above it, not to the else below it.",
+      "An if with no else needs no jump. When one arm only sets a default that the other replaces, the compiler puts the default in the branch's delay slot and there is nothing to skip.",
     ],
   },
   {
@@ -310,6 +339,19 @@ export const manualEntries: readonly ManualEntry[] = [
     ],
   },
   {
+    id: "matching.loop-shape",
+    section: "MATCHING",
+    title: "The shape of a loop",
+    body: [
+      "The compiler rearranges loops more than anything else in this course, and the listing only makes sense once you expect it to.",
+      "The row after the backward branch is its delay slot. It runs on every pass, including the last one, after which the loop has already decided to stop. When the compiler moves real work into that slot, the final pass does that work once too often, and a row after the loop takes it back out: an add in the slot, a subtract of the same register below.",
+      "That is why the order of the lines in the body matters. With n = n + a; a = a - 1; the add is the work that can wait for the slot, so the compiler does the first add above the loop and adds each next value in the slot, and the subtract after the loop undoes the one that ran on the way out. Swap the two lines and the add already uses the value the test just read, so nothing needs undoing and both rows disappear.",
+      "An array indexed by a counter does not compile to a multiply. p[i] in a loop becomes a pointer that starts at p and moves forward by the size of one element on every pass, 4 bytes for an int, so the load always reads offset 0. The counter survives only as the number the exit test reads.",
+      "That is where to read the step. If the counter moves by 2, the pointer moves by 8: the element size times the step, worked out by the compiler, not written anywhere in the source.",
+      "The compiler will sometimes turn a loop round and count down instead of up when the counter is not used for anything else, so a listing that runs backward is not proof that the source did.",
+    ],
+  },
+  {
     id: "c.storing-addresses",
     section: "C",
     title: "Storing addresses",
@@ -331,7 +373,8 @@ export const manualEntries: readonly ManualEntry[] = [
       "A store reads from its first operand. sw $a1,0x0($a0) and sb $a1,0x0($a0) write the value in $a1 to memory at the address in $a0. No register changes.",
       "A jump names where to go. jr $ra jumps to the address held in $ra.",
       "A test writes to its first operand, like arithmetic. slt $v0,$a0,$a1 asks whether $a0 is less than $a1 and writes 1 or 0 to $v0. The order of the two source operands is the order of the question.",
-      "A branch writes nothing. It reads one or two registers and ends with a distance: bnez $v0,.+12 reads $v0 and, when it is not zero, continues three rows further down.",
+      "A branch writes nothing. It reads one or two registers and ends with a distance: bnez $v0,.+12 reads $v0 and, when it is not zero, continues three rows further down. A negative distance goes up: bgtz $a0,.-4 goes back one row while $a0 is above zero.",
+      "j reads nothing and writes nothing. Its one operand is where to go, and in a mission's target it shows 0x0 because the linker has not filled it in; the comparison names the destination instead.",
     ],
   },
   {
@@ -935,6 +978,38 @@ export const manualEntries: readonly ManualEntry[] = [
     title: "path",
     body: [
       "A run of instructions that executes together. A branch splits a listing into paths, and only one of them runs on any particular call.",
+    ],
+  },
+  {
+    id: "glossary.loop",
+    section: "GLOSSARY",
+    title: "loop",
+    body: [
+      "Rows that run again and again until a question is answered no. In a listing it is a branch with a negative distance, at the bottom of the rows it repeats.",
+    ],
+  },
+  {
+    id: "glossary.guard",
+    section: "GLOSSARY",
+    title: "guard",
+    body: [
+      "The branch in front of a while or for loop. It asks the opposite of the loop's question and skips the loop entirely when the body should not run even once.",
+    ],
+  },
+  {
+    id: "glossary.back-edge",
+    section: "GLOSSARY",
+    title: "back edge",
+    body: [
+      "The branch at the bottom of a loop that goes back up. Its delay slot runs on every pass, including the one after which the loop stops.",
+    ],
+  },
+  {
+    id: "glossary.j",
+    section: "GLOSSARY",
+    title: "j",
+    body: [
+      "Jump. It always goes, with no question asked, to a destination written into the instruction. The linker fills that destination in, so before linking it reads 0x0.",
     ],
   },
 ];

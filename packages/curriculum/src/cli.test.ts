@@ -31,7 +31,7 @@ describe("runValidation", () => {
     // The last coverage warning was retired when a real mission joined the
     // path ahead of the final phase, so nothing follows the valid line.
     expect(log).toEqual([
-      "Curriculum is valid: 34 skills, 45 missions, 45 on the default path.",
+      "Curriculum is valid: 39 skills, 51 missions, 51 on the default path.",
     ]);
     expect(error).toEqual([]);
   });

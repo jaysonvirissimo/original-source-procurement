@@ -39,6 +39,12 @@ import { branchOnSign } from "./032-branch-on-sign.ts";
 import { theSlotRuns } from "./033-the-slot-runs.ts";
 import { eitherWayRound } from "./034-either-way-round.ts";
 import { qualification06 } from "./035-qualification-06.ts";
+import { goAroundAgain } from "./036-go-around-again.ts";
+import { theGuard } from "./037-the-guard.ts";
+import { takeItBack } from "./038-take-it-back.ts";
+import { noMultiply } from "./039-no-multiply.ts";
+import { jumpOver } from "./040-jump-over.ts";
+import { qualification07 } from "./041-qualification-07.ts";
 import type { MissionDraft } from "./authoring.ts";
 
 export type { MissionDraft } from "./authoring.ts";
@@ -89,4 +95,10 @@ export const missionDrafts: readonly MissionDraft[] = [
   theSlotRuns,
   eitherWayRound,
   qualification06,
+  goAroundAgain,
+  theGuard,
+  takeItBack,
+  noMultiply,
+  jumpOver,
+  qualification07,
 ];

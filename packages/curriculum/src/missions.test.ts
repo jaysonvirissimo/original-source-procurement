@@ -78,6 +78,12 @@ describe("the first teaching slice", () => {
       "033",
       "034",
       "035",
+      "036",
+      "037",
+      "038",
+      "039",
+      "040",
+      "041",
       "F04",
       "F01",
       "F02",
@@ -224,6 +230,12 @@ describe("the first teaching slice", () => {
       "033": ["MATCH.SCHEDULING"],
       "034": ["MATCH.BRANCH_SENSE"],
       "035": [],
+      "036": ["MIPS.BRANCH.BACKWARD"],
+      "037": ["C.LOOP"],
+      "038": ["MATCH.LOOP_UNDO"],
+      "039": ["MATCH.LOOP_INDEX"],
+      "040": ["MIPS.JUMP"],
+      "041": [],
     });
   });
 
