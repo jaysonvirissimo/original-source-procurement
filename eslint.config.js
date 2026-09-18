@@ -6,6 +6,29 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 
 const REACT = ["react", "react/*", "react-dom", "react-dom/*"];
+const TOOLCHAIN = ["psyq-wasm", "psyq-wasm/*", "psyq-asm", "psyq-asm/*"];
+const STORAGE = ["indexedDB", "localStorage", "sessionStorage"];
+const NETWORK = ["fetch", "XMLHttpRequest", "WebSocket", "EventSource"];
+
+/**
+ * Forbids reaching the named globals both bare and as members of `window`,
+ * `globalThis`, or `self`, which `no-restricted-globals` alone lets through.
+ */
+function forbidGlobals(names, message) {
+  return {
+    "no-restricted-globals": [
+      "error",
+      ...names.map((name) => ({ name, message })),
+    ],
+    "no-restricted-syntax": [
+      "error",
+      {
+        selector: `MemberExpression[object.name=/^(window|globalThis|self)$/][property.name=/^(${names.join("|")})$/]`,
+        message,
+      },
+    ],
+  };
+}
 
 /**
  * Enforces package boundaries: lower-level packages must not reach up into
@@ -83,12 +106,7 @@ export default defineConfig(
   {
     files: ["apps/game/src/**/*.{ts,tsx}"],
     ignores: ["apps/game/src/features/compiler/**"],
-    rules: forbidImports("Game code outside the toolchain service", [
-      "psyq-wasm",
-      "psyq-wasm/*",
-      "psyq-asm",
-      "psyq-asm/*",
-    ]),
+    rules: forbidImports("Game code outside the toolchain service", TOOLCHAIN),
   },
 
   {
@@ -97,37 +115,60 @@ export default defineConfig(
   },
 
   {
+    // Test fixtures and fakes stay out of the shipped module graph. main.tsx
+    // loads the fixture catalog behind a build-mode check for browser tests.
+    files: ["apps/game/src/**/*.{ts,tsx}"],
+    ignores: [
+      "apps/game/src/main.tsx",
+      "apps/game/src/test/**",
+      "apps/game/src/**/*.test.{ts,tsx}",
+      "apps/game/src/**/*.test-helpers.ts",
+    ],
+    rules: forbidImports("Shipped game code", ["**/test/**"]),
+  },
+
+  {
     files: ["apps/game/src/**/*.{ts,tsx}"],
     ignores: ["apps/game/src/features/persistence/**"],
-    rules: {
-      "no-restricted-globals": [
-        "error",
-        ...["indexedDB", "localStorage", "sessionStorage"].map((name) => ({
-          name,
-          message:
-            'Browser storage is reached only through features/persistence. See "Package boundaries" in CONTRIBUTING.md.',
-        })),
-      ],
-    },
+    rules: forbidGlobals(
+      STORAGE,
+      'Browser storage is reached only through features/persistence. See "Package boundaries" in CONTRIBUTING.md.',
+    ),
+  },
+
+  {
+    // Build scripts and browser tests run in Node; they drive the game, they
+    // do not render it.
+    files: ["apps/game/build/**/*.ts", "apps/game/e2e/**/*.ts"],
+    rules: forbidImports("Build scripts and browser tests", REACT),
   },
 
   {
     files: ["packages/mission-schema/**/*.ts"],
-    rules: forbidImports("mission-schema", [...REACT, "psyq-asm", "@osp/*"]),
+    rules: forbidImports("mission-schema", [...REACT, ...TOOLCHAIN, "@osp/*"]),
   },
   {
     files: ["packages/matching-core/**/*.ts"],
-    rules: forbidImports("matching-core", [
-      ...REACT,
-      "@osp/game",
-      "@osp/curriculum",
-      "@osp/mgs-importer",
-    ]),
+    rules: {
+      ...forbidImports("matching-core", [
+        ...REACT,
+        "psyq-wasm",
+        "psyq-wasm/*",
+        "@osp/game",
+        "@osp/curriculum",
+        "@osp/mgs-importer",
+      ]),
+      ...forbidGlobals(
+        [...STORAGE, ...NETWORK],
+        'matching-core stays free of browser storage and the network. See "Package boundaries" in CONTRIBUTING.md.',
+      ),
+    },
   },
   {
     files: ["packages/curriculum/**/*.ts"],
     rules: forbidImports("curriculum", [
       ...REACT,
+      ...TOOLCHAIN,
       "@osp/game",
       "@osp/matching-core",
       "@osp/mgs-importer",

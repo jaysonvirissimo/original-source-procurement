@@ -55,17 +55,17 @@ Committed text must stand on its own. State the rule, behavior, or reason direct
 
 ## Package boundaries
 
-| Package                   | May depend on                                          | Must not                                                               |
-| ------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------- |
-| `apps/game`               | every package, `psyq-wasm`, `psyq-asm`                 | put comparison, alignment, or classification logic in React components |
-| `packages/mission-schema` | nothing in the workspace                               | import React or `psyq-asm`                                             |
-| `packages/matching-core`  | `psyq-asm`, and `mission-schema` for shared primitives | import React, parse assembly text, use browser storage or the network  |
-| `packages/curriculum`     | `mission-schema`                                       | import the game, or contain any upstream content                       |
-| `tools/mgs-importer`      | `mission-schema`, `matching-core`, `psyq-asm`          | run in the browser, or write upstream content to committed files       |
+| Package                   | May depend on                                          | Must not                                                                             |
+| ------------------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------ |
+| `apps/game`               | every package, `psyq-wasm`, `psyq-asm`                 | put comparison, alignment, or classification logic in React components               |
+| `packages/mission-schema` | nothing in the workspace                               | import React, `psyq-wasm`, or `psyq-asm`                                             |
+| `packages/matching-core`  | `psyq-asm`, and `mission-schema` for shared primitives | import React or `psyq-wasm`, parse assembly text, use browser storage or the network |
+| `packages/curriculum`     | `mission-schema`                                       | import the game or the toolchain packages, or contain any upstream content           |
+| `tools/mgs-importer`      | `mission-schema`, `matching-core`, `psyq-asm`          | run in the browser, or write upstream content to committed files                     |
 
-ESLint enforces the import rules. Changing a boundary, or adding a package, needs an architecture decision record.
+ESLint enforces the import rules, and the storage and network rules for `matching-core`, whether a global is reached bare or through `window`, `globalThis`, or `self`. Changing a boundary, or adding a package, needs an architecture decision record.
 
-In `apps/game`, only `src/features/persistence` uses `indexedDB`, `localStorage`, or `sessionStorage`. Everything else reaches saved progress through the persistence contexts, and ESLint enforces this too.
+In `apps/game`, only `src/features/persistence` uses `indexedDB`, `localStorage`, or `sessionStorage`. Everything else reaches saved progress through the persistence contexts, and ESLint enforces this too. Shipped game code never imports from a `test/` directory; fakes and fixtures are for tests, and only `main.tsx` may load the fixture catalog, behind the fixtures build mode. Build scripts and browser tests may use the game's services but not React.
 
 Mission and skill behavior comes from validated curriculum data, never from rules hard-coded in UI components.
 
