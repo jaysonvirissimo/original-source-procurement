@@ -224,6 +224,8 @@ The stack is deliberately fixed. Do not add a state library, CSS framework, UI c
 
 Pin toolchain packages (`psyq-wasm`, `psyq-asm`) to exact versions. Upgrading either one means regenerating synthetic targets and recording any change in emitted words.
 
+A package that more than one manifest declares gets one version in the `catalog` of `pnpm-workspace.yaml`, and the manifests reference it as `catalog:`. Change the version there, once.
+
 pnpm refuses package versions published within its minimum release age. For most packages, pick the newest version outside that window instead of adding a `minimumReleaseAgeExclude` entry. The exception is the pinned versions of `psyq-wasm` and `psyq-asm`, which the project maintainer publishes for this game. Those may be listed in `minimumReleaseAgeExclude`, so a toolchain release can be adopted the day it is published.
 
 ## Architecture decision records

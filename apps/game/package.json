@@ -25,27 +25,27 @@
     "@osp/matching-core": "workspace:*",
     "@osp/mission-schema": "workspace:*",
     "@react-three/fiber": "9.7.0",
-    "psyq-asm": "0.2.0",
-    "psyq-wasm": "1.0.0",
+    "psyq-asm": "catalog:",
+    "psyq-wasm": "catalog:",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "three": "0.186.0",
-    "zod": "4.6.4"
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@osp/mgs-importer": "workspace:*",
     "@playwright/test": "1.63.0",
     "@testing-library/dom": "10.4.1",
     "@testing-library/react": "16.3.3",
-    "@types/node": "24.13.4",
+    "@types/node": "catalog:",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.7",
     "@types/three": "0.186.0",
     "@vitejs/plugin-react": "6.1.1",
     "fake-indexeddb": "6.2.5",
     "jsdom": "30.0.1",
-    "prettier": "3.9.6",
-    "typescript": "6.0.3",
+    "prettier": "catalog:",
+    "typescript": "catalog:",
     "vite": "8.3.0",
     "vitest": "5.0.0"
   }

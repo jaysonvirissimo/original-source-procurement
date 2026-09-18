@@ -10,10 +10,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "psyq-asm": "0.2.0"
+    "psyq-asm": "catalog:"
   },
   "devDependencies": {
-    "fast-check": "4.10.0",
-    "typescript": "6.0.3"
+    "fast-check": "catalog:",
+    "typescript": "catalog:"
   }
 }

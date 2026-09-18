@@ -162,6 +162,30 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+catalogs:
+  default:
+    '@types/node':
+      specifier: 24.13.4
+      version: 24.13.4
+    fast-check:
+      specifier: 4.10.0
+      version: 4.10.0
+    prettier:
+      specifier: 3.9.6
+      version: 3.9.6
+    psyq-asm:
+      specifier: 0.2.0
+      version: 0.2.0
+    psyq-wasm:
+      specifier: 1.0.0
+      version: 1.0.0
+    typescript:
+      specifier: 6.0.3
+      version: 6.0.3
+    zod:
+      specifier: 4.6.4
+      version: 4.6.4
+
 importers:
 
   .:
@@ -170,7 +194,7 @@ importers:
         specifier: 10.0.1
         version: 10.0.1(eslint@10.10.0)
       '@types/node':
-        specifier: 24.13.4
+        specifier: 'catalog:'
         version: 24.13.4
       '@vitest/coverage-v8':
         specifier: 5.0.0
@@ -188,10 +212,10 @@ importers:
         specifier: 17.12.0
         version: 17.12.0
       prettier:
-        specifier: 3.9.6
+        specifier: 'catalog:'
         version: 3.9.6
       typescript:
-        specifier: 6.0.3
+        specifier: 'catalog:'
         version: 6.0.3
       typescript-eslint:
         specifier: 8.70.0
@@ -248,10 +272,10 @@ importers:
         specifier: 9.7.0
         version: 9.7.0(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(three@0.186.0)
       psyq-asm:
-        specifier: 0.2.0
+        specifier: 'catalog:'
         version: 0.2.0
       psyq-wasm:
-        specifier: 1.0.0
+        specifier: 'catalog:'
         version: 1.0.0
       react:
         specifier: 19.2.8
@@ -263,7 +287,7 @@ importers:
         specifier: 0.186.0
         version: 0.186.0
       zod:
-        specifier: 4.6.4
+        specifier: 'catalog:'
         version: 4.6.4
     devDependencies:
       '@osp/mgs-importer':
@@ -279,7 +303,7 @@ importers:
         specifier: 16.3.3
         version: 16.3.3(@testing-library/dom@10.4.1)(@types/react-dom@19.2.7(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@types/node':
-        specifier: 24.13.4
+        specifier: 'catalog:'
         version: 24.13.4
       '@types/react':
         specifier: 19.2.18
@@ -300,10 +324,10 @@ importers:
         specifier: 30.0.1
         version: 30.0.1
       prettier:
-        specifier: 3.9.6
+        specifier: 'catalog:'
         version: 3.9.6
       typescript:
-        specifier: 6.0.3
+        specifier: 'catalog:'
         version: 6.0.3
       vite:
         specifier: 8.3.0
@@ -319,36 +343,36 @@ importers:
         version: link:../mission-schema
     devDependencies:
       '@types/node':
-        specifier: 24.13.4
+        specifier: 'catalog:'
         version: 24.13.4
       fast-check:
-        specifier: 4.10.0
+        specifier: 'catalog:'
         version: 4.10.0
       typescript:
-        specifier: 6.0.3
+        specifier: 'catalog:'
         version: 6.0.3
 
   packages/matching-core:
     dependencies:
       psyq-asm:
-        specifier: 0.2.0
+        specifier: 'catalog:'
         version: 0.2.0
     devDependencies:
       fast-check:
-        specifier: 4.10.0
+        specifier: 'catalog:'
         version: 4.10.0
       typescript:
-        specifier: 6.0.3
+        specifier: 'catalog:'
         version: 6.0.3
 
   packages/mission-schema:
     dependencies:
       zod:
-        specifier: 4.6.4
+        specifier: 'catalog:'
         version: 4.6.4
     devDependencies:
       typescript:
-        specifier: 6.0.3
+        specifier: 'catalog:'
         version: 6.0.3
 
   tools/mgs-importer:
@@ -360,20 +384,20 @@ importers:
         specifier: workspace:*
         version: link:../../packages/mission-schema
       psyq-asm:
-        specifier: 0.2.0
+        specifier: 'catalog:'
         version: 0.2.0
       zod:
-        specifier: 4.6.4
+        specifier: 'catalog:'
         version: 4.6.4
     devDependencies:
       '@types/node':
-        specifier: 24.13.4
+        specifier: 'catalog:'
         version: 24.13.4
       prettier:
-        specifier: 3.9.6
+        specifier: 'catalog:'
         version: 3.9.6
       typescript:
-        specifier: 6.0.3
+        specifier: 'catalog:'
         version: 6.0.3
 
 packages:

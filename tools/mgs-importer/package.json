@@ -1,6 +1,6 @@
 {
   "name": "@osp/mgs-importer",
-  "version": "0.0.0",
+  "version": "1.2.0",
   "private": true,
   "type": "module",
   "description": "Node-only build tool that produces real-mission pointers from pinned upstream checkouts.",
@@ -14,12 +14,12 @@
   "dependencies": {
     "@osp/matching-core": "workspace:*",
     "@osp/mission-schema": "workspace:*",
-    "psyq-asm": "0.2.0",
-    "zod": "4.6.4"
+    "psyq-asm": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
-    "@types/node": "24.13.4",
-    "prettier": "3.9.6",
-    "typescript": "6.0.3"
+    "@types/node": "catalog:",
+    "prettier": "catalog:",
+    "typescript": "catalog:"
   }
 }

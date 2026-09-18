@@ -5,5 +5,21 @@ packages:
 
 engineStrict: true
 
+# pnpm 12 defaults to a one-day release age; pinning it keeps the policy in
+# the repository rather than in a version's default. The maintainer publishes
+# the toolchain packages for this game, so their pinned versions may be
+# adopted the day they are released. See "Dependencies" in CONTRIBUTING.md.
+minimumReleaseAge: 1440
 minimumReleaseAgeExclude:
   - psyq-asm@0.2.0
+  - psyq-wasm@1.0.0
+
+# One version for every package more than one manifest declares.
+catalog:
+  "@types/node": 24.13.4
+  fast-check: 4.10.0
+  prettier: 3.9.6
+  psyq-asm: 0.2.0
+  psyq-wasm: 1.0.0
+  typescript: 6.0.3
+  zod: 4.6.4

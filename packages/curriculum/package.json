@@ -15,8 +15,8 @@
     "@osp/mission-schema": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "24.13.4",
-    "fast-check": "4.10.0",
-    "typescript": "6.0.3"
+    "@types/node": "catalog:",
+    "fast-check": "catalog:",
+    "typescript": "catalog:"
   }
 }
