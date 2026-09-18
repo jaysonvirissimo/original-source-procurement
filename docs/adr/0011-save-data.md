@@ -2,6 +2,8 @@
 
 Status: Accepted
 
+Partly replaced by [ADR 0012](0012-skill-state-and-fading-help.md), which replaces the consequence that adding a setting needs a migration, for optional settings with a default.
+
 ## Context
 
 ADR 0004 settled that player progress lives in IndexedDB behind one adapter, with versioned schemas, bounded attempt history, and a separate cache for content fetched from upstream. Building it required further decisions: the store layout, how saves stay cheap as history grows, what happens when stored records cannot be read, and when an attempt is recorded.

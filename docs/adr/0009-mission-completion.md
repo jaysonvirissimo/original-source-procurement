@@ -2,6 +2,8 @@
 
 Status: Accepted
 
+Partly replaced by [ADR 0019](0019-completion-evidence-and-modes.md), which replaces the `acknowledge-evidence` and `prediction-recorded` rules.
+
 ## Context
 
 Missions complete in three ways:

@@ -2,6 +2,8 @@
 
 Status: Accepted
 
+Partly replaced by [ADR 0019](0019-completion-evidence-and-modes.md), which replaces the statement that a wrong prediction still completes.
+
 ## Context
 
 Saves store skill evidence events: one per skill each time a mission completes, with the highest hint stage opened and whether the solution was revealed (ADR 0011). Teaching help should fade per skill as that evidence grows, without locking missions, and players need a way to keep or remove automatic help. Completion also used to replace the workspace, which hid the comparison and any prediction correction the player had just earned.

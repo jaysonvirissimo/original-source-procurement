@@ -2,7 +2,7 @@
 
 Each record captures one architecture decision: the situation that required it, what was decided, and what follows from it. Records stand on their own and do not rely on documents outside the repository.
 
-Changing a locked decision requires a new record. Accepted records are never rewritten to hide history. Mark a replaced record `Superseded` and link to the record that replaces it.
+Changing a locked decision requires a new record. Accepted records are never rewritten to hide history. Mark a replaced record `Superseded` and link to the record that replaces it. When a later record replaces only part of an earlier one, the earlier record stays `Accepted` and gains a `Partly replaced by` line under its status naming the later record, so a reader who opens it first knows where to look.
 
 ## Index
 
@@ -30,7 +30,7 @@ Changing a locked decision requires a new record. Accepted records are never rew
 | [0020](0020-orientation-glossary-and-manual-search.md) | Orientation, glossary, and manual search | Accepted |
 | [0021](0021-walkthrough-diagrams.md)                   | Walkthrough diagrams                     | Accepted |
 | [0022](0022-docked-reference-pane.md)                  | Docked reference pane                    | Accepted |
-| [0023](0023-context-panel-and-offset-probe.md)         | Context panel and offset probe           | Proposed |
+| [0023](0023-context-panel-and-offset-probe.md)         | Context panel and offset probe           | Accepted |
 
 ## Template
 
