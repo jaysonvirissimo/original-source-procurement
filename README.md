@@ -6,7 +6,15 @@ Players write C, compile it in the browser with the PsyQ 4.4 toolchain, and comp
 
 ## Status
 
-Early foundation. The repository contains the workspace, tooling, deployment pipeline, a branded application shell, validated curriculum schemas, and the in-browser toolchain: C compiles with `psyq-wasm` and assembles with `psyq-asm`, and the Settings screen runs a toolchain check. Missions and the matching engine are not implemented yet.
+Playable and growing. The game ships:
+
+- Forty-one training missions in seven phases (translation, memory, types and layout, arithmetic, memory widths, conditions, and branches), each with a target generated from its solution by the pinned toolchain, staged hints, walkthroughs, and machine diagrams. Loops, functions, and the calling convention are next.
+- Four field missions on real solved functions from `mgs_reversing`. The repository holds only pointers and hashes; the game fetches the target, headers, and context at runtime from pinned commits.
+- An in-browser toolchain: C compiles with `psyq-wasm` and assembles with `psyq-asm`. The Settings screen runs a toolchain check.
+- Matching on assembled words with mismatch classification, teaching hypotheses, and an aligned diff view.
+- A mission map with recommendations, an orientation, a searchable manual with a glossary, a context panel with a compiler-verified offset probe, and a docked reference pane.
+- Progress, attempt history, editor source, and settings saved in the browser, with export and import.
+- A presentation layer that draws the training chamber behind the workspace, with a simple-graphics mode and reduced-motion support.
 
 ## Requirements
 
@@ -23,19 +31,26 @@ pnpm --filter @osp/game dev
 
 ## Commands
 
-| Command                    | Purpose                                                                                                 |
-| -------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `pnpm format`              | Format every file with Prettier                                                                         |
-| `pnpm format:check`        | Verify formatting                                                                                       |
-| `pnpm lint`                | ESLint with type-aware TypeScript rules and package-boundary checks                                     |
-| `pnpm typecheck`           | Strict TypeScript across the workspace                                                                  |
-| `pnpm test`                | Unit tests with Vitest                                                                                  |
-| `pnpm test:coverage`       | Unit tests with the 99% coverage gate                                                                   |
-| `pnpm build`               | Production build of the game into `apps/game/dist`                                                      |
-| `pnpm test:browser`        | Playwright tests in Chromium, Firefox, and WebKit against the build                                     |
-| `pnpm curriculum:validate` | Validate skills, missions, manual entries, and the default path                                         |
-| `pnpm audit:distribution`  | Check that the built site may distribute the GPL-2.0-only compiler artifacts                            |
-| `pnpm check`               | The merge gate: format, lint, typecheck, coverage, curriculum validation, build, and distribution audit |
+| Command                       | Purpose                                                                                                                 |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `pnpm --filter @osp/game dev` | Run the game with Vite's development server                                                                             |
+| `pnpm format`                 | Format every file with Prettier                                                                                         |
+| `pnpm format:check`           | Verify formatting                                                                                                       |
+| `pnpm lint`                   | ESLint with type-aware TypeScript rules and package-boundary checks                                                     |
+| `pnpm typecheck`              | Strict TypeScript across the workspace                                                                                  |
+| `pnpm test`                   | Unit tests with Vitest                                                                                                  |
+| `pnpm test:coverage`          | Unit tests with the 99% coverage gate                                                                                   |
+| `pnpm build`                  | Production build of the game into `apps/game/dist`                                                                      |
+| `pnpm test:browser`           | Playwright tests in Chromium, Firefox, and WebKit against the build                                                     |
+| `pnpm curriculum:validate`    | Validate skills, missions, manual entries, generated targets, and the default path                                      |
+| `pnpm curriculum:targets`     | Regenerate the training missions' targets from their solutions with the pinned toolchain                                |
+| `pnpm corpus:import`          | Build the real-mission pointer corpus from local upstream checkouts (see CONTRIBUTING)                                  |
+| `pnpm corpus:verify`          | Rebuild each imported function locally and write verdicts and a review report                                           |
+| `pnpm corpus:write`           | Write the reviewed corpus into the curriculum package                                                                   |
+| `pnpm corpus:update`          | Report what a newly pinned upstream revision would change, without writing                                              |
+| `pnpm audit:distribution`     | Check that the built site may distribute the GPL-2.0-only compiler artifacts                                            |
+| `pnpm audit:upstream`         | Check tracked files and the built site for upstream content                                                             |
+| `pnpm check`                  | The merge gate: format, lint, typecheck, coverage, curriculum validation, build, distribution audit, and upstream audit |
 
 Browser tests serve the production build under a sub-path, the way GitHub Pages serves a project site. Before running them locally, run `pnpm build` and install the browsers once with `pnpm --filter @osp/game exec playwright install`.
 
@@ -58,7 +73,7 @@ The game is a static site on GitHub Pages. It uses hash routes (`#/`, `#/mission
 
 ## Privacy
 
-OSP has no backend, telemetry, or accounts. Source code, attempts, and progress stay in the browser. Training missions make no network requests beyond loading the site. Real missions will fetch pinned public files from GitHub, falling back to jsDelivr, without credentials.
+OSP has no backend, telemetry, or accounts. Source code, attempts, and progress stay in the browser. Training missions make no network requests beyond loading the site. Field missions fetch pinned public files from GitHub, falling back to jsDelivr, without credentials, and verify them against recorded hashes.
 
 ## Upstream content policy
 
