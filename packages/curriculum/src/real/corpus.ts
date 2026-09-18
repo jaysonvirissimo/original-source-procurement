@@ -1585,5 +1585,497 @@ export const pointerCorpus: PointerCorpus = {
         specialHardware: 0,
       },
     },
+    {
+      schemaVersion: 1,
+      id: "F05",
+      title: "DIRECTION DIFFERENCE",
+      phase: "Branches",
+      kind: "real-solved",
+      source: {
+        kind: "mgs-reversing",
+        repository: "FoxdieTeam/mgs_reversing",
+        build: "default",
+        overlay: "main",
+        symbol: "GV_DiffDirS",
+        address: 2147577932,
+        sourcePath: "source/libgv/util.c",
+      },
+      requires: ["MIPS.BRANCH", "MATCH.SCHEDULING"],
+      teaches: [],
+      practices: [
+        "ABI.ARGUMENT",
+        "MIPS.ARITH.SUBTRACT",
+        "C.BITMASK",
+        "MIPS.COMPARE",
+        "MATCH.EXPRESSION_ORDER",
+        "MATCH.BRANCH_SENSE",
+        "MIPS.DELAY_SLOT",
+      ],
+      scaffold: "field",
+      completion: "exact",
+      compiler: {
+        gpSize: 8,
+        aspsxVersion: "2.77",
+        rawFlags: ["-O2", "-g0", "-Wall"],
+        cppFlags: [
+          "-D__GNUC__=2",
+          "-D__OPTIMIZE__",
+          "-lang-c",
+          "-Dmips",
+          "-D__mips__",
+          "-D__mips",
+          "-Dpsx",
+          "-D__psx__",
+          "-D__psx",
+          "-D_PSYQ",
+          "-D__EXTENSIONS__",
+          "-D_MIPSEL",
+          "-D__CHAR_UNSIGNED__",
+          "-D_LANGUAGE_C",
+          "-DLANGUAGE_C",
+          "-DINTEGRAL",
+          "-Ipsyq/include",
+          "-Isource",
+          "-Isource/include",
+        ],
+        encoding: "eucjp",
+        filename: "util.c",
+        headers: {},
+        remoteHeaders: {
+          "libgv.h": {
+            repository: "FoxdieTeam/mgs_reversing",
+            commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            path: "source/libgv/libgv.h",
+            sha256:
+              "5f2e7dae989094f386bb0c083f78220e680e3a18135a2e6f3ea9609b27d41d89",
+          },
+          "psyq/include/abs.h": {
+            repository: "FoxdieTeam/psyq_sdk",
+            commit: "91719fa5bdca0b7e55c5c4b9e045da407db93510",
+            path: "psyq_4.4/include/abs.h",
+            sha256:
+              "7aa807921a32a11ba3aab586379bf51d455caec3e32cce1bec3f970697da4e4b",
+          },
+          "psyq/include/convert.h": {
+            repository: "FoxdieTeam/psyq_sdk",
+            commit: "91719fa5bdca0b7e55c5c4b9e045da407db93510",
+            path: "psyq_4.4/include/convert.h",
+            sha256:
+              "988f2865f319a8a7d90433dae3755cfb9cbd647ed887cad97d7e204cf47ef907",
+          },
+          "psyq/include/libetc.h": {
+            repository: "FoxdieTeam/psyq_sdk",
+            commit: "91719fa5bdca0b7e55c5c4b9e045da407db93510",
+            path: "psyq_4.4/include/libetc.h",
+            sha256:
+              "aa7c00aa9436562f9226461fdde85e38942d8326388ec0f6e9919eee8fd1e0af",
+          },
+          "psyq/include/libgpu.h": {
+            repository: "FoxdieTeam/psyq_sdk",
+            commit: "91719fa5bdca0b7e55c5c4b9e045da407db93510",
+            path: "psyq_4.4/include/libgpu.h",
+            sha256:
+              "570c094691dbddcce8aab8e50e0e87552464cb43ab07c5f2a33a8dd4899b822c",
+          },
+          "psyq/include/libgte.h": {
+            repository: "FoxdieTeam/psyq_sdk",
+            commit: "91719fa5bdca0b7e55c5c4b9e045da407db93510",
+            path: "psyq_4.4/include/libgte.h",
+            sha256:
+              "73f3f0935d0191f3fbb94541de19e7e5b4532f3e492c6261e97295fd60ef1e38",
+          },
+          "psyq/include/malloc.h": {
+            repository: "FoxdieTeam/psyq_sdk",
+            commit: "91719fa5bdca0b7e55c5c4b9e045da407db93510",
+            path: "psyq_4.4/include/malloc.h",
+            sha256:
+              "cc155bd6c982890028a73695a3d6aa090163995ab0631061e394c6723660a49f",
+          },
+          "psyq/include/qsort.h": {
+            repository: "FoxdieTeam/psyq_sdk",
+            commit: "91719fa5bdca0b7e55c5c4b9e045da407db93510",
+            path: "psyq_4.4/include/qsort.h",
+            sha256:
+              "87905a8b1004b19cc330d125e4649d684c33ec2e702e1038622fadfa67ddca98",
+          },
+          "psyq/include/rand.h": {
+            repository: "FoxdieTeam/psyq_sdk",
+            commit: "91719fa5bdca0b7e55c5c4b9e045da407db93510",
+            path: "psyq_4.4/include/rand.h",
+            sha256:
+              "db2629d50e0937028fbc9c895716aa696fc5da5f06d4d904224734431272609f",
+          },
+          "psyq/include/stddef.h": {
+            repository: "FoxdieTeam/psyq_sdk",
+            commit: "91719fa5bdca0b7e55c5c4b9e045da407db93510",
+            path: "psyq_4.4/include/stddef.h",
+            sha256:
+              "5e038138414f79b9e57a6d754081cd2d37d81132fa7380dc8f67e045e9c5d7a5",
+          },
+          "psyq/include/stdlib.h": {
+            repository: "FoxdieTeam/psyq_sdk",
+            commit: "91719fa5bdca0b7e55c5c4b9e045da407db93510",
+            path: "psyq_4.4/include/stdlib.h",
+            sha256:
+              "b49a68255ff5eb434bd30300f1cca7c671bcd30147b36bc4583824e04d757637",
+          },
+          "psyq/include/sys/types.h": {
+            repository: "FoxdieTeam/psyq_sdk",
+            commit: "91719fa5bdca0b7e55c5c4b9e045da407db93510",
+            path: "psyq_4.4/include/sys/types.h",
+            sha256:
+              "815a444d268dfeed62804d44e30b23130ab378f4f29a6fff04e1d9eddebf19b7",
+          },
+          "source/include/common.h": {
+            repository: "FoxdieTeam/mgs_reversing",
+            commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            path: "source/include/common.h",
+            sha256:
+              "c61d096de738a318b04e416531fed4f3739659d51253b8a80df1bb2b3cd50a11",
+          },
+          "source/include/psxdefs.h": {
+            repository: "FoxdieTeam/mgs_reversing",
+            commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            path: "source/include/psxdefs.h",
+            sha256:
+              "fe3ca48a455788a687f63ae54c7f4d6ef59cedcaf551359b80fa64d94765d9ef",
+          },
+        },
+      },
+      briefing: {
+        objective:
+          "GV_DiffDirS appears to work out the signed difference between two directions in the game, as an amount that can come out negative. Write GV_DiffDirS so it compiles to the eight target rows. It reads no memory and writes none. It takes one argument away from the other, keeps only the low bits of the result, and if that result lands in the upper half of the range the mask allows, lowers it by the size of that range so the answer comes out negative. Open the Context panel to read the declarations it compiles against; there are no struct offsets to look up this time.",
+      },
+      terms: [
+        "glossary.subu",
+        "glossary.and",
+        "glossary.mask",
+        "glossary.slt",
+        "glossary.beq",
+        "glossary.displacement",
+        "glossary.path",
+        "glossary.delay-slot",
+        "glossary.twos-complement",
+      ],
+      starterSource:
+        '#include "libgv.h"\n\nint GV_DiffDirS(int from, int to)\n{\n}\n',
+      symbol: "GV_DiffDirS",
+      target: {
+        kind: "remote",
+        commit: "df7c953bf5a897749e4eab8f70d93982462736c8",
+        path: "asm/libgv/GV_DiffDirS_8001704C.s",
+        wordCount: 8,
+        wordsSha256:
+          "05b4968f17afb890e52531e4fc3d9cc5a418e81387a96e6640fb9ba25965fd2c",
+        calls: [],
+      },
+      hints: [
+        {
+          stage: 1,
+          text: "This mission puts together several ideas you already know. You take one register from another, keep the low bits with a mask, compare a value against a constant to get a 1 or a 0, branch forward over one piece of work, and fill the slot after a branch and the slot after the return. Several of these rows reuse registers: the difference lands in the register the first argument came in, and the comparison lands in the register the listing shows for the return value. As you learned earlier, that is the compiler using free registers. It is not an assignment to a parameter, and it is not the answer. This mission reads no memory, makes no call, has no loop and builds no frame.",
+        },
+        {
+          stage: 2,
+          text: "Look at the highlighted row, which is the comparison. It is a signed less-than test against a constant, and it writes a 1 or a 0. Two things to read from it. First, it is the signed form of the test, so check what that says about the type of the value being tested. Second, look at the constant: the branch after it skips the adjustment. So this test is true when no adjustment is needed. It is the opposite of the condition that does the work, and its constant is one past the boundary you would naturally write.",
+          highlight: { start: 2, end: 3 },
+        },
+        {
+          stage: 3,
+          text: "Here are the rest of the rows in order. The first highlighted row takes the first argument away from the second. Note which way round that is, because it decides which parameter goes on each side. The one that follows keeps the low bits of the difference with a mask, and the comparison from the last hint then tests that masked value. After the comparison comes the branch. It skips forward to the return when the test came out true. The row after the branch is a filler instruction and runs on both paths. The row after that runs only when the branch is not taken: it adds a negative constant to the masked value, which is how the compiler writes taking away the size of the range. Then comes the return. The last row sits in the slot after the return, so it still runs: it copies the finished value into the register the listing shows for the return value.",
+          highlight: { start: 0, end: 8 },
+        },
+        {
+          stage: 4,
+          text: 'The body needs three things, in this order. First, one statement that takes the difference and applies the mask together, storing the result in a local variable. Keep the difference and the mask in that one statement: if you split them into two, the compiler holds the value in a different register throughout, and nearly every row stops matching. Second, a single if with no else. When the local is past the halfway boundary, the if takes away the size of the range from it. Write the condition the natural way round, as "greater than" a boundary one less than the constant in the comparison row, and let the compiler flip the test itself. Last, return the local. There is no loop, no call, no pointer and no struct.',
+        },
+        {
+          stage: 5,
+          text: "The declaration shows what the listing cannot: the return type and the type of each parameter. The comparison rows look the same whatever the C says, but the compiler picks between the signed and unsigned forms of a test based on the type of the value being compared. If the value you test has the wrong signedness, the comparison row changes even though every other row still matches.",
+          reveal: {
+            repository: "FoxdieTeam/mgs_reversing",
+            commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            path: "source/libgv/libgv.h",
+            sha256:
+              "5f2e7dae989094f386bb0c083f78220e680e3a18135a2e6f3ea9609b27d41d89",
+            lines: { start: 344, end: 344 },
+          },
+        },
+        {
+          stage: 6,
+          text: "Read a mismatch in the comparison view by what changed. If the constant in a row is different, your number is off: check the mask, the boundary and the amount you take away. If a row is the same kind of operation but the wrong form of it, such as signed where the listing is unsigned, the type of a value is wrong. If the two operands are the wrong way round, swap them in your C. If every row is right but in the wrong order, or the branch goes to a different place, the shape of your control flow is different, for example a condition written the opposite way or an extra else. Fix what the difference points at, then compile again.",
+        },
+        {
+          stage: 9,
+          text: "Known matching solution:",
+          reveal: {
+            repository: "FoxdieTeam/mgs_reversing",
+            commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            path: "source/libgv/util.c",
+            sha256:
+              "7af8262c7d41449e2fbf61048035b2a098797b7512d6cbbd3e961fc3b19dc854",
+            lines: { start: 164, end: 170 },
+          },
+        },
+      ],
+      difficulty: {
+        size: 8,
+        controlFlow: 5,
+        memory: 0,
+        abi: 0,
+        types: 0,
+        compilerShaping: 2,
+        context: 14,
+        specialHardware: 0,
+      },
+    },
+    {
+      schemaVersion: 1,
+      id: "F06",
+      title: "VECTOR DIRECTION",
+      phase: "Functions",
+      kind: "real-solved",
+      source: {
+        kind: "mgs-reversing",
+        repository: "FoxdieTeam/mgs_reversing",
+        build: "default",
+        overlay: "main",
+        symbol: "GV_VecDir2",
+        address: 2147577592,
+        sourcePath: "source/libgv/util.c",
+      },
+      requires: ["ABI.FRAME", "C.TYPEDEF"],
+      teaches: [],
+      practices: [
+        "ABI.ARGUMENT",
+        "ABI.RETURN",
+        "ABI.CALL",
+        "C.POINTER.DEREFERENCE",
+        "C.STRUCT.FIELD",
+        "MIPS.LOAD.HALF",
+        "MIPS.LOAD.SIGNEDNESS",
+        "MIPS.REGISTER.TEMP",
+        "C.BITMASK",
+      ],
+      scaffold: "field",
+      completion: "exact",
+      compiler: {
+        gpSize: 8,
+        aspsxVersion: "2.77",
+        rawFlags: ["-O2", "-g0", "-Wall"],
+        cppFlags: [
+          "-D__GNUC__=2",
+          "-D__OPTIMIZE__",
+          "-lang-c",
+          "-Dmips",
+          "-D__mips__",
+          "-D__mips",
+          "-Dpsx",
+          "-D__psx__",
+          "-D__psx",
+          "-D_PSYQ",
+          "-D__EXTENSIONS__",
+          "-D_MIPSEL",
+          "-D__CHAR_UNSIGNED__",
+          "-D_LANGUAGE_C",
+          "-DLANGUAGE_C",
+          "-DINTEGRAL",
+          "-Ipsyq/include",
+          "-Isource",
+          "-Isource/include",
+        ],
+        encoding: "eucjp",
+        filename: "util.c",
+        headers: {},
+        remoteHeaders: {
+          "libgv.h": {
+            repository: "FoxdieTeam/mgs_reversing",
+            commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            path: "source/libgv/libgv.h",
+            sha256:
+              "5f2e7dae989094f386bb0c083f78220e680e3a18135a2e6f3ea9609b27d41d89",
+          },
+          "psyq/include/abs.h": {
+            repository: "FoxdieTeam/psyq_sdk",
+            commit: "91719fa5bdca0b7e55c5c4b9e045da407db93510",
+            path: "psyq_4.4/include/abs.h",
+            sha256:
+              "7aa807921a32a11ba3aab586379bf51d455caec3e32cce1bec3f970697da4e4b",
+          },
+          "psyq/include/convert.h": {
+            repository: "FoxdieTeam/psyq_sdk",
+            commit: "91719fa5bdca0b7e55c5c4b9e045da407db93510",
+            path: "psyq_4.4/include/convert.h",
+            sha256:
+              "988f2865f319a8a7d90433dae3755cfb9cbd647ed887cad97d7e204cf47ef907",
+          },
+          "psyq/include/libetc.h": {
+            repository: "FoxdieTeam/psyq_sdk",
+            commit: "91719fa5bdca0b7e55c5c4b9e045da407db93510",
+            path: "psyq_4.4/include/libetc.h",
+            sha256:
+              "aa7c00aa9436562f9226461fdde85e38942d8326388ec0f6e9919eee8fd1e0af",
+          },
+          "psyq/include/libgpu.h": {
+            repository: "FoxdieTeam/psyq_sdk",
+            commit: "91719fa5bdca0b7e55c5c4b9e045da407db93510",
+            path: "psyq_4.4/include/libgpu.h",
+            sha256:
+              "570c094691dbddcce8aab8e50e0e87552464cb43ab07c5f2a33a8dd4899b822c",
+          },
+          "psyq/include/libgte.h": {
+            repository: "FoxdieTeam/psyq_sdk",
+            commit: "91719fa5bdca0b7e55c5c4b9e045da407db93510",
+            path: "psyq_4.4/include/libgte.h",
+            sha256:
+              "73f3f0935d0191f3fbb94541de19e7e5b4532f3e492c6261e97295fd60ef1e38",
+          },
+          "psyq/include/malloc.h": {
+            repository: "FoxdieTeam/psyq_sdk",
+            commit: "91719fa5bdca0b7e55c5c4b9e045da407db93510",
+            path: "psyq_4.4/include/malloc.h",
+            sha256:
+              "cc155bd6c982890028a73695a3d6aa090163995ab0631061e394c6723660a49f",
+          },
+          "psyq/include/qsort.h": {
+            repository: "FoxdieTeam/psyq_sdk",
+            commit: "91719fa5bdca0b7e55c5c4b9e045da407db93510",
+            path: "psyq_4.4/include/qsort.h",
+            sha256:
+              "87905a8b1004b19cc330d125e4649d684c33ec2e702e1038622fadfa67ddca98",
+          },
+          "psyq/include/rand.h": {
+            repository: "FoxdieTeam/psyq_sdk",
+            commit: "91719fa5bdca0b7e55c5c4b9e045da407db93510",
+            path: "psyq_4.4/include/rand.h",
+            sha256:
+              "db2629d50e0937028fbc9c895716aa696fc5da5f06d4d904224734431272609f",
+          },
+          "psyq/include/stddef.h": {
+            repository: "FoxdieTeam/psyq_sdk",
+            commit: "91719fa5bdca0b7e55c5c4b9e045da407db93510",
+            path: "psyq_4.4/include/stddef.h",
+            sha256:
+              "5e038138414f79b9e57a6d754081cd2d37d81132fa7380dc8f67e045e9c5d7a5",
+          },
+          "psyq/include/stdlib.h": {
+            repository: "FoxdieTeam/psyq_sdk",
+            commit: "91719fa5bdca0b7e55c5c4b9e045da407db93510",
+            path: "psyq_4.4/include/stdlib.h",
+            sha256:
+              "b49a68255ff5eb434bd30300f1cca7c671bcd30147b36bc4583824e04d757637",
+          },
+          "psyq/include/sys/types.h": {
+            repository: "FoxdieTeam/psyq_sdk",
+            commit: "91719fa5bdca0b7e55c5c4b9e045da407db93510",
+            path: "psyq_4.4/include/sys/types.h",
+            sha256:
+              "815a444d268dfeed62804d44e30b23130ab378f4f29a6fff04e1d9eddebf19b7",
+          },
+          "source/include/common.h": {
+            repository: "FoxdieTeam/mgs_reversing",
+            commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            path: "source/include/common.h",
+            sha256:
+              "c61d096de738a318b04e416531fed4f3739659d51253b8a80df1bb2b3cd50a11",
+          },
+          "source/include/psxdefs.h": {
+            repository: "FoxdieTeam/mgs_reversing",
+            commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            path: "source/include/psxdefs.h",
+            sha256:
+              "fe3ca48a455788a687f63ae54c7f4d6ef59cedcaf551359b80fa64d94765d9ef",
+          },
+        },
+      },
+      briefing: {
+        objective:
+          "GV_VecDir2 appears to work out, as an angle, which way a small vector passed to it by pointer is pointing in the game. Write GV_VecDir2 so it compiles to the eleven target rows. It reads two of the vector's components, passes them to a library function, and returns that function's answer with only its low bits kept. It never writes anything back to the vector. Open the Context panel to read the vector's declaration, and check the offset table to see where each component sits.",
+      },
+      contextTypes: ["SVECTOR"],
+      terms: [
+        "glossary.jal",
+        "glossary.ra",
+        "glossary.sp",
+        "glossary.stack-frame",
+        "glossary.prologue",
+        "glossary.lh",
+        "glossary.halfword",
+        "glossary.short",
+        "glossary.struct",
+        "glossary.offset",
+        "glossary.mask",
+        "glossary.delay-slot",
+      ],
+      starterSource:
+        '#include "libgv.h"\n\nint GV_VecDir2(SVECTOR *vec)\n{\n}\n',
+      symbol: "GV_VecDir2",
+      target: {
+        kind: "remote",
+        commit: "a2a563417ea619ab7cdd2e33f4b2ab85e4672a21",
+        path: "asm/libgv/GV_VecDir2_80016EF8.s",
+        wordCount: 11,
+        wordsSha256:
+          "361c906e189bd3717e79cb7628c86d51d1208c8cec9ec880adf07cdef6dfbef9",
+        calls: [{ word: 5, symbol: "ratan2" }],
+      },
+      hints: [
+        {
+          stage: 1,
+          text: "This mission puts three things you have already learned together. It reads half-width signed fields through a pointer. It makes a call, which means a small frame that keeps the way back, arguments placed in the argument registers, and an answer that arrives in the register the listing shows for the return value. And it keeps only the low bits of that answer with a mask. There is no branch, no loop and no store into the vector. No value has to survive the call, so no preserved register is saved.",
+        },
+        {
+          stage: 2,
+          text: "The highlighted row is the first read of the vector. It loads a half-width signed value through the pointer, and it puts that value in the register the first argument arrived in. That is also where the called function looks for its first argument. Find the offset in the highlighted row in the offset table to learn which component this is. That component is the first thing you pass. The field's declared type already makes the read half-width and signed, so you don't need a cast.",
+          highlight: { start: 3, end: 4 },
+        },
+        {
+          stage: 3,
+          text: "The first of the highlighted rows lowers the stack pointer to make a frame. The one that follows copies the pointer you were given into another register. That is reuse, not an assignment: the first argument register is about to be filled with a component, so the pointer has to get out of its way. The next row saves the way back into the frame, because the call will overwrite it. After the first read comes a second load through the same pointer into the second argument register. Check its offset in the table, because this is not the component that comes right after the first one. Then comes the call, with a filler instruction in its slot. After the call, the way back is restored from the frame, the answer is masked down to its low bits, and the function returns. The stack pointer goes back up in the slot after the return.",
+          highlight: { start: 0, end: 11 },
+        },
+        {
+          stage: 4,
+          text: "The body is a single return statement. Its expression calls the library function with two component reads as its arguments, in the order the argument registers show, and applies a mask to what comes back. Read how wide the mask is from the row that keeps the low bits. There are no local variables, no condition, no loop and no write to the vector. The frame and the saved way back come from the compiler, so you don't write them.",
+        },
+        {
+          stage: 5,
+          text: "The declaration shows that the library function takes two values and gives back one. Its first parameter is the value placed in the first argument register and its second is the value placed in the second, so the parameter names tell you what each of your component reads stands for and whether you have them the right way round. The return type tells you what arrives in the register the listing shows for the return value, before your mask keeps only its low bits.",
+          reveal: {
+            repository: "FoxdieTeam/psyq_sdk",
+            commit: "91719fa5bdca0b7e55c5c4b9e045da407db93510",
+            path: "psyq_4.4/include/libgte.h",
+            sha256:
+              "73f3f0935d0191f3fbb94541de19e7e5b4532f3e492c6261e97295fd60ef1e38",
+            lines: { start: 446, end: 446 },
+          },
+        },
+        {
+          stage: 6,
+          text: "When your listing and the target differ, treat the difference as a clue. A different offset on a load means you read a different component. A load of a different width or signedness means you read through a different declared type from the target. If two loads have swapped destinations, your arguments are being passed the other way round. A different constant in the mask means you kept a different number of low bits. If an instruction is right but in the wrong position, your statements are usually in a different order from the original's. Change the order in your C, not the instructions, and compare again.",
+        },
+        {
+          stage: 9,
+          text: "Known matching solution:",
+          reveal: {
+            repository: "FoxdieTeam/mgs_reversing",
+            commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
+            path: "source/libgv/util.c",
+            sha256:
+              "7af8262c7d41449e2fbf61048035b2a098797b7512d6cbbd3e961fc3b19dc854",
+            lines: { start: 117, end: 120 },
+          },
+        },
+      ],
+      difficulty: {
+        size: 11,
+        controlFlow: 4,
+        memory: 7,
+        abi: 4,
+        types: 4,
+        compilerShaping: 2,
+        context: 14,
+        specialHardware: 0,
+      },
+    },
   ],
 };

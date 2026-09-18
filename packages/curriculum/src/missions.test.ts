@@ -92,6 +92,8 @@ describe("the first teaching slice", () => {
       "047",
       "048",
       "F04",
+      "F05",
+      "F06",
       "F01",
       "F02",
       "F03",
