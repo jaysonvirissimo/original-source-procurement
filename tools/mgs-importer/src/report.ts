@@ -1,4 +1,4 @@
-import { earlyFieldCandidate } from "./analysis.ts";
+import { earlyFieldCandidate, type FunctionFacts } from "./analysis.ts";
 import type {
   FileRecord,
   FunctionRecord,
@@ -91,6 +91,16 @@ export function renderReviewReport(
 const REASON_LIMIT = 20;
 const CANDIDATE_LIMIT = 40;
 
+const SHAPES = ["Straight line", "Branches", "Calls"] as const;
+
+/** The shortlist table a function belongs in, by its most demanding feature. */
+function shapeOf(facts: FunctionFacts): (typeof SHAPES)[number] {
+  if (facts.calls > 0) {
+    return "Calls";
+  }
+  return facts.branches > 0 || facts.loops > 0 ? "Branches" : "Straight line";
+}
+
 function detailOf(entry: FunctionRecord): string {
   const detail = entry.rejection?.detail;
   return detail === undefined ? "" : ` — ${detail}`;
@@ -137,32 +147,47 @@ function renderVerdicts(
 
   lines.push(
     "",
-    "## Early field shortlist (call-free, branch-free, exact)",
+    "## Early field shortlist (exact, no coprocessor, multiply/divide or assembler temporary)",
     "",
-    "Exact functions with no calls, branches, loops, stack frame, coprocessor, multiply or divide, or assembler temporary, not already used by a reviewed mission. Width and base are columns rather than filters, because the course teaches both. The arg base column counts the loads and stores reached through an argument register, gp those reached through the global pointer, and abs those reached through an address the function built; the rest follow a pointer it loaded.",
+    "Exact functions with no coprocessor, multiply or divide, or assembler temporary, not already used by a reviewed mission. Control flow, calls, stack frames, width and base are columns rather than filters, because the course teaches all of them. The stack column counts loads and stores through the stack pointer. The arg base column counts the loads and stores reached through an argument register, gp those reached through the global pointer, and abs those reached through an address the function built; the rest follow a pointer it loaded.",
     "",
   );
-  const shortlist = exact
-    .flatMap((entry) =>
-      entry.pinned !== undefined &&
-      !usedSymbols.has(entry.symbol) &&
-      earlyFieldCandidate(entry.pinned.facts)
-        ? [{ ...entry, facts: entry.pinned.facts }]
-        : [],
-    )
-    .slice(0, CANDIDATE_LIMIT);
+  const shortlist = exact.flatMap((entry) =>
+    entry.pinned !== undefined &&
+    !usedSymbols.has(entry.symbol) &&
+    earlyFieldCandidate(entry.pinned.facts)
+      ? [{ ...entry, facts: entry.pinned.facts }]
+      : [],
+  );
   if (shortlist.length === 0) {
     lines.push("None.");
-  } else {
+  }
+  // Straight-line functions are the smallest by far, so one table capped by
+  // size would never reach a function with a branch or a call. Each shape
+  // gets its own table and its own cap.
+  for (const shape of SHAPES) {
+    const rows = shortlist.filter((entry) => shapeOf(entry.facts) === shape);
+    if (rows.length === 0) {
+      continue;
+    }
     lines.push(
-      "| symbol | words | loads | stores | narrow loads | narrow stores | arg base | gp | abs | gpSize | headers | source path |",
-      "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+      "",
+      `### ${shape} (${String(rows.length)})`,
+      "",
+      "| symbol | words | branches | loops | calls | stack | loads | stores | narrow loads | narrow stores | arg base | gp | abs | gpSize | headers | source path |",
+      "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
     );
-    for (const { symbol, facts, sourcePath } of shortlist) {
+    for (const { symbol, facts, sourcePath } of rows.slice(
+      0,
+      CANDIDATE_LIMIT,
+    )) {
       const file = files.get(sourcePath);
       lines.push(
-        `| ${symbol} | ${String(facts.words)} | ${String(facts.loads)} | ${String(facts.stores)} | ${String(facts.narrowLoads)} | ${String(facts.narrowStores)} | ${String(facts.argumentBaseAccesses)} | ${String(facts.gpAccesses)} | ${String(facts.absoluteAccesses)} | ${gpSizeOf(file)} | ${headersOf(file)} | ${sourcePath} |`,
+        `| ${symbol} | ${String(facts.words)} | ${String(facts.branches)} | ${String(facts.loops)} | ${String(facts.calls)} | ${String(facts.stackAccesses)} | ${String(facts.loads)} | ${String(facts.stores)} | ${String(facts.narrowLoads)} | ${String(facts.narrowStores)} | ${String(facts.argumentBaseAccesses)} | ${String(facts.gpAccesses)} | ${String(facts.absoluteAccesses)} | ${gpSizeOf(file)} | ${headersOf(file)} | ${sourcePath} |`,
       );
+    }
+    if (rows.length > CANDIDATE_LIMIT) {
+      lines.push("", `… and ${String(rows.length - CANDIDATE_LIMIT)} more`);
     }
   }
   lines.push("");

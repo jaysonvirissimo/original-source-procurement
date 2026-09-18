@@ -132,7 +132,7 @@ describe("renderReviewReport", () => {
       );
     });
 
-    it("lists exact, call-free, branch-free functions smallest first", () => {
+    it("lists exact functions smallest first", () => {
       const text = shortlistOf(
         renderReviewReport(
           importIndex({
@@ -157,10 +157,10 @@ describe("renderReviewReport", () => {
         ),
       );
       expect(text).toContain(
-        "| smaller | 3 | 1 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 1 | source/sample/sample.c |",
+        "| smaller | 3 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 1 | source/sample/sample.c |",
       );
       expect(text).toContain(
-        "| larger | 6 | 1 | 2 | 1 | 0 | 1 | 0 | 0 | 8 | 1 | source/other/other.c |",
+        "| larger | 6 | 0 | 0 | 0 | 0 | 1 | 2 | 1 | 0 | 1 | 0 | 0 | 8 | 1 | source/other/other.c |",
       );
       expect(text.indexOf("| smaller |")).toBeLessThan(
         text.indexOf("| larger |"),
@@ -172,16 +172,16 @@ describe("renderReviewReport", () => {
         renderReviewReport(
           importIndex({
             functions: [
-              record("calls", { calls: 1 }),
-              record("stack", { stackAccesses: 1 }),
+              record("coprocessor", { coprocessor: 1 }),
+              record("divide", { multiplyDivide: 1 }),
               record("used"),
               record("mismatched"),
             ],
           }),
           verdictIndex({
             functions: [
-              exact("calls"),
-              exact("stack"),
+              exact("coprocessor"),
+              exact("divide"),
               exact("used"),
               {
                 symbol: "mismatched",
@@ -219,14 +219,71 @@ describe("renderReviewReport", () => {
         ),
       );
       expect(text).toContain(
-        "| narrow_store | 4 | 1 | 1 | 0 | 1 | 1 | 0 | 0 | 0 | 1 | source/sample/sample.c |",
+        "| narrow_store | 4 | 0 | 0 | 0 | 0 | 1 | 1 | 0 | 1 | 1 | 0 | 0 | 0 | 1 | source/sample/sample.c |",
       );
       expect(text).toContain(
-        "| global_pointer | 4 | 1 | 0 | 0 | 0 | 1 | 1 | 0 | 0 | 1 | source/sample/sample.c |",
+        "| global_pointer | 4 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 1 | 1 | 0 | 0 | 1 | source/sample/sample.c |",
       );
       expect(text).toContain(
-        "| absolute | 4 | 1 | 0 | 0 | 0 | 1 | 0 | 1 | 0 | 1 | source/sample/sample.c |",
+        "| absolute | 4 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 1 | 0 | 1 | 0 | 1 | source/sample/sample.c |",
       );
+    });
+
+    it("keeps control flow, calls and a stack frame, and shows each", () => {
+      // The branches, loops and functions phases teach all of it, so the
+      // shortlist reports the shape rather than filtering the function out.
+      const text = shortlistOf(
+        renderReviewReport(
+          importIndex({
+            functions: [
+              record("branchy", { branches: 2, loops: 1 }),
+              record("caller", { calls: 1, stackAccesses: 2 }),
+            ],
+          }),
+          verdictIndex({
+            functions: [exact("branchy"), exact("caller")],
+          }),
+        ),
+      );
+      expect(text).toContain(
+        "| branchy | 4 | 2 | 1 | 0 | 0 | 1 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 1 | source/sample/sample.c |",
+      );
+      expect(text).toContain(
+        "| caller | 4 | 0 | 0 | 1 | 2 | 1 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 1 | source/sample/sample.c |",
+      );
+    });
+
+    it("gives each shape its own table and cap", () => {
+      // Straight-line functions are the smallest, so one capped table would
+      // never reach a function with a branch or a call.
+      const straight = Array.from({ length: 41 }, (_, index) =>
+        record(`straight_${String(index).padStart(2, "0")}`, { words: 2 }),
+      );
+      const text = shortlistOf(
+        renderReviewReport(
+          importIndex({
+            functions: [
+              ...straight,
+              record("branchy", { words: 9, branches: 1 }),
+              record("caller", { words: 9, calls: 1, stackAccesses: 2 }),
+            ],
+          }),
+          verdictIndex({
+            functions: [
+              ...straight.map((entry) => exact(entry.symbol)),
+              exact("branchy"),
+              exact("caller"),
+            ],
+          }),
+        ),
+      );
+      expect(text).toContain("### Straight line (41)");
+      expect(text).toContain("… and 1 more");
+      expect(text).not.toContain("| straight_40 |");
+      expect(text).toContain("### Branches (1)");
+      expect(text).toContain("| branchy | 9 |");
+      expect(text).toContain("### Calls (1)");
+      expect(text).toContain("| caller | 9 |");
     });
 
     it("marks a file missing from the import instead of guessing", () => {
@@ -257,10 +314,10 @@ describe("renderReviewReport", () => {
         ),
       );
       expect(text).toContain(
-        "| bare | 4 | 1 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | source/sample/sample.c |",
+        "| bare | 4 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 0 | source/sample/sample.c |",
       );
       expect(text).toContain(
-        "| orphan | 4 | 1 | 0 | 0 | 0 | 1 | 0 | 0 | ? | ? | source/gone/gone.c |",
+        "| orphan | 4 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 1 | 0 | 0 | ? | ? | source/gone/gone.c |",
       );
       expect(text).not.toContain("| unpinned |");
     });

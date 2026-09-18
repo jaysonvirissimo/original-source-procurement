@@ -292,22 +292,25 @@ describe("earlyFieldCandidate", () => {
     ).toBe(true);
   });
 
-  it.each(["narrowStores", "gpAccesses", "absoluteAccesses"] as const)(
+  it.each([
+    "narrowStores",
+    "gpAccesses",
+    "absoluteAccesses",
+    "calls",
+    "branches",
+    "loops",
+    "stackAccesses",
+  ] as const)(
     "accepts a function with %s, which the course now teaches",
     (fact) => {
       expect(earlyFieldCandidate({ ...SAMPLE_FACTS, [fact]: 1 })).toBe(true);
     },
   );
 
-  it.each([
-    "calls",
-    "branches",
-    "loops",
-    "stackAccesses",
-    "coprocessor",
-    "multiplyDivide",
-    "assemblerTemporary",
-  ] as const)("rejects a function with %s", (fact) => {
-    expect(earlyFieldCandidate({ ...SAMPLE_FACTS, [fact]: 1 })).toBe(false);
-  });
+  it.each(["coprocessor", "multiplyDivide", "assemblerTemporary"] as const)(
+    "rejects a function with %s",
+    (fact) => {
+      expect(earlyFieldCandidate({ ...SAMPLE_FACTS, [fact]: 1 })).toBe(false);
+    },
+  );
 });

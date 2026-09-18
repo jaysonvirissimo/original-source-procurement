@@ -279,23 +279,17 @@ export function featureTags(facts: FunctionFacts): FeatureTag[] {
 
 /**
  * Whether a function fits a field mission the course has already prepared a
- * player for: no calls, branches, loops, stack frame, coprocessor, multiply
- * or divide, and no assembler temporary. Jumps are allowed, because returning
- * is one.
+ * player for: no coprocessor, multiply or divide, and no assembler temporary.
  *
- * Storage shape is deliberately not a gate. The course once taught neither
- * narrow stores nor variables the caller never handed over, so both were
- * rejected outright; it now teaches both, and a candidate's width and base
- * counts are columns in the review report for a maintainer to read. What
- * stays rejected is control flow and machinery a mission would have to
- * explain before it could teach anything else.
+ * The filter follows the curriculum and is widened by the phase that teaches
+ * what it was rejecting. Narrow stores and variables the caller never handed
+ * over went first, once the memory widths phase taught them; branches, loops,
+ * jumps, calls and stack frames followed once the conditions, branches, loops
+ * and functions phases did. Those are now columns in the review report for a
+ * maintainer to read. What stays rejected is machinery no phase teaches yet.
  */
 export function earlyFieldCandidate(facts: FunctionFacts): boolean {
   return (
-    facts.calls === 0 &&
-    facts.branches === 0 &&
-    facts.loops === 0 &&
-    facts.stackAccesses === 0 &&
     facts.coprocessor === 0 &&
     facts.multiplyDivide === 0 &&
     facts.assemblerTemporary === 0
