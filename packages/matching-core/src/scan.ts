@@ -40,6 +40,14 @@ export interface JumpTarget {
   readonly target: number;
 }
 
+/**
+ * A call, whose callee the word itself does not hold: `jal 0x0` until
+ * linking. The callee is the symbol its `MIPS26` relocation names.
+ */
+export interface CallTarget {
+  readonly callee: string;
+}
+
 /** What one target word does with registers and memory. */
 export interface WordFacts {
   readonly index: number;
@@ -48,6 +56,7 @@ export interface WordFacts {
   readonly memory?: MemoryAccess;
   readonly branch?: BranchTest;
   readonly jump?: JumpTarget;
+  readonly call?: CallTarget;
   /**
    * The earlier word that last wrote the memory base register. Absent when
    * the base still holds its value from function entry.
@@ -74,7 +83,8 @@ export function abiRegisterNames(text: string): string {
 /**
  * Static facts about each word, in order, for teaching diagrams. Words are
  * decoded, never executed: no register or memory value is computed. Passing
- * an unlinked target's relocations resolves where each `j` goes.
+ * an unlinked target's relocations resolves where each `j` goes and which
+ * function each `jal` calls.
  */
 export function wordFacts(
   words: ArrayLike<number>,
@@ -126,12 +136,15 @@ export function wordFacts(
         },
       };
     }
-    const jump = relocations.find(
+    const relocated = relocations.find(
       (relocation) =>
         relocation.offset === index * 4 && relocation.kind === "MIPS26",
     );
-    if (instruction.mnemonic === "j" && jump?.target.kind === "section") {
-      facts = { ...facts, jump: { target: jump.target.offset / 4 } };
+    if (instruction.mnemonic === "j" && relocated?.target.kind === "section") {
+      facts = { ...facts, jump: { target: relocated.target.offset / 4 } };
+    }
+    if (instruction.mnemonic === "jal" && relocated?.target.kind === "symbol") {
+      facts = { ...facts, call: { callee: relocated.target.name } };
     }
     for (const register of instruction.writes) {
       lastWriter.set(register, index);

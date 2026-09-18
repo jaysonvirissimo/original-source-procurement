@@ -32,6 +32,7 @@ export {
   usesStack,
   wordFacts,
   type BranchTest,
+  type CallTarget,
   type JumpTarget,
   type MemoryAccess,
   type WordFacts,

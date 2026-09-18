@@ -133,6 +133,12 @@ describe("shipped walkthroughs", () => {
       "038",
       "039",
       "040",
+      "042",
+      "043",
+      "044",
+      "045",
+      "046",
+      "047",
     ]);
   });
 
@@ -159,10 +165,12 @@ describe("shipped walkthroughs", () => {
         case "bits":
           return;
         case "operands": {
-          // A word has a reading when it accesses memory, branches or jumps;
-          // those are the forms the operand table knows how to label.
+          // A word has a reading when it accesses memory, branches, jumps or
+          // calls; those are the forms the operand table knows how to label.
           const word = facts[walkthrough.word];
-          expect(word?.memory ?? word?.branch ?? word?.jump).toBeDefined();
+          expect(
+            word?.memory ?? word?.branch ?? word?.jump ?? word?.call,
+          ).toBeDefined();
           return;
         }
         case "caller": {

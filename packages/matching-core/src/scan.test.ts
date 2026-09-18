@@ -79,6 +79,24 @@ describe("wordFacts", () => {
     );
   });
 
+  it("names a call's callee from its relocation, since the word holds 0x0", () => {
+    const generated = generatedFrom([
+      "addiu $29,$29,-24",
+      "sw $31,16($29)",
+      "jal helper",
+      "nop",
+      "lw $31,16($29)",
+      "addiu $29,$29,24",
+      "j $31",
+    ]);
+    const words = generated.words.map((word) => word.word);
+    const facts = wordFacts(words, generated.relocations);
+
+    expect(facts[2]?.call).toEqual({ callee: "helper" });
+    expect(facts[2]?.jump).toBeUndefined();
+    expect(wordFacts(words)[2]?.call).toBeUndefined();
+  });
+
   it("links an access to the earlier load that set its base register", () => {
     const facts = wordFacts(
       wordsOf(["lw $3,32($4)", "lb $2,4($3)", "sw $2,0($3)", "j $31"]),

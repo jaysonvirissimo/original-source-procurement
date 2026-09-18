@@ -199,6 +199,29 @@ describe("shipped missions with the real toolchain", () => {
     },
   );
 
+  // The functions-phase starters, pinned for the same reason. A call that
+  // moves by a row is reported twice, which only 048's hints rely on.
+  it.each([
+    ["042", ["CALL_TARGET"]],
+    ["043", ["MEMORY_OFFSET"]],
+    ["044", ["REGISTER"]],
+    // Which argument is copied into $s0 in the call's delay slot.
+    ["045", ["REGISTER"]],
+    ["047", ["OPCODE"]],
+    ["048", ["MISSING_INSTRUCTION", "CALL_TARGET", "RELOCATION_TARGET"]],
+  ])(
+    "mission %s: the starting source reports its one difference",
+    async (id, kinds) => {
+      const mission = missions.find((entry) => entry.id === id);
+      if (mission === undefined) {
+        throw new Error(`The curriculum has no mission ${id}.`);
+      }
+      const result = await compare(mission, mission.starterSource);
+
+      expect(result.mismatches.map((mismatch) => mismatch.kind)).toEqual(kinds);
+    },
+  );
+
   it("mission 039: the two steps differ by the size of an int", async () => {
     const mission = missions.find((entry) => entry.id === "039");
     if (mission === undefined) {

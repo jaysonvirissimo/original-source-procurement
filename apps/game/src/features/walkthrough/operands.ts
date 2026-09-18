@@ -1,4 +1,9 @@
-import type { BranchTest, JumpTarget, WordFacts } from "@osp/matching-core";
+import type {
+  BranchTest,
+  CallTarget,
+  JumpTarget,
+  WordFacts,
+} from "@osp/matching-core";
 import { hex } from "../scan/format";
 
 /** One labeled part of an instruction's operands. */
@@ -15,8 +20,8 @@ export interface OperandReading {
 }
 
 /**
- * The operands of a load, a store, a branch or a jump, labeled from decoded
- * facts.
+ * The operands of a load, a store, a branch, a jump or a call, labeled from
+ * decoded facts.
  * Other words have no reading, because these are the forms taught this way.
  */
 export function operandReading(
@@ -27,6 +32,9 @@ export function operandReading(
   }
   if (facts?.jump !== undefined) {
     return jumpReading(facts.jump, facts.index);
+  }
+  if (facts?.call !== undefined) {
+    return callReading(facts.call, facts.index);
   }
   const memory = facts?.memory;
   if (memory === undefined) {
@@ -125,6 +133,23 @@ function jumpReading(jump: JumpTarget, index: number): OperandReading {
       },
     ],
     summary: `Always go, with no question asked: continue ${rowCount(rows)} further ${rows > 0 ? "down" : "up"}, at word ${String(jump.target)}. The row directly below runs first.`,
+  };
+}
+
+/**
+ * A call's callee. The word prints as jal 0x0 for the same reason a jump
+ * does, so the function's name comes from the relocation.
+ */
+function callReading(call: CallTarget, index: number): OperandReading {
+  return {
+    parts: [
+      {
+        role: "callee",
+        value: "0x0",
+        meaning: `The address of ${call.callee}, left zero until the program is linked. The relocation names the function, and the comparison checks the name.`,
+      },
+    ],
+    summary: `Call ${call.callee}: go there, and set $ra to word ${String(index + 2)}, the row after the delay slot, so ${call.callee} comes back to it. The row directly below runs first.`,
   };
 }
 

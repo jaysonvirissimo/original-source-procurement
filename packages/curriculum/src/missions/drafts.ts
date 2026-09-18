@@ -45,6 +45,13 @@ import { takeItBack } from "./038-take-it-back.ts";
 import { noMultiply } from "./039-no-multiply.ts";
 import { jumpOver } from "./040-jump-over.ts";
 import { qualification07 } from "./041-qualification-07.ts";
+import { makeACall } from "./042-make-a-call.ts";
+import { theFrame } from "./043-the-frame.ts";
+import { fifthArgument } from "./044-fifth-argument.ts";
+import { keepIt } from "./045-keep-it.ts";
+import { putItBack } from "./046-put-it-back.ts";
+import { scratch } from "./047-scratch.ts";
+import { qualification08 } from "./048-qualification-08.ts";
 import type { MissionDraft } from "./authoring.ts";
 
 export type { MissionDraft } from "./authoring.ts";
@@ -101,4 +108,11 @@ export const missionDrafts: readonly MissionDraft[] = [
   noMultiply,
   jumpOver,
   qualification07,
+  makeACall,
+  theFrame,
+  fifthArgument,
+  keepIt,
+  putItBack,
+  scratch,
+  qualification08,
 ];

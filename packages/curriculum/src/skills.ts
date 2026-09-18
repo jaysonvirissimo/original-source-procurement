@@ -305,4 +305,52 @@ export const skills: readonly Skill[] = [
     prerequisites: ["MIPS.BRANCH", "MIPS.DELAY_SLOT"],
     manualEntry: "mips.jumps",
   },
+  {
+    id: "ABI.CALL",
+    name: "Calls",
+    description:
+      "jal goes to another function and leaves the way back in $ra; the arguments go in $a0 to $a3 and the answer comes back in $v0.",
+    prerequisites: ["ABI.ARGUMENT", "ABI.RETURN", "MIPS.JUMP"],
+    manualEntry: "abi.calls",
+  },
+  {
+    id: "ABI.FRAME",
+    name: "Stack frames",
+    description:
+      "A function that calls another moves $sp down to make room, keeps $ra there, and moves $sp back before it returns.",
+    prerequisites: ["ABI.CALL", "MIPS.STORE.WORD"],
+    manualEntry: "abi.stack-frames",
+  },
+  {
+    id: "ABI.STACK",
+    name: "Arguments on the stack",
+    description:
+      "A fifth argument has no register. It goes into the caller's frame, 16 bytes up from $sp.",
+    prerequisites: ["ABI.FRAME"],
+    manualEntry: "abi.arguments",
+  },
+  {
+    id: "MIPS.REGISTER.SAVED",
+    name: "Values that survive a call",
+    description:
+      "A value needed after a call is kept in $s0 to $s7, because a called function may overwrite every other register.",
+    prerequisites: ["ABI.FRAME", "MIPS.REGISTER.TEMP"],
+    manualEntry: "abi.saved-registers",
+  },
+  {
+    id: "ABI.SAVED_REGISTER",
+    name: "Putting them back",
+    description:
+      "A function that uses an $s register saves the caller's value first and restores it before returning, in the reverse order.",
+    prerequisites: ["MIPS.REGISTER.SAVED"],
+    manualEntry: "abi.saved-registers",
+  },
+  {
+    id: "MIPS.REGISTER.SCRATCH",
+    name: "Scratch registers",
+    description:
+      "$t0 to $t9 hold intermediates when the argument and result registers are all still needed. Nothing saves them, and a call may destroy them.",
+    prerequisites: ["MIPS.REGISTER.SAVED", "MIPS.REGISTER.TEMP"],
+    manualEntry: "abi.saved-registers",
+  },
 ];

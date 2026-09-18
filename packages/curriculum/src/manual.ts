@@ -280,6 +280,46 @@ export const manualEntries: readonly ManualEntry[] = [
       "In int f(int a, int b), a is in $a0 and b is in $a1 when the function starts.",
       "Registers to know now: $a0 to $a3 carry arguments, $v0 carries the return value, $ra holds the return address, and $zero always reads 0.",
       "Other names, such as $v1, $s0 to $s7, $t0 to $t9, and $sp, appear in later missions. You can ignore them for now.",
+      "A fifth argument has no register. The caller stores it in its own stack frame, 16 bytes up from $sp, where the called function knows to look: sw $a0,0x10($sp) just before or in the delay slot of the jal is the caller handing over argument five.",
+      "Those first 16 bytes are the argument area. Every caller reserves them, even when it passes fewer than five arguments, so a called function always has somewhere to put its four argument registers if it needs to.",
+    ],
+  },
+  {
+    id: "abi.calls",
+    section: "ABI",
+    title: "Calls",
+    body: [
+      "jal calls another function. It goes there the way j does, and it also writes the address of the row after its delay slot into $ra, so the called function's jr $ra comes back to exactly that row.",
+      "Before the call the caller puts the arguments in $a0 to $a3. After it, the answer is in $v0. That is the same agreement every function in this course has kept from the other side; now you see the caller keeping it.",
+      "In a mission's target a call reads jal 0x0, for the same reason a jump does: the called function's address is filled in by the linker. The relocation names the function, and the comparison checks the name. Calling the wrong function is reported as a call target.",
+      "The function being called is declared but never defined in the mission's source, as in int helper(int x);. That tells the compiler how to call it. Where it actually lives is the linker's business.",
+      "A call overwrites $ra, and this function needs its own $ra to get back to its own caller. So any function that makes a call saves $ra first and loads it back before returning. That is what the first and last rows around every call are, and the next mission explains where they put it.",
+      "Like every jump, jal has a delay slot, and the compiler puts the last step of preparing the call there: often the copy of an argument.",
+    ],
+  },
+  {
+    id: "abi.stack-frames",
+    section: "ABI",
+    title: "Stack frames",
+    body: [
+      "$sp, the stack pointer, holds an address below which memory is free. A function that needs memory of its own moves $sp down by that much on entry, uses the bytes between the new and old values, and moves it back up before returning. Those bytes are its stack frame.",
+      "addiu $sp,$sp,-0x18 at the top makes a 24-byte frame. addiu $sp,$sp,0x18 at the bottom, usually in the delay slot of jr $ra, gives it back. The row at the top is often called the prologue and the rows at the bottom the epilogue.",
+      "The first 16 bytes, 0x0 to 0xF, are the argument area every caller reserves. $ra and anything else the function keeps go above that, so sw $ra,0x10($sp) is the smallest case: 16 bytes of argument area, 4 for $ra, and 4 more because frames are kept to a multiple of 8.",
+      "A local variable whose address is taken has to live in memory, because an address points at memory, not at a register. It gets a place in the frame too. addiu $a0,$sp,0x10 is that place's address being passed as an argument.",
+      "A frame's offsets are counted from $sp after it has moved, so the same variable is at the same offset every time the function runs, wherever the stack happens to be.",
+    ],
+  },
+  {
+    id: "abi.saved-registers",
+    section: "ABI",
+    title: "Saved and scratch registers",
+    body: [
+      "A called function may overwrite $v0, $v1, $a0 to $a3 and $t0 to $t9. So a value this function still needs after a call cannot stay in any of them.",
+      "It goes in $s0 to $s7 instead. Those registers come with the opposite promise: whoever uses one must put the old value back before returning. So the value survives the call, because the called function had to leave $s0 exactly as it found it.",
+      "Keeping that promise is why a function using $s0 stores it in its frame at the top and loads it back at the bottom. The stores and loads are not about this function's value at all; they protect the caller's.",
+      "With more than one, the loads at the bottom come in the reverse order of the stores at the top. The listing then reads like brackets closing, and a function that restores them in any other order still works but does not match.",
+      "$t0 to $t9 are the scratch registers. Nobody saves them and a call may destroy them, so they only ever hold work done between calls. In a function that calls nothing, the compiler reaches for them when every argument and result register is still needed.",
+      "So the register tells you something about the value in it. $s means it outlives a call; $t means it does not have to; an argument register holding something else means the argument was finished with.",
     ],
   },
   {
@@ -375,6 +415,7 @@ export const manualEntries: readonly ManualEntry[] = [
       "A test writes to its first operand, like arithmetic. slt $v0,$a0,$a1 asks whether $a0 is less than $a1 and writes 1 or 0 to $v0. The order of the two source operands is the order of the question.",
       "A branch writes nothing. It reads one or two registers and ends with a distance: bnez $v0,.+12 reads $v0 and, when it is not zero, continues three rows further down. A negative distance goes up: bgtz $a0,.-4 goes back one row while $a0 is above zero.",
       "j reads nothing and writes nothing. Its one operand is where to go, and in a mission's target it shows 0x0 because the linker has not filled it in; the comparison names the destination instead.",
+      "jal is a jump that also writes $ra: it calls a function and arranges for that function to come back. Its operand shows 0x0 for the same reason, and the comparison names the function called.",
     ],
   },
   {
@@ -643,7 +684,7 @@ export const manualEntries: readonly ManualEntry[] = [
     section: "GLOSSARY",
     title: "stack frame",
     body: [
-      "Memory a function reserves while it runs, for values that do not fit in registers. The first missions do not use one.",
+      "Memory a function reserves on entry by moving $sp down, and gives back before it returns. A function that calls another needs one, at least to keep $ra; a function that calls nothing usually does not.",
     ],
   },
   {
@@ -1010,6 +1051,46 @@ export const manualEntries: readonly ManualEntry[] = [
     title: "j",
     body: [
       "Jump. It always goes, with no question asked, to a destination written into the instruction. The linker fills that destination in, so before linking it reads 0x0.",
+    ],
+  },
+  {
+    id: "glossary.jal",
+    section: "GLOSSARY",
+    title: "jal",
+    body: [
+      "Jump and link. It calls a function: it jumps there, and writes into $ra the address of the row after its delay slot, which is where the called function's jr $ra comes back to.",
+    ],
+  },
+  {
+    id: "glossary.sp",
+    section: "GLOSSARY",
+    title: "$sp",
+    body: [
+      "The stack pointer. It holds an address below which memory is free. A function moves it down to make a stack frame and back up before returning.",
+    ],
+  },
+  {
+    id: "glossary.s0",
+    section: "GLOSSARY",
+    title: "$s0 to $s7",
+    body: [
+      "The saved registers. A called function must leave them as it found them, so a value kept in one survives a call. A function that uses one saves the old value first and restores it at the end.",
+    ],
+  },
+  {
+    id: "glossary.t0",
+    section: "GLOSSARY",
+    title: "$t0 to $t9",
+    body: [
+      "The scratch registers. Nobody saves them and a call may overwrite them, so they only hold work done between calls.",
+    ],
+  },
+  {
+    id: "glossary.prologue",
+    section: "GLOSSARY",
+    title: "prologue and epilogue",
+    body: [
+      "The rows at the top of a function that make its stack frame and save what it must, and the rows at the bottom that restore those and give the frame back.",
     ],
   },
 ];

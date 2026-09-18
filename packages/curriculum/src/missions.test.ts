@@ -84,6 +84,13 @@ describe("the first teaching slice", () => {
       "039",
       "040",
       "041",
+      "042",
+      "043",
+      "044",
+      "045",
+      "046",
+      "047",
+      "048",
       "F04",
       "F01",
       "F02",
@@ -236,6 +243,13 @@ describe("the first teaching slice", () => {
       "039": ["MATCH.LOOP_INDEX"],
       "040": ["MIPS.JUMP"],
       "041": [],
+      "042": ["ABI.CALL"],
+      "043": ["ABI.FRAME"],
+      "044": ["ABI.STACK"],
+      "045": ["MIPS.REGISTER.SAVED"],
+      "046": ["ABI.SAVED_REGISTER"],
+      "047": ["MIPS.REGISTER.SCRATCH"],
+      "048": [],
     });
   });
 

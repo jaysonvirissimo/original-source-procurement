@@ -118,6 +118,32 @@ export function loopDifficulty(
   };
 }
 
+/**
+ * A functions-phase profile: calls, and the frame that making one requires.
+ *
+ * Scored from the target like `loopDifficulty`. `abi` is the importer's
+ * calls counted twice plus stack accesses, so the frame's own saves and
+ * restores count as well as the call.
+ */
+export function callDifficulty(
+  size: number,
+  controlFlow: number,
+  abi: number,
+  compilerShaping: number,
+  memory = 0,
+): DifficultyProfile {
+  return {
+    size,
+    controlFlow,
+    memory,
+    abi,
+    types: 0,
+    compilerShaping,
+    context: 0,
+    specialHardware: 0,
+  };
+}
+
 /** A memory-phase profile: loads and stores through supplied types. */
 export function memoryDifficulty(
   size: number,

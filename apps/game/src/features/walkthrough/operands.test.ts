@@ -96,6 +96,25 @@ describe("operandReading", () => {
     // Without the relocation the word has no destination to read.
     expect(operandReading(wordFacts(inlineWords(mission))[3])).toBeUndefined();
   });
+
+  it("names a call's callee from the target's relocation", () => {
+    // addiu $sp; sw $ra; jal 0x0 (relocated to helper); nop; lw $ra; ...
+    const mission = shippedMission("042");
+    const relocations =
+      mission.target.kind === "inline" ? mission.target.relocations : [];
+    const reading = operandReading(
+      wordFacts(inlineWords(mission), relocations)[2],
+    );
+
+    expect(reading?.parts.map(({ role, value }) => [role, value])).toEqual([
+      ["callee", "0x0"],
+    ]);
+    expect(reading?.summary).toBe(
+      "Call helper: go there, and set $ra to word 4, the row after the delay slot, so helper comes back to it. The row directly below runs first.",
+    );
+    // Without the relocation nothing names the callee.
+    expect(operandReading(wordFacts(inlineWords(mission))[2])).toBeUndefined();
+  });
 });
 
 describe("bitGroups", () => {
