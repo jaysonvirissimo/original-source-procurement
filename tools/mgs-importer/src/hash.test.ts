@@ -31,3 +31,16 @@ describe("wordsSha256", () => {
     expect(wordsSha256([1, 2])).not.toBe(wordsSha256([2, 1]));
   });
 });
+
+/*
+ * The curriculum package computes the same digests with Web Crypto and this
+ * tool cannot import it. Its hash.test.ts holds this exact vector too, so the
+ * two implementations cannot drift apart without one of the tests failing.
+ */
+describe("shared vector", () => {
+  it("hashes three words to the digest the curriculum's test also holds", () => {
+    expect(wordsSha256([0x03e0_0008, 0x0000_0000, 0x2402_0001])).toBe(
+      "e20510d9111e718d8d9aa670f222254051d4e7906ea25b8cb02ff43da62387a5",
+    );
+  });
+});

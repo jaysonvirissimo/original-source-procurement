@@ -27,3 +27,18 @@ describe("wordsSha256", () => {
     await expect(wordsSha256([])).resolves.toBe(await sha256Hex(""));
   });
 });
+
+/*
+ * The importer computes the same digests with node:crypto and cannot import
+ * this package. Its hash.test.ts holds this exact vector too, so the two
+ * implementations cannot drift apart without one of the tests failing.
+ */
+describe("shared vector", () => {
+  it("hashes three words to the digest the importer's test also holds", async () => {
+    await expect(
+      wordsSha256([0x03e0_0008, 0x0000_0000, 0x2402_0001]),
+    ).resolves.toBe(
+      "e20510d9111e718d8d9aa670f222254051d4e7906ea25b8cb02ff43da62387a5",
+    );
+  });
+});
