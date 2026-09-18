@@ -15,9 +15,29 @@ export function ManualRoute({ entryId }: ManualRouteProps): ReactElement {
     entryId === undefined || manualEntries.some(({ id }) => id === entryId);
 
   useEffect(() => {
-    if (entryId !== undefined) {
-      document.getElementById(manualEntryElementId(entryId))?.focus();
+    if (entryId === undefined) {
+      return;
     }
+    const entry = document.getElementById(manualEntryElementId(entryId));
+    if (entry === null) {
+      return;
+    }
+    // Focusing scrolls, but the manual's fonts load with font-display: swap,
+    // so the first layout uses fallback metrics. When the web fonts arrive
+    // the text above the entry reflows and the scroll position no longer
+    // points at it. Align again once the fonts have settled.
+    entry.focus();
+    let current = true;
+    // Absent in jsdom, which loads no fonts and so never reflows.
+    const { fonts } = document as Partial<Document>;
+    void fonts?.ready.then(() => {
+      if (current) {
+        entry.scrollIntoView();
+      }
+    });
+    return () => {
+      current = false;
+    };
   }, [entryId]);
 
   return (

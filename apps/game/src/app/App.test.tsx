@@ -198,6 +198,46 @@ describe("RouteView", () => {
     expect(screen.queryByText(/No manual entry has that name/)).toBeNull();
   });
 
+  it("aligns the requested entry again once the fonts have loaded", async () => {
+    // The manual's fonts load with font-display: swap, so the first layout
+    // uses fallback metrics and the text above the entry reflows when they
+    // arrive. Focusing scrolls once, before that; the route has to align
+    // again afterwards or a deep link lands past its entry. jsdom loads no
+    // fonts, so the set is supplied here.
+    let settle: (() => void) | undefined;
+    const ready = new Promise<void>((resolve) => {
+      settle = resolve;
+    });
+    const scrolled: string[] = [];
+    // jsdom implements no layout, so there is no scrollIntoView to spy on.
+    Element.prototype.scrollIntoView = function recordScroll(this: Element) {
+      scrolled.push(this.id);
+    };
+    Object.defineProperty(document, "fonts", {
+      configurable: true,
+      value: { ready },
+    });
+
+    try {
+      render(
+        <RouteView route={{ kind: "manual", entryId: "glossary.register" }} />,
+      );
+
+      expect(document.activeElement?.id).toBe("manual-glossary.register");
+      expect(scrolled).toEqual([]);
+
+      settle?.();
+      await act(async () => {
+        await ready;
+      });
+
+      expect(scrolled).toEqual(["manual-glossary.register"]);
+    } finally {
+      Reflect.deleteProperty(Element.prototype, "scrollIntoView");
+      Reflect.deleteProperty(document, "fonts");
+    }
+  });
+
   it("names an unknown manual entry and still shows the manual", () => {
     render(<RouteView route={{ kind: "manual", entryId: "MIPS.LOAD.WORD" }} />);
 

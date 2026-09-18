@@ -133,12 +133,32 @@ test("a later mission's manual finds a glossary entry by search", async ({
 test("a manual address opens the whole manual at its entry", async ({
   page,
 }) => {
+  // Hold the web fonts back so the swap always lands after the route has
+  // focused its entry. The manual loads them with font-display: swap, so the
+  // first layout uses fallback metrics and the text above the entry reflows
+  // when they arrive; the route has to align again afterwards. Without this
+  // the ordering is a race that the fonts usually win, and the assertion
+  // below then passes whether or not the route handles the reflow at all.
+  //
+  // How far the entry moves still depends on the platform's fallback font,
+  // so this catches a regression where the fallback is wide enough to push
+  // it out of view. On Linux it is; on macOS it is not.
+  await page.route(/\.woff2?$/u, async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    await route.continue();
+  });
+
   await page.goto("./#/manual/glossary.register");
 
   await expect(
     page.getByRole("heading", { level: 1, name: "Manual" }),
   ).toBeVisible();
   await expect(page.locator('[id="manual-glossary.register"]')).toBeFocused();
+
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+  });
+
   await expect(
     page.locator('[id="manual-glossary.register"]'),
   ).toBeInViewport();
