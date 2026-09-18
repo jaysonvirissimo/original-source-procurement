@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { runValidation } from "./cli.ts";
-import { curriculum } from "./index.ts";
+import { curriculum, missions } from "./index.ts";
 import type { CurriculumData } from "./validate.ts";
 
 function capture() {
@@ -80,9 +80,14 @@ describe("runValidation", () => {
 
   it("counts a single coverage warning in the singular", async () => {
     const { output, log } = capture();
+    const defaultPath = ["001", "002", "003", "004", "005"];
     await expect(
       runValidation(
-        { ...curriculum, defaultPath: ["001", "002", "003", "004", "005"] },
+        {
+          ...curriculum,
+          missions: missions.filter(({ id }) => defaultPath.includes(id)),
+          defaultPath,
+        },
         output,
       ),
     ).resolves.toBe(0);

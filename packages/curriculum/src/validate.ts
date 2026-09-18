@@ -11,6 +11,7 @@ import {
 } from "@osp/mission-schema";
 import { findCycle, missionNeeds } from "./graph.ts";
 import { sha256Hex, wordsSha256 } from "./hash.ts";
+import { TOOLCHAIN_PINS } from "./toolchainPins.ts";
 
 export type CurriculumIssueCode =
   | "schema"
@@ -24,8 +25,10 @@ export type CurriculumIssueCode =
   | "unknown-mission"
   | "duplicate-path-entry"
   | "unreachable-prerequisite"
+  | "missing-from-path"
   | "solution-hash"
   | "words-hash"
+  | "target-toolchain"
   | "corpus-commit"
   | "corpus-symbol"
   | "corpus-text";
@@ -291,6 +294,16 @@ function checkDefaultPath(
       taught.add(skill);
     }
   });
+
+  for (const [id, { index }] of missions) {
+    if (!seen.has(id)) {
+      report(
+        "missing-from-path",
+        ["missions", index],
+        `Mission ${id} is not on the default path.`,
+      );
+    }
+  }
 }
 
 async function checkHashes(
@@ -300,6 +313,16 @@ async function checkHashes(
   for (const { index, value: mission } of missions.values()) {
     if (mission.target.kind !== "inline") {
       continue;
+    }
+    for (const key of ["psyqWasmVersion", "psyqAsmVersion"] as const) {
+      const actual = mission.target.toolchain[key];
+      if (actual !== TOOLCHAIN_PINS[key]) {
+        report(
+          "target-toolchain",
+          ["missions", index, "target", "toolchain", key],
+          `${key} is ${actual}, but the pinned toolchain is ${TOOLCHAIN_PINS[key]}. Run pnpm curriculum:targets.`,
+        );
+      }
     }
     if (
       (await wordsSha256(mission.target.words)) !== mission.target.wordsSha256

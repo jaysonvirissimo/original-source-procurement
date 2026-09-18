@@ -17,6 +17,7 @@ export {
 } from "./coverage.ts";
 export { findCycle, missionNeeds } from "./graph.ts";
 export { sha256Hex, wordsSha256 } from "./hash.ts";
+export { TOOLCHAIN_PINS } from "./toolchainPins.ts";
 export { runValidation, type ValidationOutput } from "./cli.ts";
 export {
   validateCurriculum,

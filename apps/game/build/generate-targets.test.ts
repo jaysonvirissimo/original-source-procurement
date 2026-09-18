@@ -1,4 +1,4 @@
-import { missions } from "@osp/curriculum";
+import { missions, TOOLCHAIN_PINS } from "@osp/curriculum";
 import { missionDrafts, type MissionDraft } from "@osp/curriculum/drafts";
 import { sha256Hex, wordsSha256 } from "@osp/curriculum/hash";
 import type { InlineTarget } from "@osp/mission-schema";
@@ -23,6 +23,16 @@ import {
   sameGeneratedTarget,
   targetModulePath,
 } from "./generate-targets.ts";
+import { PSYQ_WASM_RELEASE } from "./psyq-wasm-release.ts";
+
+describe("TOOLCHAIN_PINS", () => {
+  it("name the pinned compiler release and assembler the game builds with", () => {
+    expect(TOOLCHAIN_PINS).toEqual({
+      psyqWasmVersion: PSYQ_WASM_RELEASE.version,
+      psyqAsmVersion: PSYQ_ASM_VERSION,
+    });
+  });
+});
 
 const COMMIT = "0123456789abcdef0123456789abcdef01234567";
 
