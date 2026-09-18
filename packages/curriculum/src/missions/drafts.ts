@@ -34,6 +34,11 @@ import { otherWayRound } from "./027-other-way-round.ts";
 import { orEqual } from "./028-or-equal.ts";
 import { signBit } from "./029-sign-bit.ts";
 import { qualification05 } from "./030-qualification-05.ts";
+import { branchOnTest } from "./031-branch-on-test.ts";
+import { branchOnSign } from "./032-branch-on-sign.ts";
+import { theSlotRuns } from "./033-the-slot-runs.ts";
+import { eitherWayRound } from "./034-either-way-round.ts";
+import { qualification06 } from "./035-qualification-06.ts";
 import type { MissionDraft } from "./authoring.ts";
 
 export type { MissionDraft } from "./authoring.ts";
@@ -79,4 +84,9 @@ export const missionDrafts: readonly MissionDraft[] = [
   orEqual,
   signBit,
   qualification05,
+  branchOnTest,
+  branchOnSign,
+  theSlotRuns,
+  eitherWayRound,
+  qualification06,
 ];

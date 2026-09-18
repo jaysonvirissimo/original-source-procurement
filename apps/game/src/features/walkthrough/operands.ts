@@ -1,4 +1,4 @@
-import type { WordFacts } from "@osp/matching-core";
+import type { BranchTest, WordFacts } from "@osp/matching-core";
 import { hex } from "../scan/format";
 
 /** One labeled part of an instruction's operands. */
@@ -15,12 +15,15 @@ export interface OperandReading {
 }
 
 /**
- * The operands of a load or store, labeled from decoded facts. Other words
- * have no reading, because only memory access has a form taught this way.
+ * The operands of a load, a store, or a branch, labeled from decoded facts.
+ * Other words have no reading, because these are the forms taught this way.
  */
 export function operandReading(
   facts: WordFacts | undefined,
 ): OperandReading | undefined {
+  if (facts?.branch !== undefined) {
+    return branchReading(facts.branch);
+  }
   const memory = facts?.memory;
   if (memory === undefined) {
     return undefined;
@@ -63,5 +66,41 @@ export function operandReading(
       ...place,
     ],
     summary: `${memory.register} → memory: write ${bytes} from ${memory.register} to memory at ${memory.base} + ${offset}.`,
+  };
+}
+
+/**
+ * A branch's operands. The distance is the part worth labeling: the listing
+ * prints bytes from the branch's own row, and the player counts rows.
+ */
+function branchReading(branch: BranchTest): OperandReading {
+  const rows = branch.displacement / 4;
+  const forward = branch.displacement > 0;
+  const distance = `${forward ? "" : "back "}${String(Math.abs(rows))} ${Math.abs(rows) === 1 ? "row" : "rows"}`;
+  const tested =
+    branch.registers.length === 0
+      ? "the values it compares"
+      : branch.registers.join(" and ");
+  return {
+    parts: [
+      ...branch.registers.map((register, index) => ({
+        role:
+          branch.registers.length === 1
+            ? "tested"
+            : `tested ${String(index + 1)}`,
+        value: register,
+        meaning:
+          branch.registers.length === 1
+            ? "The register the branch asks about. No separate instruction tests it."
+            : "One of the two registers the branch compares, in the order written.",
+      })),
+      {
+        role: "distance",
+        value: `${forward ? "+" : "-"}${String(Math.abs(branch.displacement))}`,
+        meaning:
+          "Bytes from this row, not an address. A row is 4 bytes, so divide by 4 to count rows.",
+      },
+    ],
+    summary: `Read ${tested}; when the branch is taken, continue ${distance} further ${forward ? "down" : "up"}, at word ${String(branch.target)}. The row directly below runs either way.`,
   };
 }

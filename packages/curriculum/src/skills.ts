@@ -233,4 +233,36 @@ export const skills: readonly Skill[] = [
     prerequisites: ["MATCH.EXPRESSION_ORDER"],
     manualEntry: "matching.expression-shape",
   },
+  {
+    id: "MIPS.BRANCH",
+    name: "Branches",
+    description:
+      "A branch reads a value and skips forward when it holds, so one listing holds two paths.",
+    prerequisites: ["MIPS.COMPARE"],
+    manualEntry: "mips.branches",
+  },
+  {
+    id: "MIPS.BRANCH.ZERO",
+    name: "Branch against zero",
+    description:
+      "Against zero there is no test instruction: bltz, blez, bgtz and bgez read the value themselves.",
+    prerequisites: ["MIPS.BRANCH"],
+    manualEntry: "mips.branches",
+  },
+  {
+    id: "MATCH.SCHEDULING",
+    name: "Filling a delay slot",
+    description:
+      "The row after a branch belongs to neither path. It runs either way, and the compiler chooses it.",
+    prerequisites: ["MIPS.DELAY_SLOT", "MIPS.BRANCH"],
+    manualEntry: "mips.delay-slots",
+  },
+  {
+    id: "MATCH.BRANCH_SENSE",
+    name: "Which way the test reads",
+    description:
+      "Testing the opposite condition and swapping the paths is the same program and a different listing.",
+    prerequisites: ["MATCH.SCHEDULING"],
+    manualEntry: "matching.branch-sense",
+  },
 ];

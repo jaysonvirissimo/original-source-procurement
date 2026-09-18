@@ -231,6 +231,7 @@ describe("mapRegions", () => {
       ["phase", "Arithmetic"],
       ["phase", "Memory widths"],
       ["phase", "Conditions"],
+      ["phase", "Branches"],
       ["field", "Field"],
       ["live", "Live"],
     ]);

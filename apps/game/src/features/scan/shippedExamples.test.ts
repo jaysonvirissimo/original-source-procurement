@@ -125,6 +125,9 @@ describe("shipped walkthroughs", () => {
       "027",
       "028",
       "029",
+      "031",
+      "032",
+      "033",
     ]);
   });
 
@@ -147,9 +150,13 @@ describe("shipped walkthroughs", () => {
           return;
         case "bits":
           return;
-        case "operands":
-          expect(facts[walkthrough.word]?.memory).toBeDefined();
+        case "operands": {
+          // A word has a reading when it accesses memory or branches; those
+          // are the two forms the operand table knows how to label.
+          const word = facts[walkthrough.word];
+          expect(word?.memory ?? word?.branch).toBeDefined();
           return;
+        }
         case "caller": {
           const example = mission.example;
           for (const row of walkthrough.rows) {

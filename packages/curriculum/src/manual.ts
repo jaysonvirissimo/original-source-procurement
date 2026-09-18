@@ -201,6 +201,8 @@ export const manualEntries: readonly ManualEntry[] = [
       "jr $ra returns to the caller. The instruction after it still runs first, so the compiler often places the last step of a function there.",
       "When nothing useful can run in the delay slot, the assembler fills it with a nop.",
       "This is why a two-instruction function reads back to front. The return comes first and the work comes second, and both run. A listing that ends in the middle of the work is not truncated; that last row is the delay slot.",
+      "A branch has one too, and it is stranger. The row after a branch belongs to neither path: it runs whether or not the branch is taken. The compiler knows that, so it often puts work there that one path needs and the other simply overwrites.",
+      "So a row after a branch is not part of the block it sits beside. Read it as happening first, before the question is settled.",
     ],
   },
   {
@@ -214,6 +216,18 @@ export const manualEntries: readonly ManualEntry[] = [
       "Adding or-equal takes one more instruction. a <= b is b < a answered and then flipped, and the flip is xori $v0,$v0,0x1, which turns 1 into 0 and 0 into 1.",
       "Equality is not a test at all. a == b first combines the two values with xor, which gives zero exactly when they are equal, and then asks whether that result is less than 1. Against zero the xor is unnecessary, so a == 0 is a single sltiu $v0,$a0,0x1.",
       "Against zero the compiler can do better still. a < 0 asks only whether the sign bit is set, and the listing shows srl $v0,$a0,31, a shift, with no test instruction anywhere.",
+    ],
+  },
+  {
+    id: "mips.branches",
+    section: "MIPS",
+    title: "Branches",
+    body: [
+      "A branch skips forward when its question is answered yes. Everything between the branch and where it lands is a path that only sometimes runs.",
+      "After a test, the branch reads the test's answer: beq goes when the value is zero and bne when it is not. The listing usually shows them as beqz and bnez, which is the same instruction compared against nothing.",
+      "Against zero there is no test at all. bltz goes when a value is negative, bgez when it is not, bgtz when it is above zero, and blez when it is at most zero. One instruction asks and jumps, where a comparison against anything else needs two.",
+      "The number on a branch is a distance, not an address. It counts bytes from the branch's own row, and a row is 4 bytes, so .+12 lands three rows further down. It is written in decimal even though other constants are hexadecimal.",
+      "Counting those rows is how you find where a path ends. The listing does not draw it for you.",
     ],
   },
   {
@@ -285,6 +299,17 @@ export const manualEntries: readonly ManualEntry[] = [
     ],
   },
   {
+    id: "matching.branch-sense",
+    section: "MATCHING",
+    title: "Which way a test reads",
+    body: [
+      "Every question has an opposite. Asking whether a value is below another and acting on yes does the same work as asking whether it is not below and acting on no, with the two paths written the other way round.",
+      "Both are correct C and they compile differently. The branch instruction changes, and so does the order the two paths appear in the listing.",
+      "The comparison names both halves of that when it happens. A difference in the branch itself is reported as a branch condition; the paths appearing in the other order is reported separately as an instruction order. Those two together are the signature of a test written the opposite way round, not two unrelated mistakes.",
+      "Fix it by reading the branch first. It tells you which question the source asked, and the path immediately after it is the one that runs when the answer is no.",
+    ],
+  },
+  {
     id: "c.storing-addresses",
     section: "C",
     title: "Storing addresses",
@@ -306,6 +331,7 @@ export const manualEntries: readonly ManualEntry[] = [
       "A store reads from its first operand. sw $a1,0x0($a0) and sb $a1,0x0($a0) write the value in $a1 to memory at the address in $a0. No register changes.",
       "A jump names where to go. jr $ra jumps to the address held in $ra.",
       "A test writes to its first operand, like arithmetic. slt $v0,$a0,$a1 asks whether $a0 is less than $a1 and writes 1 or 0 to $v0. The order of the two source operands is the order of the question.",
+      "A branch writes nothing. It reads one or two registers and ends with a distance: bnez $v0,.+12 reads $v0 and, when it is not zero, continues three rows further down.",
     ],
   },
   {
@@ -877,6 +903,38 @@ export const manualEntries: readonly ManualEntry[] = [
     title: "condition",
     body: [
       "A question with a yes or no answer, such as a < b. In C its value is the number 1 or the number 0, so it can be returned or stored like any other value.",
+    ],
+  },
+  {
+    id: "glossary.beq",
+    section: "GLOSSARY",
+    title: "beq and bne",
+    body: [
+      "Branch on equal and branch on not equal. Each reads two registers and skips forward when they match, or when they do not. Compared against zero they are written beqz and bnez.",
+    ],
+  },
+  {
+    id: "glossary.bltz",
+    section: "GLOSSARY",
+    title: "bltz, blez, bgtz and bgez",
+    body: [
+      "Branches that read one register against zero: below zero, at most zero, above zero, and at least zero. No separate test instruction is needed for these four questions.",
+    ],
+  },
+  {
+    id: "glossary.displacement",
+    section: "GLOSSARY",
+    title: "branch displacement",
+    body: [
+      "The number a branch ends with. It is a distance in bytes from the branch's own row, not an address, so divide by 4 to count rows. The listing writes it in decimal.",
+    ],
+  },
+  {
+    id: "glossary.path",
+    section: "GLOSSARY",
+    title: "path",
+    body: [
+      "A run of instructions that executes together. A branch splits a listing into paths, and only one of them runs on any particular call.",
     ],
   },
 ];

@@ -67,6 +67,29 @@ export function conditionsDifficulty(
   };
 }
 
+/**
+ * A branch-phase profile: one listing, two paths.
+ *
+ * `controlFlow` follows the importer's scoring, which counts branches, jumps
+ * and basic blocks: a function with one forward branch has the branch, its
+ * own return, and three blocks.
+ */
+export function branchDifficulty(
+  size: number,
+  compilerShaping: number,
+): DifficultyProfile {
+  return {
+    size,
+    controlFlow: 5,
+    memory: 0,
+    abi: 1,
+    types: 0,
+    compilerShaping,
+    context: 0,
+    specialHardware: 0,
+  };
+}
+
 /** A memory-phase profile: loads and stores through supplied types. */
 export function memoryDifficulty(
   size: number,

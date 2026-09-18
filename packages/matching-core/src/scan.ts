@@ -13,12 +13,27 @@ export interface MemoryAccess {
   readonly signed?: boolean;
 }
 
+/**
+ * A conditional branch, read from one instruction's operands.
+ *
+ * `displacement` is the field as the listing prints it: a distance in bytes
+ * from the branch's own word, so a row is four. `target` is that distance
+ * resolved to a word index, which may fall outside the function.
+ */
+export interface BranchTest {
+  /** The registers the branch compares, in operand order. */
+  readonly registers: readonly string[];
+  readonly displacement: number;
+  readonly target: number;
+}
+
 /** What one target word does with registers and memory. */
 export interface WordFacts {
   readonly index: number;
   readonly reads: readonly string[];
   readonly writes: readonly string[];
   readonly memory?: MemoryAccess;
+  readonly branch?: BranchTest;
   /**
    * The earlier word that last wrote the memory base register. Absent when
    * the base still holds its value from function entry.
@@ -74,6 +89,23 @@ export function wordFacts(words: ArrayLike<number>): WordFacts[] {
           ...(load === undefined ? {} : { signed: load.signed }),
         },
         ...(writer === undefined ? {} : { baseWrittenBy: writer }),
+      };
+    }
+    const displacement = instruction.operands.find(
+      (operand) => operand.kind === "branch",
+    );
+    if (displacement !== undefined) {
+      facts = {
+        ...facts,
+        branch: {
+          registers: instruction.operands.flatMap((operand) =>
+            operand.kind === "gpr" ? [registerName(operand.number)] : [],
+          ),
+          // The field counts instructions from the delay slot; the listing
+          // prints bytes from the branch itself, which is one word earlier.
+          displacement: (displacement.displacement + 1) * 4,
+          target: index + 1 + displacement.displacement,
+        },
       };
     }
     for (const register of instruction.writes) {

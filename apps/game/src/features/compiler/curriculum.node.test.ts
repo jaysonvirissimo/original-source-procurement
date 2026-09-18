@@ -148,4 +148,25 @@ describe("shipped missions with the real toolchain", () => {
       "RELOCATION_TARGET",
     ]);
   });
+
+  it("mission 034: a correct program with the test the other way round reports its two halves", async () => {
+    const mission = missions.find((entry) => entry.id === "034");
+    if (mission === undefined) {
+      throw new Error("The curriculum has no mission 034.");
+    }
+    // The starter returns the right value for every input. Inverting the
+    // test also swaps the two paths, and the comparison reports exactly
+    // those two things. These are the first shipped mission that can reach
+    // either kind, so what they say is pinned here.
+    const result = await compare(mission, mission.starterSource);
+
+    expect(result.exact).toBe(false);
+    expect(result.mismatches.map((mismatch) => mismatch.kind)).toEqual([
+      "BRANCH_CONDITION",
+      "INSTRUCTION_ORDER",
+    ]);
+    expect(result.mismatches[0]?.evidence.join(" ")).toContain(
+      "The branch conditions differ.",
+    );
+  });
 });

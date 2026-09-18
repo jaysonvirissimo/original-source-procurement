@@ -31,6 +31,7 @@ export {
   abiRegisterNames,
   usesStack,
   wordFacts,
+  type BranchTest,
   type MemoryAccess,
   type WordFacts,
 } from "./scan.ts";

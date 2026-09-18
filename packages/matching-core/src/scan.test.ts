@@ -27,6 +27,32 @@ describe("wordFacts", () => {
     expect(facts[2]).toEqual({ index: 2, reads: [], writes: [] });
   });
 
+  it("reads a branch's registers and resolves its distance to a word", () => {
+    const facts = wordFacts(
+      wordsOf(["bne $4,$5,skip", "addiu $2,$0,1", "skip:", "j $31"]),
+    );
+
+    // The listing prints the distance in bytes from the branch's own row, so
+    // a row is four. The label lands at word 3 rather than 2 because the
+    // assembler inserted a branch-delay nop ahead of it.
+    expect(facts[0]?.branch).toEqual({
+      registers: ["$a0", "$a1"],
+      displacement: 12,
+      target: 3,
+    });
+    expect(facts[1]?.branch).toBeUndefined();
+  });
+
+  it("reads a branch that tests one register against zero", () => {
+    const facts = wordFacts(wordsOf(["bltz $4,skip", "nop", "skip:", "j $31"]));
+
+    expect(facts[0]?.branch).toEqual({
+      registers: ["$a0"],
+      displacement: 12,
+      target: 3,
+    });
+  });
+
   it("links an access to the earlier load that set its base register", () => {
     const facts = wordFacts(
       wordsOf(["lw $3,32($4)", "lb $2,4($3)", "sw $2,0($3)", "j $31"]),

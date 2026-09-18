@@ -73,6 +73,11 @@ describe("the first teaching slice", () => {
       "028",
       "029",
       "030",
+      "031",
+      "032",
+      "033",
+      "034",
+      "035",
       "F04",
       "F01",
       "F02",
@@ -214,6 +219,11 @@ describe("the first teaching slice", () => {
       "028": ["MIPS.DELAY_SLOT"],
       "029": ["MATCH.SEMANTIC_VS_EXACT"],
       "030": [],
+      "031": ["MIPS.BRANCH"],
+      "032": ["MIPS.BRANCH.ZERO"],
+      "033": ["MATCH.SCHEDULING"],
+      "034": ["MATCH.BRANCH_SENSE"],
+      "035": [],
     });
   });
 

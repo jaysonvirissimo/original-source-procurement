@@ -42,6 +42,32 @@ describe("operandReading", () => {
     expect(operandReading(qualification[3])).toBeUndefined();
     expect(operandReading(undefined)).toBeUndefined();
   });
+
+  it("labels a branch's tested register and its distance in rows", () => {
+    // bltz $a0,.+12; move $v0,$zero; addu $v0,$a0,$a1; jr $ra; nop
+    const branchOnSign = wordFacts(inlineWords(shippedMission("032")));
+    const reading = operandReading(branchOnSign[0]);
+
+    expect(reading?.parts.map(({ role, value }) => [role, value])).toEqual([
+      ["tested", "$a0"],
+      ["distance", "+12"],
+    ]);
+    expect(reading?.summary).toBe(
+      "Read $a0; when the branch is taken, continue 3 rows further down, at word 3. The row directly below runs either way.",
+    );
+  });
+
+  it("labels both registers of a branch that compares two", () => {
+    // slt $a0,$a0,$a1; bnez $a0,.+12; ...
+    const branchOnTest = wordFacts(inlineWords(shippedMission("031")));
+    const reading = operandReading(branchOnTest[1]);
+
+    expect(reading?.parts.map(({ role }) => role)).toEqual([
+      "tested 1",
+      "tested 2",
+      "distance",
+    ]);
+  });
 });
 
 describe("bitGroups", () => {
