@@ -207,7 +207,7 @@ The compiled file sits at the virtual root and stands for its upstream directory
 - a file whose SHA-256 matches a referenced upstream file, as-is or after converting its line endings to LF or CRLF;
 - a complete run of a referenced target's words, as numbers in text or as aligned words in binary content.
 
-It runs in `pnpm check`, in CI, and before every Pages upload. It cannot detect excerpts or rewritten code; reviewers check those against the pull request's attestation.
+It runs in `pnpm check` after the build, so it always sees a fresh site; naming a site directory that does not exist is a failure, not a skip. It also runs in CI and before every Pages upload. It cannot detect excerpts or rewritten code; reviewers check those against the attestation.
 
 ## Dependencies
 

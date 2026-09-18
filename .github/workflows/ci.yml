@@ -48,14 +48,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # The check job audits distribution and upstream content against its own
+      # fresh build; this job only needs a site to serve.
       - name: Build
         run: pnpm build
-
-      - name: Audit compiler artifact distribution
-        run: pnpm audit:distribution
-
-      - name: Audit tracked files and the built site for upstream content
-        run: pnpm audit:upstream
 
       - name: Install Playwright browsers
         run: pnpm --filter @osp/game exec playwright install --with-deps chromium firefox webkit

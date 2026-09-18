@@ -220,6 +220,8 @@ export interface UpstreamAuditOptions {
   readonly repositoryRoot: string;
   readonly siteDirectory: string;
   readonly fingerprints: UpstreamFingerprints;
+  /** Fail when the site directory is missing instead of auditing tracked files only. */
+  readonly requireSite?: boolean;
   readonly listTracked?: (repositoryRoot: string) => Promise<string[]>;
 }
 
@@ -229,14 +231,16 @@ export interface AuditOutput {
 }
 
 /**
- * Audits every tracked file and, when it exists, the built site, prints the
- * outcome, and returns an exit code.
+ * Audits every tracked file and the built site, prints the outcome, and
+ * returns an exit code. A missing site is an error when `requireSite` is set,
+ * so a gate that names the site never passes by auditing tracked files only;
+ * otherwise the audit says the site was skipped and checks tracked files.
  */
 export async function runUpstreamAudit(
   options: UpstreamAuditOptions,
   output: AuditOutput,
 ): Promise<number> {
-  const { repositoryRoot, siteDirectory, fingerprints } = options;
+  const { repositoryRoot, siteDirectory, fingerprints, requireSite } = options;
   const listTracked = options.listTracked ?? listTrackedFiles;
 
   let files: [label: string, location: string][];
@@ -254,6 +258,12 @@ export async function runUpstreamAudit(
       files.push([`${siteDirectory}/${path}`, join(siteDirectory, path)]);
     }
   } catch {
+    if (requireSite === true) {
+      output.error(
+        `No built site at ${siteDirectory}. Run pnpm build before the upstream audit.`,
+      );
+      return 1;
+    }
     output.log(
       `No built site at ${siteDirectory}; only tracked files were checked.`,
     );

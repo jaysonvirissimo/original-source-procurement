@@ -215,6 +215,28 @@ describe("runUpstreamAudit", () => {
     );
   });
 
+  it("fails when a required built site is missing", async () => {
+    await put("clean.txt", "clean\n");
+    const out = output();
+
+    await expect(
+      runUpstreamAudit(
+        {
+          repositoryRoot: root,
+          siteDirectory: site,
+          fingerprints: FINGERPRINTS,
+          requireSite: true,
+          listTracked: listed("clean.txt"),
+        },
+        out,
+      ),
+    ).resolves.toBe(1);
+    expect(out.error).toHaveBeenCalledWith(
+      `No built site at ${site}. Run pnpm build before the upstream audit.`,
+    );
+    expect(out.log).not.toHaveBeenCalled();
+  });
+
   it("prints each issue with its path and exits 1", async () => {
     await put("dist/copy.h", HEADER_LF);
     const out = output();
