@@ -36,7 +36,7 @@ const built = fakeToolchain({
   diagnostics: [],
 });
 
-const targets = new Map([["f", WORDS]]);
+const targets = new Map([["f", { words: WORDS, address: 0x80010000 }]]);
 
 describe("verifyFile", () => {
   it("reports an exact match when the built words are the target's", async () => {
@@ -44,8 +44,75 @@ describe("verifyFile", () => {
     expect(result.file.outcome).toBe("built");
     expect(result.file.definedFunctions).toBe(1);
     expect(result.functions).toEqual([
-      { symbol: "f", sourcePath: "source/sample/sample.c", verdict: "exact" },
+      {
+        symbol: "f",
+        sourcePath: "source/sample/sample.c",
+        verdict: "exact",
+        calls: [],
+      },
     ]);
+  });
+
+  it("records each call in an exact function, named by the built relocation", async () => {
+    // OSP-authored words: a linked jal to 0x80010040 from a function at
+    // 0x80010000, and the same call unlinked, with its relocation.
+    const linked = [0x0c004010, 0x00000000, 0x03e00008, 0x00000000];
+    const unlinked = assembledObject([0x0c000000, 0, 0x03e00008, 0]);
+    const object = {
+      ...unlinked,
+      sections: unlinked.sections.map((section) => ({
+        ...section,
+        relocations: [
+          {
+            offset: 0,
+            kind: "MIPS26" as const,
+            fieldMask: 0x03ffffff,
+            fieldValue: 0,
+            target: { kind: "symbol" as const, name: "helper", addend: 0 },
+          },
+        ],
+      })),
+    };
+    const result = await verifyFile(
+      fileRecord(),
+      new Map([["f", { words: linked, address: 0x80010000 }]]),
+      fakeToolchain({
+        kind: "success",
+        object,
+        compilerText: "",
+        diagnostics: [],
+      }),
+      upstream(),
+    );
+    expect(result.functions).toEqual([
+      {
+        symbol: "f",
+        sourcePath: "source/sample/sample.c",
+        verdict: "exact",
+        calls: [{ word: 0, address: 0x80010040, symbol: "helper" }],
+      },
+    ]);
+  });
+
+  it("records a call that no relocation names without a name", async () => {
+    // OSP-authored words: a jal whose field was never relocated.
+    const words = [0x0c000000, 0x00000000, 0x03e00008, 0x00000000];
+    const result = await verifyFile(
+      fileRecord(),
+      new Map([["f", { words, address: 0x80010000 }]]),
+      fakeToolchain({
+        kind: "success",
+        object: assembledObject(words),
+        compilerText: "",
+        diagnostics: [],
+      }),
+      upstream(),
+    );
+    expect(result.functions[0]).toMatchObject({
+      verdict: "exact",
+      calls: [{ word: 0, address: 0x80000000 }],
+    });
+    expect(result.functions[0]?.calls?.[0]).not.toHaveProperty("symbol");
   });
 
   it("reports a mismatch with the kinds that explain it, sorted", async () => {
@@ -220,7 +287,12 @@ describe("verifyCorpus", () => {
     const log = vi.fn();
     const verdicts = await verifyCorpus(index, built, upstream(), { log });
     expect(verdicts.functions).toEqual([
-      { symbol: "f", sourcePath: "source/sample/sample.c", verdict: "exact" },
+      {
+        symbol: "f",
+        sourcePath: "source/sample/sample.c",
+        verdict: "exact",
+        calls: [],
+      },
     ]);
     expect(verdicts.files).toHaveLength(1);
     expect(verdicts.upstreamCommit).toBe(index.upstreamCommit);

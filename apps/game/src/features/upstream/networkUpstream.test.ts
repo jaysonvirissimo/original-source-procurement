@@ -1,5 +1,5 @@
 import { sha256Hex, wordsSha256 } from "@osp/curriculum";
-import type { RemoteCReference, RemoteTarget } from "@osp/mission-schema";
+import type { RemoteCReference, RemoteWords } from "@osp/mission-schema";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createMemoryStorage } from "../persistence/memoryPersistence";
 import type { UpstreamCacheStore } from "../persistence/types";
@@ -17,7 +17,7 @@ const HEADER = new TextEncoder().encode(
 const RAW = `https://raw.githubusercontent.com/FoxdieTeam/mgs_reversing/${COMMIT}/asm/osp/f.s`;
 const CDN = `https://cdn.jsdelivr.net/gh/FoxdieTeam/mgs_reversing@${COMMIT}/asm/osp/f.s`;
 
-async function target(): Promise<RemoteTarget> {
+async function target(): Promise<RemoteWords> {
   return {
     kind: "remote",
     commit: COMMIT,

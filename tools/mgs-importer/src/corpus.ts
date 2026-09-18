@@ -4,12 +4,14 @@ import {
   PointerCorpusSchema,
   type Mission,
   type PointerCorpus,
+  type RemoteCall,
 } from "@osp/mission-schema";
 import { difficultyOf } from "./analysis.ts";
 import type { MissionOverride } from "./overrides.ts";
 import type {
   FileRecord,
   FunctionRecord,
+  FunctionVerdict,
   ImportIndex,
   VerdictIndex,
 } from "./records.ts";
@@ -21,11 +23,13 @@ import type {
  * Every mechanical field comes from the import; every field a player reads
  * comes from the override. A real mission carries no known solution: its
  * answer lives upstream and is fetched only at the hint stages that reveal it.
+ * `calls` names the function each call reaches, from `resolveCalls`.
  */
 export function buildMission(
   override: MissionOverride,
   record: FunctionRecord,
   file: FileRecord,
+  calls: readonly RemoteCall[],
 ): Mission {
   if (record.pinned === undefined) {
     throw new Error(`${override.symbol} has no pinned target.`);
@@ -59,7 +63,7 @@ export function buildMission(
     ...(override.terms === undefined ? {} : { terms: [...override.terms] }),
     starterSource: override.starterSource,
     symbol: override.symbol,
-    target,
+    target: { ...target, calls: [...calls] },
     hints: [...override.hints],
     difficulty: difficultyOf(facts, headerCount(file)),
   };
@@ -123,7 +127,12 @@ export function buildCorpus(
           `${override.symbol} verified from ${verdict.sourcePath}, which the import does not describe.`,
         );
       }
-      return buildMission(override, record, file);
+      return buildMission(
+        override,
+        record,
+        file,
+        resolveCalls(verdict, verdicts),
+      );
     });
 
   const corpus: PointerCorpus = {
@@ -142,6 +151,50 @@ export function buildCorpus(
     throw new Error(`The corpus is not valid:\n${issues}`);
   }
   return corpus;
+}
+
+/**
+ * Names every call in a reviewed function (ADR 0024).
+ *
+ * The names come from the exact verdict: upstream's own source, built and
+ * matched word for word, relocates each call to its callee, and a player's
+ * build names a callee the same way. Upstream's inventory is no check on
+ * that: it keeps the original symbol map's names where the source has renamed
+ * file-local functions, and it leaves out library functions linked from the
+ * SDK. What is checked instead is that across every exact function in the run
+ * one address has one name. A call nothing names fails the build rather than
+ * ship unchecked.
+ */
+export function resolveCalls(
+  verdict: FunctionVerdict,
+  verdicts: VerdictIndex,
+): RemoteCall[] {
+  const named = verdicts.functions.flatMap((entry) =>
+    entry.verdict === "exact" ? (entry.calls ?? []) : [],
+  );
+  return (verdict.calls ?? []).map((call) => {
+    const at = `${verdict.symbol} word ${String(call.word)}`;
+    if (call.symbol === undefined) {
+      throw new Error(
+        `${at} is a call that no relocation names. A mission cannot check a callee it cannot name.`,
+      );
+    }
+    const names = [
+      ...new Set(
+        named.flatMap((other) =>
+          other.address === call.address && other.symbol !== undefined
+            ? [other.symbol]
+            : [],
+        ),
+      ),
+    ];
+    if (names.length > 1) {
+      throw new Error(
+        `${at} reaches an address that exact functions call by ${String(names.length)} names: ${names.sort((a, b) => a.localeCompare(b)).join(", ")}.`,
+      );
+    }
+    return { word: call.word, symbol: call.symbol };
+  });
 }
 
 /** Whether a rebuild would leave the committed corpus unchanged. */

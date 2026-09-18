@@ -48,14 +48,25 @@ export interface FunctionRelocation {
   readonly target: RelocationTargetIdentity;
 }
 
+/** A call a linked target makes: the word holding it, and its callee. */
+export interface LinkedCall {
+  readonly word: number;
+  readonly callee: string;
+}
+
 /**
  * The words a function must match. Linked words (a real target) have final
- * addresses in their relocated fields and no relocation records. Unlinked
- * words (a synthetic target) come from the same assembler, so their
- * relocations are compared too.
+ * addresses in their relocated fields and no relocation records, so each
+ * call's callee travels beside them (ADR 0024). Unlinked words (a synthetic
+ * target) come from the same assembler, so their relocations are compared
+ * too.
  */
 export type MatchTarget =
-  | { readonly kind: "linked"; readonly words: ArrayLike<number> }
+  | {
+      readonly kind: "linked";
+      readonly words: ArrayLike<number>;
+      readonly calls: readonly LinkedCall[];
+    }
   | {
       readonly kind: "unlinked";
       readonly words: ArrayLike<number>;

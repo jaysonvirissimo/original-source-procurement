@@ -104,6 +104,18 @@ describe("RemoteTargetSchema", () => {
     expect(issuesOf(RemoteTargetSchema, remoteTarget())).toEqual([]);
   });
 
+  it("accepts calls in word order", () => {
+    expect(
+      issuesOf(RemoteTargetSchema, {
+        ...remoteTarget(),
+        calls: [
+          { word: 1, symbol: "helper" },
+          { word: 3, symbol: "other" },
+        ],
+      }),
+    ).toEqual([]);
+  });
+
   it.each([
     ["a malformed commit", { commit: "abc1234" }],
     ["path traversal", { path: "asm/../source/sample.c" }],
@@ -112,6 +124,30 @@ describe("RemoteTargetSchema", () => {
     ["a non-hex hash", { wordsSha256: "z".repeat(64) }],
     ["a zero word count", { wordCount: 0 }],
     ["inline words", { words: [1, 2, 3, 4] }],
+    ["no calls field", { calls: undefined }],
+    ["a call past the last word", { calls: [{ word: 4, symbol: "helper" }] }],
+    [
+      "a call that is not a C identifier",
+      { calls: [{ word: 1, symbol: "0bad" }] },
+    ],
+    [
+      "calls out of word order",
+      {
+        calls: [
+          { word: 2, symbol: "helper" },
+          { word: 1, symbol: "other" },
+        ],
+      },
+    ],
+    [
+      "one word listed twice",
+      {
+        calls: [
+          { word: 1, symbol: "helper" },
+          { word: 1, symbol: "helper" },
+        ],
+      },
+    ],
   ])("rejects %s", (_name, change) => {
     expect(
       RemoteTargetSchema.safeParse({ ...remoteTarget(), ...change }).success,

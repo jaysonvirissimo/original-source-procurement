@@ -114,6 +114,10 @@ describe.skipIf(checkouts === undefined)(
       const outcome = matchFunction(build.object, pointer.symbol, {
         kind: "linked",
         words,
+        calls: pointer.target.calls.map((call) => ({
+          word: call.word,
+          callee: call.symbol,
+        })),
       });
       return outcome.kind === "matched"
         ? ({
@@ -158,6 +162,29 @@ describe.skipIf(checkouts === undefined)(
           "kinds" in result && result.kinds.some((kind) => kind !== "UNKNOWN"),
         ).toBe(true);
       }, 60_000);
+
+      it.skipIf(pointer.target.calls.length === 0)(
+        "stops matching when a call reaches another function",
+        async () => {
+          const words = await loadWords(pointer);
+          const [call] = pointer.target.calls;
+          // Renaming the callee everywhere, its declaration included, leaves
+          // every word the same: only the recorded callee can tell.
+          const source = `#define ${call?.symbol ?? ""} osp_wrong_callee\n${await loadSolution(pointer)}`;
+          const result = await exactness(
+            pointer,
+            await resolve(pointer.compiler, source),
+            words,
+          );
+
+          expect(result).toEqual({
+            build: "success",
+            exact: false,
+            kinds: ["CALL_TARGET"],
+          });
+        },
+        60_000,
+      );
 
       it("needs every recorded header", async () => {
         const words = await loadWords(pointer);

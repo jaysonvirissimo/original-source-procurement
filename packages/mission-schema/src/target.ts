@@ -3,6 +3,7 @@ import {
   CommitShaSchema,
   RelativePathSchema,
   Sha256HexSchema,
+  SymbolSchema,
   TextSchema,
   Uint32Schema,
 } from "./primitives.ts";
@@ -98,10 +99,18 @@ export const InlineTargetSchema = z
 export type InlineTarget = z.infer<typeof InlineTargetSchema>;
 
 /**
- * A real mission's target: a pointer to an upstream `asm/**.s` file and the
- * hash of its words. The words themselves are fetched at runtime.
+ * One call in a real target: the word holding the `jal`, and the function it
+ * calls. A linked word carries only an address, which OSP neither commits
+ * nor can compare against an unlinked object, so the name is recorded by
+ * the importer from upstream's own reproduction.
  */
-export const RemoteTargetSchema = z.strictObject({
+export const RemoteCallSchema = z.strictObject({
+  word: z.number().int().min(0),
+  symbol: SymbolSchema,
+});
+export type RemoteCall = z.infer<typeof RemoteCallSchema>;
+
+const remoteTargetFields = {
   kind: z.literal("remote"),
   // For a solved function, the parent of the commit that matched it.
   commit: CommitShaSchema,
@@ -112,7 +121,46 @@ export const RemoteTargetSchema = z.strictObject({
   wordCount: z.number().int().positive(),
   // SHA-256 of the words as little-endian 32-bit values.
   wordsSha256: Sha256HexSchema,
-});
+};
+
+/**
+ * Where a real target's words live, without what the importer learns by
+ * reproducing them. This is all a loader needs to fetch and check the words.
+ */
+export const RemoteWordsSchema = z.strictObject(remoteTargetFields);
+export type RemoteWords = z.infer<typeof RemoteWordsSchema>;
+
+/**
+ * A real mission's target: a pointer to an upstream `asm/**.s` file, the
+ * hash of its words, and every call in it (ADR 0024). The words themselves
+ * are fetched at runtime. `calls` is required, and empty for a function
+ * that calls nothing, so a pointer cannot leave its calls unchecked by
+ * omission.
+ */
+export const RemoteTargetSchema = z
+  .strictObject({
+    ...remoteTargetFields,
+    calls: z.array(RemoteCallSchema),
+  })
+  .superRefine((target, ctx) => {
+    target.calls.forEach((call, index) => {
+      if (call.word >= target.wordCount) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["calls", index, "word"],
+          message: "A call must fall on a word inside the function.",
+        });
+      }
+      const previous = target.calls[index - 1];
+      if (previous !== undefined && call.word <= previous.word) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["calls", index, "word"],
+          message: "Calls are listed once each, in word order.",
+        });
+      }
+    });
+  });
 export type RemoteTarget = z.infer<typeof RemoteTargetSchema>;
 
 export const TargetSchema = z.discriminatedUnion("kind", [

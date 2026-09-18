@@ -1,6 +1,12 @@
-import { matchFunction } from "@osp/matching-core";
+import {
+  compareFunction,
+  extractFunction,
+  generatedCalls,
+  type GeneratedFunction,
+} from "@osp/matching-core";
 import {
   VERDICT_INDEX_VERSION,
+  linkedCallAddress,
   type FileRecord,
   type FileVerdict,
   type FunctionVerdict,
@@ -21,8 +27,14 @@ export interface VerifyOptions {
   readonly symbols?: ReadonlySet<string>;
 }
 
-/** Target words by symbol, for the functions this run is checking. */
-export type TargetWords = ReadonlyMap<string, readonly number[]>;
+/** A function this run checks: its target words, and where upstream links it. */
+export interface TargetFunction {
+  readonly words: readonly number[];
+  readonly address: number;
+}
+
+/** Target functions by symbol, for the functions this run is checking. */
+export type TargetWords = ReadonlyMap<string, TargetFunction>;
 
 /**
  * Builds one upstream source file from its recorded context and reports what
@@ -78,24 +90,30 @@ export async function verifyFile(
   const { object } = build;
   const functions: FunctionVerdict[] = [];
   for (const defined of object.functions) {
-    const words = targets.get(defined.name);
-    if (words === undefined) continue;
+    const target = targets.get(defined.name);
+    if (target === undefined) continue;
 
-    const outcome = matchFunction(object, defined.name, {
-      kind: "linked",
-      words,
-    });
-    if (outcome.kind === "function-missing") {
+    const generated = extractFunction(object, defined.name);
+    if (generated === undefined) {
       functions.push({
         symbol: defined.name,
         sourcePath: file.path,
         verdict: "function-missing",
       });
-    } else if (outcome.result.exact) {
+      continue;
+    }
+    // The callees are what this run learns, so none are compared yet.
+    const result = compareFunction(generated, {
+      kind: "linked",
+      words: target.words,
+      calls: [],
+    });
+    if (result.exact) {
       functions.push({
         symbol: defined.name,
         sourcePath: file.path,
         verdict: "exact",
+        calls: callsOf(generated, target),
       });
     } else {
       functions.push({
@@ -103,7 +121,7 @@ export async function verifyFile(
         sourcePath: file.path,
         verdict: "mismatch",
         mismatchKinds: [
-          ...new Set(outcome.result.mismatches.map((entry) => entry.kind)),
+          ...new Set(result.mismatches.map((entry) => entry.kind)),
         ].sort((a, b) => a.localeCompare(b)),
       });
     }
@@ -119,20 +137,52 @@ export async function verifyFile(
   };
 }
 
+/**
+ * Every call in an exact function: the word, the address the linked word
+ * holds, and the callee the built object's relocation names there. The words
+ * line up one for one, because the function matched exactly.
+ */
+function callsOf(
+  generated: GeneratedFunction,
+  target: TargetFunction,
+): NonNullable<FunctionVerdict["calls"]> {
+  const callees = new Map(
+    generatedCalls(generated).map((call) => [call.word, call.callee]),
+  );
+  return target.words.flatMap((word, index) => {
+    if (!callees.has(index)) {
+      return [];
+    }
+    const callee = callees.get(index);
+    return [
+      {
+        word: index,
+        address: linkedCallAddress(word, target.address, index),
+        ...(callee === undefined ? {} : { symbol: callee }),
+      },
+    ];
+  });
+}
+
 /** Loads the target words of every function this run checks. */
 export async function loadTargets(
   index: ImportIndex,
   upstream: UpstreamService,
   options: VerifyOptions,
-): Promise<Map<string, readonly number[]>> {
-  const words = new Map<string, readonly number[]>();
+): Promise<Map<string, TargetFunction>> {
+  const words = new Map<string, TargetFunction>();
   for (const record of index.functions) {
     if (record.pinned === undefined) continue;
     if (options.symbols !== undefined && !options.symbols.has(record.symbol)) {
       continue;
     }
     const outcome = await upstream.loadTarget(record.pinned.target);
-    if (outcome.kind === "loaded") words.set(record.symbol, outcome.value);
+    if (outcome.kind === "loaded") {
+      words.set(record.symbol, {
+        words: outcome.value,
+        address: record.address,
+      });
+    }
   }
   return words;
 }

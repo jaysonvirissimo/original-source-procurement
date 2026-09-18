@@ -24,7 +24,7 @@ function ready(headers = input.headers): ContextState {
   return {
     kind: "ready",
     input: { ...input, headers },
-    target: { kind: "linked", words: [] },
+    target: { kind: "linked", words: [], calls: [] },
   };
 }
 

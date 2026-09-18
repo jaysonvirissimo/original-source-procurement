@@ -1,4 +1,4 @@
-import type { RemoteCReference, RemoteTarget } from "@osp/mission-schema";
+import type { RemoteCReference, RemoteWords } from "@osp/mission-schema";
 import type { UpstreamCacheStore } from "../persistence/types";
 import { verifyCBytes, verifyTargetText } from "./content";
 import type {
@@ -147,7 +147,7 @@ export function createNetworkUpstream({
   }
 
   return {
-    loadTarget: (target: RemoteTarget, signal?: AbortSignal) =>
+    loadTarget: (target: RemoteWords, signal?: AbortSignal) =>
       load(
         "FoxdieTeam/mgs_reversing",
         target.commit,

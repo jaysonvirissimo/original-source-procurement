@@ -343,17 +343,17 @@ function relocationMismatch(
           (item) => item.status !== "inserted" && item.target === word,
         )
       : generatedRow;
-  const range = (length: number) =>
-    word < length
-      ? { start: word, end: word + 1 }
+  const range = (length: number, index = word) =>
+    index < length
+      ? { start: index, end: index + 1 }
       : { start: length, end: length };
-  // Unlinked calls reach their callee through a relocation, so a different
-  // callee shows up only here.
+  // A call reaches its callee through a relocation, so a different callee
+  // shows up only here, for unlinked and linked targets alike.
   const call =
     rowInstruction(at(rows, row), target, generated).mnemonic === "jal";
   return draft(
     call ? "CALL_TARGET" : "RELOCATION_TARGET",
-    range(target.length),
+    range(target.length, finding.targetWord),
     range(generated.length),
     [row],
     call ? ["Call targets differ.", ...finding.evidence] : finding.evidence,

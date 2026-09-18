@@ -1,5 +1,5 @@
 import { sha256Hex } from "@osp/curriculum/hash";
-import { teachingHypotheses, wordFacts } from "@osp/matching-core";
+import { targetWordFacts, teachingHypotheses } from "@osp/matching-core";
 import type { Mission } from "@osp/mission-schema";
 import {
   useCallback,
@@ -178,13 +178,7 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
     [target],
   );
   const facts = useMemo(
-    () =>
-      target === undefined
-        ? undefined
-        : wordFacts(
-            target.words,
-            target.kind === "unlinked" ? target.relocations : [],
-          ),
+    () => (target === undefined ? undefined : targetWordFacts(target)),
     [target],
   );
   // Help is chosen once per visit, so evidence recorded when the mission

@@ -3,6 +3,7 @@ export {
   earlyFieldCandidate,
   featureTags,
   functionFacts,
+  linkedCallAddress,
   FEATURE_TAGS,
   type FeatureTag,
   type FunctionFacts,
@@ -58,6 +59,7 @@ export {
 export {
   buildCorpus,
   buildMission,
+  resolveCalls,
   renderCorpusModule,
   sameCorpus,
   CORPUS_MODULE_PATH,
@@ -121,6 +123,7 @@ export {
   type FunctionVerdict,
   type ImportIndex,
   type Verdict,
+  type VerdictCall,
   type VerdictIndex,
 } from "./records.ts";
 export { renderReviewReport } from "./report.ts";

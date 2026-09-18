@@ -3,6 +3,11 @@ import type { FunctionRelocation, RelocationTargetIdentity } from "./types.ts";
 export interface RelocationFinding {
   /** Bytes from the function's first word. */
   readonly offset: number;
+  /**
+   * The target word, when it is not the word at `offset`. A linked call is
+   * compared on an aligned row, so the two can differ.
+   */
+  readonly targetWord?: number;
   readonly evidence: readonly string[];
 }
 

@@ -1,4 +1,4 @@
-import type { RemoteCReference, RemoteTarget } from "@osp/mission-schema";
+import type { RemoteCReference, RemoteWords } from "@osp/mission-schema";
 
 /** The only two hosts OSP fetches upstream content from. */
 export type UpstreamHost = "raw.githubusercontent.com" | "cdn.jsdelivr.net";
@@ -34,7 +34,7 @@ export type UpstreamOutcome<T> =
  */
 export interface UpstreamService {
   loadTarget(
-    target: RemoteTarget,
+    target: RemoteWords,
     signal?: AbortSignal,
   ): Promise<UpstreamOutcome<readonly number[]>>;
   loadC(

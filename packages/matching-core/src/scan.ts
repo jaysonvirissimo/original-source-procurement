@@ -1,6 +1,6 @@
 import { decode, REGISTER_NAMES } from "psyq-asm";
 import { LOAD_FORMS, STORE_BYTES } from "./classes.ts";
-import type { FunctionRelocation } from "./types.ts";
+import type { FunctionRelocation, MatchTarget } from "./types.ts";
 
 /** A load from memory or a store to it, read from one instruction's operands. */
 export interface MemoryAccess {
@@ -156,4 +156,26 @@ export function wordFacts(
 /** Whether the function changes the stack pointer, so it has a frame. */
 export function usesStack(facts: readonly WordFacts[]): boolean {
   return facts.some((word) => word.writes.includes("$sp"));
+}
+
+/**
+ * Word facts for a target. An unlinked target names its jumps and calls in
+ * its relocations. A linked one has none, so each call it records stands in
+ * for the relocation the player's build puts there (ADR 0024). A linked
+ * jump's destination is left unresolved: its field is masked, so nothing
+ * compares it.
+ */
+export function targetWordFacts(target: MatchTarget): WordFacts[] {
+  return wordFacts(
+    target.words,
+    target.kind === "unlinked"
+      ? target.relocations
+      : target.calls.map((call) => ({
+          offset: call.word * 4,
+          kind: "MIPS26" as const,
+          fieldMask: 0x03ffffff,
+          fieldValue: 0,
+          target: { kind: "symbol" as const, name: call.callee, addend: 0 },
+        })),
+  );
 }

@@ -1,4 +1,4 @@
-import type { RemoteTarget } from "@osp/mission-schema";
+import type { RemoteWords } from "@osp/mission-schema";
 import { wordsSha256 } from "./hash.ts";
 
 /**
@@ -28,7 +28,7 @@ export type TargetRejection =
 export type TargetOutcome =
   | {
       readonly ok: true;
-      readonly target: RemoteTarget;
+      readonly target: RemoteWords;
       readonly words: readonly number[];
     }
   | { readonly ok: false; readonly rejection: TargetRejection };

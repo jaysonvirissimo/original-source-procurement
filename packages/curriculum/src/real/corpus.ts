@@ -4,7 +4,7 @@ import type { PointerCorpus } from "@osp/mission-schema";
 
 export const pointerCorpus: PointerCorpus = {
   schemaVersion: 1,
-  importerVersion: "1.2.0",
+  importerVersion: "1.3.0",
   upstreamCommit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
   sdkCommit: "91719fa5bdca0b7e55c5c4b9e045da407db93510",
   missions: [
@@ -331,6 +331,7 @@ export const pointerCorpus: PointerCorpus = {
         wordCount: 4,
         wordsSha256:
           "fb45d3dcca2baa204e621c8ae2f6eb798398e06ad92b2af74d046afdbbee9f0f",
+        calls: [],
       },
       hints: [
         {
@@ -718,6 +719,7 @@ export const pointerCorpus: PointerCorpus = {
         wordCount: 3,
         wordsSha256:
           "2e75c1e8555a4c61de4022a6815adb0d8b9b1799f6feccfc66138465d338a1c3",
+        calls: [],
       },
       hints: [
         {
@@ -1134,6 +1136,7 @@ export const pointerCorpus: PointerCorpus = {
         wordCount: 5,
         wordsSha256:
           "ede433f40d9ff7db8e2da8789f43cfc1a2046b6c2153a51892eca559b8be1d9a",
+        calls: [],
       },
       hints: [
         {
@@ -1521,6 +1524,7 @@ export const pointerCorpus: PointerCorpus = {
         wordCount: 4,
         wordsSha256:
           "ace5fc059d57953dae6ee85f9e0d009a89a4e914bd9562dcbd384e6d09d06d9d",
+        calls: [],
       },
       hints: [
         {

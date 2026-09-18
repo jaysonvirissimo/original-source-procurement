@@ -187,7 +187,7 @@ pnpm corpus:verify   # builds each source file and checks it reproduces its targ
 pnpm corpus:write    # merges the reviewed overrides into the generated corpus
 ```
 
-`pnpm corpus:verify` takes symbols as arguments to check only those functions.
+`pnpm corpus:verify` takes symbols as arguments to check only those functions. It also records the function each call reaches, named by the relocation in the reproduced build, and `pnpm corpus:write` commits those names so a real mission can check the callee of every call (ADR 0024). Run a full `pnpm corpus:verify` before writing: a narrowed run records verdicts for its symbols only.
 
 `packages/curriculum/src/real/corpus.ts` is generated. To add or change a real mission, edit `tools/mgs-importer/overrides/real-missions.json` — the reviewed title, phase, briefing, starter stub, hints, and skills for one upstream symbol — and run `pnpm corpus:write` again. A reviewed mission whose function no longer reproduces its target fails the build instead of quietly leaving the corpus.
 

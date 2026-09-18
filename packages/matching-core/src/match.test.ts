@@ -1,6 +1,6 @@
 import type { AssembledObject } from "psyq-asm";
 import { describe, expect, expectTypeOf, it } from "vitest";
-import { functionFromWords } from "./extract.ts";
+import { extractFunction, functionFromWords } from "./extract.ts";
 import {
   assembleObject,
   functionSource,
@@ -69,7 +69,7 @@ describe("exact matches", () => {
       (words[1] ?? 0) | 0x2000,
       ...words.slice(2),
     ];
-    const result = compare({ kind: "linked", words: linked }, lines);
+    const result = compare({ kind: "linked", words: linked, calls: [] }, lines);
 
     expect(result.exact).toBe(true);
     expect(result.mismatches).toEqual([]);
@@ -102,6 +102,7 @@ describe("exact matches", () => {
   it("omits provenance when the generated words have none", () => {
     const result = compareFunction(functionFromWords("f", [0]), {
       kind: "linked",
+      calls: [],
       words: [0],
     });
 
@@ -298,7 +299,7 @@ describe("unexplained differences", () => {
   it("returns UNKNOWN with evidence for a word that is not an instruction", () => {
     const result = compareFunction(
       functionFromWords("f", [0x24820005, 0x03e00008, 0]),
-      { kind: "linked", words: [0xffffffff, 0x03e00008, 0] },
+      { kind: "linked", words: [0xffffffff, 0x03e00008, 0], calls: [] },
     );
 
     expect(result.mismatches).toEqual([
@@ -320,6 +321,7 @@ describe("unexplained differences", () => {
     // sll with a nonzero rs field is not a valid instruction.
     const result = compareFunction(functionFromWords("f", [0x00200000]), {
       kind: "linked",
+      calls: [],
       words: [0],
     });
 
@@ -354,6 +356,7 @@ describe("branches, jumps, and calls", () => {
     // j 0x4 against j 0x8.
     const result = compareFunction(functionFromWords("f", [0x08000002, 0]), {
       kind: "linked",
+      calls: [],
       words: [0x08000001, 0],
     });
 
@@ -365,6 +368,7 @@ describe("branches, jumps, and calls", () => {
     // jal 0x4 against jal 0x8.
     const result = compareFunction(functionFromWords("f", [0x0c000002, 0]), {
       kind: "linked",
+      calls: [],
       words: [0x0c000001, 0],
     });
 
@@ -385,6 +389,91 @@ describe("branches, jumps, and calls", () => {
       "Target relocates MIPS26 g here; your output does not.",
       "Your output relocates MIPS26 h here; the target does not.",
     ]);
+  });
+
+  describe("a linked target's recorded calls", () => {
+    const linkedCall = (lines: readonly string[], callee: string) => ({
+      kind: "linked" as const,
+      words: wordsOf(lines),
+      calls: [{ word: 0, callee }],
+    });
+
+    it("is exact when the call names the recorded callee", () => {
+      const result = compare(linkedCall(["jal g", ...RETURN], "g"), [
+        "jal g",
+        ...RETURN,
+      ]);
+
+      expect(result.exact).toBe(true);
+      expect(result.mismatches).toEqual([]);
+    });
+
+    it("returns CALL_TARGET for a call to a different function", () => {
+      // The words agree: the generated call's field is masked.
+      const result = compare(linkedCall(["jal g", ...RETURN], "g"), [
+        "jal h",
+        ...RETURN,
+      ]);
+
+      expect(result.exact).toBe(false);
+      expect(kinds(result.mismatches)).toEqual(["CALL_TARGET"]);
+      expect(result.mismatches[0]?.evidence).toEqual([
+        "Call targets differ.",
+        "The target calls g here; your output calls h.",
+      ]);
+    });
+
+    it("returns CALL_TARGET when the call names no function", () => {
+      const result = compare(linkedCall(["jal g", ...RETURN], "g"), [
+        "jal g+8",
+        ...RETURN,
+      ]);
+
+      expect(result.exact).toBe(false);
+      expect(result.mismatches[0]?.evidence).toEqual([
+        "Call targets differ.",
+        "The target calls g here; your output's call names no function.",
+      ]);
+    });
+
+    it("compares the call on its aligned row after an inserted row", () => {
+      const result = compare(linkedCall(["jal g", "nop", ...RETURN], "g"), [
+        "addiu $2,$0,1",
+        "jal h",
+        "nop",
+        ...RETURN,
+      ]);
+
+      const call = result.mismatches.find(
+        (mismatch) => mismatch.kind === "CALL_TARGET",
+      );
+      expect(call?.targetRange).toEqual({ start: 0, end: 1 });
+      expect(call?.generatedRange).toEqual({ start: 1, end: 2 });
+    });
+
+    it("names a callee in the same file by its label", () => {
+      // psyq-asm relocates a call within the file against the section.
+      const generated = extractFunction(
+        assembleObject(
+          functionSource("f", ["jal h", ...RETURN]),
+          functionSource("h", RETURN),
+        ),
+        "f",
+      );
+      if (generated === undefined) {
+        throw new Error("The fixture defines no function f.");
+      }
+      expect(generated.relocations[0]?.target.kind).toBe("section");
+
+      const target = linkedCall(["jal g", ...RETURN], "h");
+      expect(compareFunction(generated, target).exact).toBe(true);
+      expect(
+        compareFunction(generated, {
+          ...target,
+          calls: [{ word: 0, callee: "g" }],
+        }).exact,
+      ).toBe(false);
+    });
   });
 
   it("returns BRANCH_CONDITION for a different branch on the same registers", () => {
@@ -712,6 +801,7 @@ describe("inserted nops", () => {
     const words = generated.words.map((word) => word.word);
     const result = compareFunction(generated, {
       kind: "linked",
+      calls: [],
       words: [...words.slice(0, 1), ...words.slice(2)],
     });
 
@@ -735,7 +825,7 @@ describe("inserted nops", () => {
     ]);
     const bare = compareFunction(
       functionFromWords("f", [0x24820005, 0, 0x03e00008, 0]),
-      { kind: "linked", words: [0x24820005, 0x03e00008, 0] },
+      { kind: "linked", words: [0x24820005, 0x03e00008, 0], calls: [] },
     );
 
     expect(written.mismatches[0]).not.toHaveProperty("consequenceOf");
@@ -758,6 +848,7 @@ describe("inserted nops", () => {
     };
     const result = compareFunction(generated, {
       kind: "linked",
+      calls: [],
       words: [0x8c830020, 0xfffffffe],
     });
 
@@ -873,7 +964,9 @@ describe("matchFunction", () => {
   );
 
   it("returns function-missing with the functions that were found", () => {
-    expect(matchFunction(object, "f", { kind: "linked", words: [0] })).toEqual({
+    expect(
+      matchFunction(object, "f", { kind: "linked", words: [0], calls: [] }),
+    ).toEqual({
       kind: "function-missing",
       symbol: "f",
       definedFunctions: ["g", "h"],

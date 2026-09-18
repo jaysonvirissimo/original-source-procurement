@@ -56,6 +56,7 @@ export function remoteTarget(): RemoteTarget {
     path: "asm/sample/sample_function.s",
     wordCount: 4,
     wordsSha256: PLACEHOLDER_HASH,
+    calls: [],
   };
 }
 

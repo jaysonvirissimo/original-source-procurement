@@ -93,12 +93,16 @@ export {
   InlineTargetSchema,
   RELOCATION_KINDS,
   RelocationTargetSchema,
+  RemoteCallSchema,
   RemoteTargetSchema,
+  RemoteWordsSchema,
   TargetSchema,
   type InlineTarget,
   type Relocation,
   type RelocationTarget,
+  type RemoteCall,
   type RemoteTarget,
+  type RemoteWords,
   type Target,
 } from "./target.ts";
 export {

@@ -1,5 +1,5 @@
 import { sha256Hex, wordsSha256 } from "@osp/curriculum";
-import type { RemoteCReference, RemoteTarget } from "@osp/mission-schema";
+import type { RemoteCReference, RemoteWords } from "@osp/mission-schema";
 import { describe, expect, it } from "vitest";
 import { extractDwWords, verifyCBytes, verifyTargetText } from "./content";
 
@@ -18,8 +18,8 @@ const TARGET_TEXT = [
 ].join("\r\n");
 
 async function target(
-  overrides: Partial<RemoteTarget> = {},
-): Promise<RemoteTarget> {
+  overrides: Partial<RemoteWords> = {},
+): Promise<RemoteWords> {
   return {
     kind: "remote",
     commit: COMMIT,

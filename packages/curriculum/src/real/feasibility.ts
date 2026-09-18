@@ -53,6 +53,8 @@ export const feasibilityPointers: readonly FeasibilityPointer[] = [
       wordCount: 11,
       wordsSha256:
         "361c906e189bd3717e79cb7628c86d51d1208c8cec9ec880adf07cdef6dfbef9",
+      // A library function linked from the SDK, named by corpus:verify.
+      calls: [{ word: 5, symbol: "ratan2" }],
     },
     solution: upstream(
       "source/libgv/util.c",

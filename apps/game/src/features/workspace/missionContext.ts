@@ -1,4 +1,4 @@
-import type { MatchTarget } from "@osp/matching-core";
+import { callWords, type MatchTarget } from "@osp/matching-core";
 import type { Mission } from "@osp/mission-schema";
 import { createMissionContextResolver } from "../compiler/missionContextResolver";
 import type { CompilationInput } from "../compiler/types";
@@ -27,7 +27,8 @@ type TargetOutcome =
 
 /**
  * An inline target compares with its relocations. Upstream target words come
- * from the linked game, so they compare under relocation masks only.
+ * from the linked game, so they compare under relocation masks, plus the
+ * callee the corpus records for each call (ADR 0024).
  */
 async function loadTarget(
   target: Mission["target"],
@@ -47,9 +48,21 @@ async function loadTarget(
   const outcome = await upstream.loadTarget(target, signal);
   switch (outcome.kind) {
     case "loaded":
+      // Every call is checked only if every call is recorded. Words that hash
+      // correctly always agree; this guards a corpus written by hand.
+      if (!sameCalls(outcome.value, target.calls)) {
+        return { kind: "content-mismatch", path: target.path };
+      }
       return {
         kind: "target",
-        target: { kind: "linked", words: outcome.value },
+        target: {
+          kind: "linked",
+          words: outcome.value,
+          calls: target.calls.map((call) => ({
+            word: call.word,
+            callee: call.symbol,
+          })),
+        },
       };
     case "cancelled":
       return outcome;
@@ -57,6 +70,17 @@ async function loadTarget(
     case "content-mismatch":
       return { kind: outcome.kind, path: target.path };
   }
+}
+
+function sameCalls(
+  words: readonly number[],
+  calls: readonly { readonly word: number }[],
+): boolean {
+  const expected = callWords(words);
+  return (
+    expected.length === calls.length &&
+    expected.every((word, index) => calls[index]?.word === word)
+  );
 }
 
 /**

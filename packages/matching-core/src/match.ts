@@ -1,6 +1,7 @@
 import { decode, type AssembledObject } from "psyq-asm";
 import { align, maskedEqual } from "./align.ts";
 import { at } from "./at.ts";
+import { compareLinkedCalls } from "./calls.ts";
 import { classify, text } from "./classify.ts";
 import { definedFunctions, extractFunction } from "./extract.ts";
 import { linkConsequences } from "./nops.ts";
@@ -18,7 +19,8 @@ import type {
 /**
  * Compares one generated function with its target. Exactness is decided on
  * words outside the generated relocation masks, plus relocations for an
- * unlinked target. Alignment and classification only explain differences.
+ * unlinked target or recorded callees for a linked one. Alignment and
+ * classification only explain differences.
  */
 export function compareFunction(
   generated: GeneratedFunction,
@@ -30,7 +32,7 @@ export function compareFunction(
   const relocationFindings =
     target.kind === "unlinked"
       ? compareRelocations(generated.relocations, target.relocations)
-      : [];
+      : compareLinkedCalls(rows, target.calls, generated);
   const classified = classify(
     rows,
     targetWords,

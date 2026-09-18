@@ -99,6 +99,30 @@ describe.skipIf(checkouts === undefined)(
         expect(result.kind === "matched" && result.result.exact).toBe(true);
       }, 60_000);
 
+      const calls =
+        mission.target.kind === "remote" ? mission.target.calls : [];
+
+      it.skipIf(calls.length === 0)(
+        "does not match when the solution calls another function",
+        async () => {
+          // Renaming the callee everywhere, its declaration included, leaves
+          // every word the same: only the recorded callee can tell.
+          const renamed = calls
+            .map((call) => `#define ${call.symbol} osp_wrong_callee\n`)
+            .join("");
+          const result = await compare(
+            `${renamed}${starterPreamble(mission)}\n${await reveal(9)}`,
+          );
+
+          expect(result.kind).toBe("matched");
+          expect(
+            result.kind === "matched" &&
+              result.result.mismatches.map((mismatch) => mismatch.kind),
+          ).toContain("CALL_TARGET");
+        },
+        60_000,
+      );
+
       it("builds the starter, which defines the function and does not match", async () => {
         const result = await compare(mission.starterSource);
 

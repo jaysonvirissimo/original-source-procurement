@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { generatedFrom, wordsOf } from "./fixtures.test-helpers.ts";
-import { abiRegisterNames, usesStack, wordFacts } from "./scan.ts";
+import {
+  abiRegisterNames,
+  targetWordFacts,
+  usesStack,
+  wordFacts,
+} from "./scan.ts";
 
 // Every assembly fixture here is OSP-authored.
 
@@ -142,6 +147,30 @@ describe("wordFacts", () => {
     expect(add).toEqual({ index: 0, reads: ["$a0"], writes: ["$v0"] });
     expect(rest.at(-1)).toMatchObject({ reads: [], writes: [] });
     expect(rest.at(-1)?.memory).toBeUndefined();
+  });
+});
+
+describe("targetWordFacts", () => {
+  it("names a linked target's recorded callee on its call", () => {
+    const facts = targetWordFacts({
+      kind: "linked",
+      words: wordsOf(["jal g", "j $31"]),
+      calls: [{ word: 0, callee: "helper" }],
+    });
+
+    expect(facts[0]?.call).toEqual({ callee: "helper" });
+    expect(facts[2]?.call).toBeUndefined();
+  });
+
+  it("names an unlinked target's callee from its relocation", () => {
+    const generated = generatedFrom(["jal g", "j $31"]);
+    const facts = targetWordFacts({
+      kind: "unlinked",
+      words: generated.words.map((word) => word.word),
+      relocations: generated.relocations,
+    });
+
+    expect(facts[0]?.call).toEqual({ callee: "g" });
   });
 });
 

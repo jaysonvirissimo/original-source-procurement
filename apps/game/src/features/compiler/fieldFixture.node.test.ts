@@ -70,7 +70,7 @@ describe("the browser-test field mission", () => {
   });
 
   it("matches exactly from its source and not from its starter", async () => {
-    const target = { kind: "linked", words: FIELD_WORDS } as const;
+    const target = { kind: "linked", words: FIELD_WORDS, calls: [] } as const;
     const request = { missionId: "FX1", buildId: 1, sourceSha256: "" };
     const exact = missionResultFrom(
       request,

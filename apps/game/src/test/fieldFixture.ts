@@ -142,6 +142,7 @@ export async function fieldMission(): Promise<Mission> {
       path: FIELD_PATHS.target,
       wordCount: FIELD_WORDS.length,
       wordsSha256: await wordsSha256(FIELD_WORDS),
+      calls: [],
     },
     hints: [
       { stage: 1, text: "Two loads through the first argument, then a sum." },

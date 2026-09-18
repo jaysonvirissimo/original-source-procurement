@@ -38,7 +38,51 @@ describe("loadMissionContext", () => {
     expect(outcome).toMatchObject({
       kind: "ready",
       input: { headers: { "psyq/include/sample.h": "\n" } },
-      target: { kind: "linked", words: WORDS },
+      target: { kind: "linked", words: WORDS, calls: [] },
+    });
+  });
+
+  describe("a target with a call", () => {
+    // OSP-authored words: a linked jal, its delay slot, and the return.
+    const CALLING = [0x0c004010, 0x00000000, 0x03e00008, 0x00000000];
+    const withCalls = (calls: { word: number; symbol: string }[]) => {
+      const mission = realMission();
+      if (mission.target.kind !== "remote") {
+        throw new Error("realMission has a remote target.");
+      }
+      return { ...mission, target: { ...mission.target, calls } };
+    };
+    const calling = upstream({
+      loadTarget: () =>
+        Promise.resolve({ kind: "loaded", value: CALLING, source: "cache" }),
+    });
+
+    it("compares the callee the corpus records", async () => {
+      const outcome = await loadMissionContext(
+        withCalls([{ word: 0, symbol: "helper" }]),
+        calling,
+      );
+
+      expect(outcome).toMatchObject({
+        kind: "ready",
+        target: {
+          kind: "linked",
+          calls: [{ word: 0, callee: "helper" }],
+        },
+      });
+    });
+
+    it.each([
+      ["a call it does not record", []],
+      ["a call on a word that is not one", [{ word: 2, symbol: "helper" }]],
+    ])("refuses words with %s", async (_name, calls) => {
+      const mission = withCalls(calls);
+      const outcome = await loadMissionContext(mission, calling);
+
+      expect(outcome).toEqual({
+        kind: "content-mismatch",
+        path: mission.target.path,
+      });
     });
   });
 

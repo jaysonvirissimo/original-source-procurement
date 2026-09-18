@@ -2,6 +2,8 @@
 
 Status: Accepted
 
+Partly replaced by [ADR 0024](0024-real-mission-call-targets.md), which compares the callee of each call in a linked target, where this record says relocation targets are not compared.
+
 ## Context
 
 ADR 0006 decides that real missions load their targets, context headers, and hint spans from upstream at runtime, and ADR 0017 ships the reviewed pointers. The workspace could previously compare only inline targets. The upstream cache lives in browser storage, which is opened by the persistence provider. Browser tests block every external host and must never replay recorded upstream responses. A shipped real mission's hashes describe upstream content, so the tests cannot serve content that satisfies them.

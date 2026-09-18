@@ -1,7 +1,7 @@
 import type {
   CompilerSettings,
   RemoteCReference,
-  RemoteTarget,
+  RemoteWords,
 } from "@osp/mission-schema";
 import type { FeatureTag, FunctionFacts } from "./analysis.ts";
 import type { ImportStatus } from "./inventory.ts";
@@ -43,7 +43,8 @@ export interface FunctionRejection {
  * own words, so a record has all of them or none.
  */
 export interface PinnedTarget {
-  readonly target: RemoteTarget;
+  /** The callees are learned later, from the verdicts (ADR 0024). */
+  readonly target: RemoteWords;
   /**
    * Instruction counts from the target words. The difficulty profile is built
    * from them once the function's source file, and so its context, is known.
@@ -76,7 +77,7 @@ export interface ImportIndex {
   readonly functions: readonly FunctionRecord[];
 }
 
-export const VERDICT_INDEX_VERSION = 1;
+export const VERDICT_INDEX_VERSION = 2;
 
 export type Verdict =
   | "exact"
@@ -86,11 +87,23 @@ export type Verdict =
   | "build-failed"
   | "unsupported";
 
+/**
+ * A call in an exact function: its word, the address its linked word jumps
+ * to, and the callee the built object names there, when it names one.
+ */
+export interface VerdictCall {
+  readonly word: number;
+  readonly address: number;
+  readonly symbol?: string;
+}
+
 /** What building a function's source file proved about it. */
 export interface FunctionVerdict {
   readonly symbol: string;
   readonly sourcePath: string;
   readonly verdict: Verdict;
+  /** Every call, for an exact verdict (ADR 0024). */
+  readonly calls?: readonly VerdictCall[];
   readonly mismatchKinds?: readonly string[];
   readonly detail?: string;
 }

@@ -58,7 +58,7 @@ export function linkedTarget(
   lines: readonly string[],
   gpSize = 0,
 ): MatchTarget {
-  return { kind: "linked", words: wordsOf(lines, gpSize) };
+  return { kind: "linked", words: wordsOf(lines, gpSize), calls: [] };
 }
 
 export function unlinkedTarget(

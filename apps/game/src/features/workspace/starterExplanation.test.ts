@@ -13,6 +13,7 @@ const SB_A1_A0 = 0xa0850000; // sb $a1,0x0($a0)
 function compare(target: number[], generated: number[]) {
   return compareFunction(functionFromWords("f", generated), {
     kind: "linked",
+    calls: [],
     words: target,
   });
 }

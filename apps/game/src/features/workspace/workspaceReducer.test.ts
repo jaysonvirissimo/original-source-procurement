@@ -70,7 +70,7 @@ describe("initial state", () => {
 
 describe("context", () => {
   const input = { source: "" } as CompilationInput;
-  const target = { kind: "linked", words: [0] } as const;
+  const target = { kind: "linked", words: [0], calls: [] } as const;
 
   it("becomes ready, unavailable, or mismatched, and retries", () => {
     const initial = initialWorkspaceState(exactMission);

@@ -74,7 +74,11 @@ describe("matching properties", () => {
         const generated = functionFromWords("f", words, relocations);
 
         expect(
-          compareFunction(generated, { kind: "linked", words: linked }).exact,
+          compareFunction(generated, {
+            kind: "linked",
+            words: linked,
+            calls: [],
+          }).exact,
         ).toBe(true);
         expect(
           compareFunction(generated, { kind: "unlinked", words, relocations })
@@ -89,6 +93,7 @@ describe("matching properties", () => {
       fc.property(WORDS, (words) => {
         const result = compareFunction(functionFromWords("f", words), {
           kind: "linked",
+          calls: [],
           words,
         });
 
@@ -107,6 +112,7 @@ describe("matching properties", () => {
         const run = () =>
           compareFunction(functionFromWords("f", generated), {
             kind: "linked",
+            calls: [],
             words: target,
           });
 
@@ -120,6 +126,7 @@ describe("matching properties", () => {
       fc.property(WORDS, WORDS, (target, generated) => {
         const result = compareFunction(functionFromWords("f", generated), {
           kind: "linked",
+          calls: [],
           words: target,
         });
         const ids = result.mismatches.map((mismatch) => mismatch.id);
@@ -153,6 +160,7 @@ describe("matching properties", () => {
       fc.property(WORDS, WORDS, (target, generated) => {
         const result = compareFunction(functionFromWords("f", generated), {
           kind: "linked",
+          calls: [],
           words: target,
         });
         const ids = result.mismatches.map((mismatch) => mismatch.id);

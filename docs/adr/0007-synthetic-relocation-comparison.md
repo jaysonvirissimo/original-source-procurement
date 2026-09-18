@@ -2,6 +2,8 @@
 
 Status: Accepted
 
+Partly replaced by [ADR 0024](0024-real-mission-call-targets.md), which replaces the consequence that real missions keep the linked-word limitation, for calls.
+
 ## Context
 
 Exactness compares words outside relocation field masks (see ADR 0003). That alone cannot tell apart references whose only difference lives inside a relocated field. `la $v0,g` and `la $v0,g+4` assemble to identical words and differ only in their relocation addends.

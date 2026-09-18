@@ -17,7 +17,7 @@ export interface CorpusConfig {
  * against it.
  */
 export const CORPUS_CONFIG: CorpusConfig = {
-  importerVersion: "1.2.0",
+  importerVersion: "1.3.0",
   upstreamCommit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
   sdkCommit: "91719fa5bdca0b7e55c5c4b9e045da407db93510",
 };

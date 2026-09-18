@@ -31,6 +31,7 @@ Changing a locked decision requires a new record. Accepted records are never rew
 | [0021](0021-walkthrough-diagrams.md)                   | Walkthrough diagrams                     | Accepted |
 | [0022](0022-docked-reference-pane.md)                  | Docked reference pane                    | Accepted |
 | [0023](0023-context-panel-and-offset-probe.md)         | Context panel and offset probe           | Accepted |
+| [0024](0024-real-mission-call-targets.md)              | Call targets for real missions           | Accepted |
 
 ## Template
 

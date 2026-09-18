@@ -2,6 +2,8 @@
 
 Status: Accepted
 
+Partly replaced by [ADR 0024](0024-real-mission-call-targets.md), which compares the callee of every call in a real target, so a call to a different function is no longer only a masked difference.
+
 ## Context
 
 A PlayStation executable contains the words Sony's assembler emits, not the compiler's assembly text. ASPSX rewrites `cc1psx` output: it expands macros, turns `addu $2,$4,5` into `addiu`, and inserts nops for branch delay slots, load delays, multiply and divide gaps, and coprocessor moves. Two assembly listings that differ as text can assemble to identical words. Identical-looking listings can also differ once assembled. A matching game must judge what the executable would contain.

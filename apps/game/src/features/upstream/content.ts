@@ -1,5 +1,5 @@
 import { sha256Hex, wordsSha256 } from "@osp/curriculum";
-import type { RemoteCReference, RemoteTarget } from "@osp/mission-schema";
+import type { RemoteCReference, RemoteWords } from "@osp/mission-schema";
 
 const DW_LINE = /^[ \t]*dw[ \t]+0x[0-9A-Fa-f]{1,8}\b/gm;
 
@@ -19,7 +19,7 @@ export function extractDwWords(text: string): number[] {
  */
 export async function verifyTargetText(
   text: string,
-  target: RemoteTarget,
+  target: RemoteWords,
 ): Promise<readonly number[] | undefined> {
   const words = extractDwWords(text);
   if (

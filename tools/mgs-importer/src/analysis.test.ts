@@ -5,6 +5,7 @@ import {
   earlyFieldCandidate,
   featureTags,
   functionFacts,
+  linkedCallAddress,
   FEATURE_TAGS,
 } from "./analysis.ts";
 import { SAMPLE_FACTS } from "./testing.ts";
@@ -313,4 +314,17 @@ describe("earlyFieldCandidate", () => {
       expect(earlyFieldCandidate({ ...SAMPLE_FACTS, [fact]: 1 })).toBe(false);
     },
   );
+});
+
+describe("linkedCallAddress", () => {
+  // OSP-authored words and addresses.
+  it("puts the word's field under the top bits of the next row", () => {
+    // jal 0x80010040 from the first row of a function at 0x80010000.
+    expect(linkedCallAddress(0x0c004010, 0x80010000, 0)).toBe(0x80010040);
+  });
+
+  it("takes the top bits from the row after the call, not the call", () => {
+    // A call in the last row of one 256 MB region reaches into the next.
+    expect(linkedCallAddress(0x0c000010, 0x8ffffff8, 1)).toBe(0x90000040);
+  });
 });

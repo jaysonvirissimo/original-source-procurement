@@ -295,3 +295,18 @@ export function earlyFieldCandidate(facts: FunctionFacts): boolean {
     facts.assemblerTemporary === 0
   );
 }
+
+/**
+ * The address a linked `jal` or `j` word jumps to. The instruction keeps the
+ * low 28 bits of the destination, in words; the top four bits come from the
+ * address of the row after it, which is where the jump executes from once its
+ * delay slot runs.
+ */
+export function linkedCallAddress(
+  word: number,
+  functionAddress: number,
+  index: number,
+): number {
+  const next = functionAddress + 4 * (index + 1);
+  return ((next & 0xf0000000) | ((word & 0x03ffffff) << 2)) >>> 0;
+}

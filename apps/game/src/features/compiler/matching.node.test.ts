@@ -199,7 +199,11 @@ describe("matching real compiler output", () => {
 
   it("reports an empty source as function-missing", async () => {
     expect(
-      matchFunction(await build(""), "f", { kind: "linked", words: [0] }),
+      matchFunction(await build(""), "f", {
+        kind: "linked",
+        words: [0],
+        calls: [],
+      }),
     ).toEqual({ kind: "function-missing", symbol: "f", definedFunctions: [] });
   });
 });

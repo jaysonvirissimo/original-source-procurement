@@ -26,9 +26,16 @@ export {
   type TeachingHypothesis,
   type TeachingHypothesisKind,
 } from "./hypotheses.ts";
+export {
+  callWords,
+  compareLinkedCalls,
+  generatedCalls,
+  type CallSite,
+} from "./calls.ts";
 export { compareFunction, matchFunction } from "./match.ts";
 export {
   abiRegisterNames,
+  targetWordFacts,
   usesStack,
   wordFacts,
   type BranchTest,
@@ -43,6 +50,7 @@ export {
   type AlignmentStatus,
   type FieldDifference,
   type FunctionRelocation,
+  type LinkedCall,
   type GeneratedFunction,
   type GeneratedWord,
   type InstructionRange,
