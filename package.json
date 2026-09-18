@@ -19,6 +19,8 @@
     "corpus:update": "node apps/game/build/bin/update-corpus.ts",
     "corpus:verify": "node apps/game/build/bin/verify-corpus.ts",
     "corpus:write": "node tools/mgs-importer/src/bin/write.ts",
+    "corpus:spans": "node tools/mgs-importer/src/bin/spans.ts",
+    "corpus:decode": "node tools/mgs-importer/src/bin/decode.ts",
     "curriculum:validate": "node packages/curriculum/src/bin/validate.ts",
     "curriculum:targets": "node apps/game/build/bin/generate-targets.ts",
     "audit:upstream": "node apps/game/build/bin/audit-upstream.ts apps/game/dist",

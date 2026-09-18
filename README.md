@@ -48,6 +48,8 @@ pnpm --filter @osp/game dev
 | `pnpm corpus:verify`          | Rebuild each imported function locally and write verdicts and a review report                                           |
 | `pnpm corpus:write`           | Write the reviewed corpus into the curriculum package                                                                   |
 | `pnpm corpus:update`          | Report what a newly pinned upstream revision would change, without writing                                              |
+| `pnpm corpus:spans`           | Print a function's line span, file hash, and signature at the pinned commit, for a real mission's reveal                |
+| `pnpm corpus:decode`          | Print a pinned target's words as instructions, for drafting a real mission's hints                                      |
 | `pnpm audit:distribution`     | Check that the built site may distribute the GPL-2.0-only compiler artifacts                                            |
 | `pnpm audit:upstream`         | Check tracked files and the built site for upstream content                                                             |
 | `pnpm check`                  | The merge gate: format, lint, typecheck, coverage, curriculum validation, build, distribution audit, and upstream audit |

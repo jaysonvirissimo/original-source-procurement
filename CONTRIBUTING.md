@@ -193,6 +193,15 @@ pnpm corpus:write    # merges the reviewed overrides into the generated corpus
 
 `pnpm corpus:update` compares a newly pinned revision against the last import and reports what would change, including shipped pointers that no longer resolve. It rewrites nothing.
 
+Two commands supply the facts an override needs and print them to the terminal only:
+
+```bash
+pnpm corpus:spans SYMBOL PATH [SYMBOL PATH ...]   # the function's line span, file hash, and signature
+pnpm corpus:decode SYMBOL [SYMBOL ...]            # the pinned target's words as instructions
+```
+
+A stage 5 or stage 9 reveal records the span and hash `corpus:spans` prints, so a hint never shows the wrong lines. Hint highlight ranges and the shape description handed to a clean-room author are drawn from the `corpus:decode` listing rather than from upstream C. `corpus:decode` reads the last import's index, so run `pnpm corpus:import` first. With the checkouts set, `tools/mgs-importer/src/spans.upstream.test.ts` checks every recorded stage 9 reveal against `corpus:spans`.
+
 The compiled file sits at the virtual root and stands for its upstream directory. Header keys follow from that:
 
 - a header in the same directory is keyed by its path from that directory, such as `libgv.h`;
