@@ -64,7 +64,7 @@ describe("runValidation", () => {
     expect(error.at(-1)).toBe("Curriculum validation failed with 2 issues.");
   });
 
-  it("prints nothing more for a valid curriculum with full coverage", async () => {
+  it("prints one line for a valid curriculum", async () => {
     const { output, log } = capture();
     const data: CurriculumData = {
       skills: [],
@@ -78,9 +78,10 @@ describe("runValidation", () => {
     ]);
   });
 
-  it("counts a single coverage warning in the singular", async () => {
-    const { output, log } = capture();
-    const defaultPath = ["001", "002", "003", "004", "005"];
+  it("fails a curriculum whose default path stops practising what it taught", async () => {
+    const { output, error } = capture();
+    // The first four missions teach skills that only later missions practise.
+    const defaultPath = ["001", "002", "003", "004"];
     await expect(
       runValidation(
         {
@@ -90,7 +91,9 @@ describe("runValidation", () => {
         },
         output,
       ),
-    ).resolves.toBe(0);
-    expect(log.at(-1)).toBe("Coverage: 1 warning, not yet blocking.");
+    ).resolves.toBe(1);
+    expect(error.some((line) => line.endsWith("[no-later-practice]"))).toBe(
+      true,
+    );
   });
 });

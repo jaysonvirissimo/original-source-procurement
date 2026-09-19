@@ -10,6 +10,7 @@ import {
   type VerifiedToolchain,
   realMissionTextIssues,
 } from "@osp/mission-schema";
+import { curriculumCoverage, type CoverageIssueCode } from "./coverage.ts";
 import { findCycle, missionNeeds } from "./graph.ts";
 import { sha256Hex, wordsSha256 } from "./hash.ts";
 import { TOOLCHAIN_PINS } from "./toolchainPins.ts";
@@ -33,7 +34,8 @@ export type CurriculumIssueCode =
   | "proof-toolchain"
   | "corpus-commit"
   | "corpus-symbol"
-  | "corpus-text";
+  | "corpus-text"
+  | CoverageIssueCode;
 
 export interface CurriculumIssue {
   readonly code: CurriculumIssueCode;
@@ -70,7 +72,9 @@ export function formatPath(segments: readonly PathSegment[]): string {
  * Validates every document against its schema, then the rules that span
  * documents: unique IDs, known skills and manual entries, an acyclic skill
  * graph, a default path that never needs an untaught skill, and hashes that
- * match their inline content.
+ * match their inline content. Once all of that holds, it checks the shape of
+ * the course along the default path (`curriculumCoverage`): a broken path or
+ * an invalid mission would only make those findings noise.
  */
 export async function validateCurriculum(
   data: CurriculumData,
@@ -113,6 +117,14 @@ export async function validateCurriculum(
   checkFeasibilityPointers(data.feasibilityPointers ?? [], report);
   checkPointerCorpus(data.pointerCorpus, report);
 
+  if (issues.length === 0) {
+    issues.push(
+      ...curriculumCoverage(
+        [...missions.values()].map(({ value }) => value),
+        data.defaultPath,
+      ),
+    );
+  }
   return issues;
 }
 

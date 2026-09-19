@@ -343,10 +343,31 @@ describe("validateCurriculum", () => {
         requires: ["S.A"],
         practices: ["S.A", "S.B"],
       }),
+      await mission({
+        id: "m3",
+        kind: "synthesis",
+        teaches: [],
+        requires: ["S.B"],
+        practices: ["S.B"],
+      }),
     ];
     await expect(
-      validateCurriculum(data({ missions, defaultPath: ["m1", "m2"] })),
+      validateCurriculum(data({ missions, defaultPath: ["m1", "m2", "m3"] })),
     ).resolves.toEqual([]);
+  });
+
+  it("reports the course's shape as errors once everything else holds", async () => {
+    const missions = [await mission({ id: "m1", teaches: ["S.A"] })];
+    await expect(
+      codes(data({ missions, defaultPath: ["m1"] })),
+    ).resolves.toEqual(["no-later-practice", "phase-without-synthesis"]);
+  });
+
+  it("leaves the course's shape unchecked while the path itself is broken", async () => {
+    const missions = [await mission({ id: "m1", teaches: ["S.A"] })];
+    await expect(
+      codes(data({ missions, defaultPath: ["m1", "missing"] })),
+    ).resolves.toEqual(["unknown-mission"]);
   });
 
   it("reports schema issues with their full path", async () => {
@@ -611,7 +632,19 @@ describe("default path properties", () => {
   it("accepts any path that teaches skills in topological order", async () => {
     await fc.assert(
       fc.asyncProperty(generated, async ({ skills }) => {
-        const missions = await pathFor(skills);
+        // A qualification at the end practises every skill, as the course's
+        // own phases do, so the path is also complete as a course.
+        const ids = skills.map((skill) => skill.id);
+        const missions = [
+          ...(await pathFor(skills)),
+          await mission({
+            id: "qualification",
+            kind: "synthesis",
+            teaches: [],
+            requires: ids,
+            practices: ids,
+          }),
+        ];
         const issues = await validateCurriculum(
           data({ skills, missions, defaultPath: missions.map((m) => m.id) }),
         );

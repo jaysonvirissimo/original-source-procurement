@@ -87,6 +87,14 @@ Mission and skill behavior comes from validated curriculum data, never from rule
 - walkthroughs on a mission without an inline target, or whose steps or labeled word point past its target's words, whose timeline lanes or caller rows repeat a name, whose bit rows do not fit their width, or whose derived bit row does not follow from an earlier, no-wider row;
 - a real-function pointer whose provenance, solution reference, compiler input, or header keys do not follow upstream's default build;
 - a pointer corpus whose context headers or revealed files name a revision other than the one it was imported from, whose target is pinned to that same revision rather than to an earlier one, or whose missions point at one upstream function twice.
+- a real mission or feasibility pointer whose reproduction was proved with a toolchain other than the pinned one.
+
+Once everything above holds, it checks the shape of the course along the default path, and these are errors too:
+
+- a skill that no later mission lists under `practices` (requiring it is not enough, because it says nothing about whether the listing shows it);
+- a map phase with no synthesis or real mission;
+- a synthetic mission after the first real one, since the synthetic missions are one contiguous run before the field;
+- a real mission placed before the qualification of the phase it is labelled with.
 
 Prerequisites are the source of truth for progression. The default path is a recommended order that must stay consistent with them.
 

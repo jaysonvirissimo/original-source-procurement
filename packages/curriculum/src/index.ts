@@ -12,8 +12,8 @@ export { feasibilityPointers } from "./real/feasibility.ts";
 export { skills } from "./skills.ts";
 export {
   curriculumCoverage,
-  type CoverageWarning,
-  type CoverageWarningCode,
+  type CoverageIssue,
+  type CoverageIssueCode,
 } from "./coverage.ts";
 export { findCycle, missionNeeds } from "./graph.ts";
 export { sha256Hex, wordsSha256 } from "./hash.ts";
