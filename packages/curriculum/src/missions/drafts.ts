@@ -52,6 +52,8 @@ import { keepIt } from "./045-keep-it.ts";
 import { putItBack } from "./046-put-it-back.ts";
 import { scratch } from "./047-scratch.ts";
 import { qualification08 } from "./048-qualification-08.ts";
+import { qualification09 } from "./049-qualification-09.ts";
+import { qualification10 } from "./050-qualification-10.ts";
 import type { MissionDraft } from "./authoring.ts";
 
 export type { MissionDraft } from "./authoring.ts";
@@ -115,4 +117,6 @@ export const missionDrafts: readonly MissionDraft[] = [
   putItBack,
   scratch,
   qualification08,
+  qualification09,
+  qualification10,
 ];

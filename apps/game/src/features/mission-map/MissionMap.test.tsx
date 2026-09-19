@@ -46,7 +46,7 @@ describe("MissionMap", () => {
         { name: "F01 FONT BUFFER" },
       ),
     ).toBeTruthy();
-    expect(within(map).getByText("0 of 60 complete")).toBeTruthy();
+    expect(within(map).getByText("0 of 62 complete")).toBeTruthy();
     expect(within(map).getByRole("button", { name: "Map" })).toHaveProperty(
       "ariaPressed",
       "true",
@@ -67,7 +67,7 @@ describe("MissionMap", () => {
     const map = await renderMap(samplePlayer());
 
     expect(rowOf(map, "001 RETURN PATH").textContent).toContain("COMPLETE");
-    expect(within(map).getByText("1 of 60 complete")).toBeTruthy();
+    expect(within(map).getByText("1 of 62 complete")).toBeTruthy();
     expect(
       within(map)
         .getByRole("link", { name: "ADD IMMEDIATE (003)" })
@@ -130,7 +130,7 @@ describe("MissionMap", () => {
     const map = await renderMap(player);
 
     expect(within(map).getByText("Training complete")).toBeTruthy();
-    expect(within(map).getByText("60 of 60 complete")).toBeTruthy();
+    expect(within(map).getByText("62 of 62 complete")).toBeTruthy();
     expect(map.textContent).not.toContain("Practice:");
   });
 
@@ -182,7 +182,7 @@ describe("MissionMap", () => {
       "ariaPressed",
       "true",
     );
-    expect(within(map).getByRole("status").textContent).toBe("60 missions");
+    expect(within(map).getByRole("status").textContent).toBe("62 missions");
 
     fireEvent.change(search, { target: { value: "field offset" } });
     expect(
@@ -191,7 +191,7 @@ describe("MissionMap", () => {
         .map((row) => within(row).getByRole("link").textContent),
     ).toEqual(["009 FIELD OFFSET"]);
     expect(within(map).getByRole("status").textContent).toBe(
-      "1 of 60 missions",
+      "1 of 62 missions",
     );
 
     fireEvent.change(search, { target: { value: "zzz" } });

@@ -98,6 +98,8 @@ describe("the first teaching slice", () => {
       "046",
       "047",
       "048",
+      "049",
+      "050",
       "F04",
       "F05",
       "F06",
@@ -259,6 +261,8 @@ describe("the first teaching slice", () => {
       "046": ["ABI.SAVED_REGISTER"],
       "047": ["MIPS.REGISTER.SCRATCH"],
       "048": [],
+      "049": [],
+      "050": [],
     });
   });
 

@@ -209,6 +209,8 @@ describe("shipped missions with the real toolchain", () => {
     ["045", ["REGISTER"]],
     ["047", ["OPCODE"]],
     ["048", ["MISSING_INSTRUCTION", "CALL_TARGET", "RELOCATION_TARGET"]],
+    ["049", ["OPCODE"]],
+    ["050", ["MISSING_INSTRUCTION", "MISSING_INSTRUCTION"]],
   ])(
     "mission %s: the starting source reports its one difference",
     async (id, kinds) => {
