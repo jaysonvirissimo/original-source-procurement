@@ -14,7 +14,9 @@ export {
 export {
   CORPUS_SCHEMA_VERSION,
   PointerCorpusSchema,
+  VerifiedToolchainSchema,
   type PointerCorpus,
+  type VerifiedToolchain,
 } from "./corpus.ts";
 export {
   DifficultyProfileSchema,

@@ -103,6 +103,16 @@ describe("validateCurriculum", () => {
     ]);
   });
 
+  it("rejects a feasibility pointer proved with another toolchain", async () => {
+    const pointer = {
+      ...feasibilityPointer(),
+      toolchain: { psyqWasmVersion: "1.0.0", psyqAsmVersion: "0.1.0" },
+    };
+    await expect(
+      codes(data({ feasibilityPointers: [pointer] })),
+    ).resolves.toEqual(["proof-toolchain"]);
+  });
+
   it("finds the gap at 012 when the array bridge leaves the default path", async () => {
     const issues = await validateCurriculum({
       ...curriculum,
@@ -180,9 +190,30 @@ describe("validateCurriculum", () => {
         importerVersion: "1.0.0",
         upstreamCommit: UPSTREAM,
         sdkCommit: SDK,
+        toolchain: { psyqWasmVersion: "1.0.0", psyqAsmVersion: "0.2.0" },
         missions,
       };
     }
+
+    it("rejects a corpus proved with another toolchain", async () => {
+      const issues = await validateCurriculum(
+        data({
+          pointerCorpus: {
+            ...corpus([corpusMission()]),
+            toolchain: { psyqWasmVersion: "0.9.0", psyqAsmVersion: "0.2.0" },
+          },
+        }),
+      );
+      expect(
+        issues.map(({ code, path, message }) => [code, path, message]),
+      ).toEqual([
+        [
+          "proof-toolchain",
+          "pointerCorpus.toolchain.psyqWasmVersion",
+          "The reproduction was proved with psyqWasmVersion 0.9.0, but the pinned toolchain is 1.0.0. Rerun pnpm corpus:verify and pnpm corpus:write with local checkouts.",
+        ],
+      ]);
+    });
 
     it("accepts a corpus whose references all name its revisions", async () => {
       await expect(

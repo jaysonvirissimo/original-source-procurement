@@ -16,6 +16,7 @@ import {
 import { createMissionContextResolver } from "../src/features/compiler/missionContextResolver.ts";
 import type { ToolchainService } from "../src/features/compiler/types.ts";
 import type { UpstreamService } from "../src/features/upstream/types.ts";
+import { PSYQ_WASM_RELEASE } from "./psyq-wasm-release.ts";
 
 /** Progress lines; the caller decides where they go. */
 export interface VerifyOutput {
@@ -237,6 +238,11 @@ export async function verifyCorpus(
     importerVersion: index.importerVersion,
     upstreamCommit: index.upstreamCommit,
     sdkCommit: index.sdkCommit,
+    // The versions that just proved every exact verdict, in this process.
+    toolchain: {
+      psyqWasmVersion: PSYQ_WASM_RELEASE.version,
+      psyqAsmVersion: service.info.psyqAsmVersion,
+    },
     files: files.toSorted((a, b) => a.path.localeCompare(b.path)),
     functions: markAmbiguous(functions).toSorted((a, b) =>
       a.symbol.localeCompare(b.symbol),

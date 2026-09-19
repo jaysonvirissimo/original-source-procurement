@@ -5,7 +5,11 @@ import {
   importIndex,
 } from "@osp/mgs-importer/testing";
 import { describe, expect, it, vi } from "vitest";
-import { assembledObject, fakeToolchain } from "../src/test/fakeToolchain";
+import {
+  assembledObject,
+  FAKE_TOOLCHAIN_INFO,
+  fakeToolchain,
+} from "../src/test/fakeToolchain";
 import type { UpstreamService } from "../src/features/upstream/types";
 import {
   loadTargets,
@@ -296,6 +300,11 @@ describe("verifyCorpus", () => {
     ]);
     expect(verdicts.files).toHaveLength(1);
     expect(verdicts.upstreamCommit).toBe(index.upstreamCommit);
+    // The versions of the toolchain that just ran, which the corpus copies.
+    expect(verdicts.toolchain).toEqual({
+      psyqWasmVersion: "1.0.0",
+      psyqAsmVersion: FAKE_TOOLCHAIN_INFO.psyqAsmVersion,
+    });
     expect(log).toHaveBeenCalledWith("loaded 1 target word lists");
   });
 

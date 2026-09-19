@@ -143,6 +143,7 @@ export function verdictIndex(
     importerVersion: "1.0.0",
     upstreamCommit: UPSTREAM_COMMIT,
     sdkCommit: SDK_COMMIT,
+    toolchain: { psyqWasmVersion: "1.0.0", psyqAsmVersion: "0.2.0" },
     files: [
       { path: "source/sample/sample.c", outcome: "built", definedFunctions: 1 },
     ],

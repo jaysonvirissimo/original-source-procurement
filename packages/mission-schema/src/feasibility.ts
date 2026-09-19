@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { checkUpstreamBuild, CompilerSettingsSchema } from "./compiler.ts";
+import { VerifiedToolchainSchema } from "./corpus.ts";
 import { SymbolSchema } from "./primitives.ts";
 import { RemoteCReferenceSchema, type RemoteCReference } from "./remote.ts";
 import { MissionSourceSchema } from "./source.ts";
@@ -27,6 +28,8 @@ export const FeasibilityPointerSchema = z
     target: RemoteTargetSchema,
     solution: RemoteCReferenceSchema,
     compiler: CompilerSettingsSchema,
+    // The toolchain the reproduction was last proved with.
+    toolchain: VerifiedToolchainSchema,
   })
   .superRefine((pointer, ctx) => {
     const report = (path: readonly (string | number)[], message: string) => {

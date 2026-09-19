@@ -1,6 +1,6 @@
 {
   "name": "@osp/mgs-importer",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "private": true,
   "type": "module",
   "description": "Node-only build tool that produces real-mission pointers from pinned upstream checkouts.",

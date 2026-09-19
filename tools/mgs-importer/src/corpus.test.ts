@@ -128,6 +128,7 @@ describe("buildCorpus", () => {
     expect(corpus.missions).toHaveLength(1);
     expect(corpus.upstreamCommit).toBe(UPSTREAM_COMMIT);
     expect(corpus.sdkCommit).toBe(SDK_COMMIT);
+    expect(corpus.toolchain).toEqual(verdictIndex().toolchain);
   });
 
   it("builds an empty corpus when nothing is reviewed yet", () => {

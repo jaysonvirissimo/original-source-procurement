@@ -189,6 +189,8 @@ pnpm corpus:write    # merges the reviewed overrides into the generated corpus
 
 `pnpm corpus:verify` takes symbols as arguments to check only those functions. It also records the function each call reaches, named by the relocation in the reproduced build, and `pnpm corpus:write` commits those names so a real mission can check the callee of every call (ADR 0024). Run a full `pnpm corpus:verify` before writing: a narrowed run records verdicts for its symbols only.
 
+The corpus also records the `psyq-wasm` and `psyq-asm` versions `pnpm corpus:verify` ran with, and so does the hand-written feasibility pointer. `pnpm curriculum:validate` fails when either differs from the pinned toolchain. A real target cannot be regenerated, so after a toolchain bump the proof that each mission still reproduces is out of date until someone with the two clones reruns `pnpm corpus:verify` and `pnpm corpus:write`.
+
 `packages/curriculum/src/real/corpus.ts` is generated. To add or change a real mission, edit `tools/mgs-importer/overrides/real-missions.json` — the reviewed title, phase, briefing, starter stub, hints, and skills for one upstream symbol — and run `pnpm corpus:write` again. A reviewed mission whose function no longer reproduces its target fails the build instead of quietly leaving the corpus.
 
 `pnpm corpus:update` compares a newly pinned revision against the last import and reports what would change, including shipped pointers that no longer resolve. It rewrites nothing.

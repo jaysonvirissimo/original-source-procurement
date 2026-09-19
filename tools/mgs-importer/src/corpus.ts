@@ -140,6 +140,7 @@ export function buildCorpus(
     importerVersion: index.importerVersion,
     upstreamCommit: index.upstreamCommit,
     sdkCommit: index.sdkCommit,
+    toolchain: verdicts.toolchain,
     missions,
   };
 

@@ -63,6 +63,7 @@ export function remoteTarget(): RemoteTarget {
 export function feasibilityPointer(): FeasibilityPointer {
   return {
     schemaVersion: 1,
+    toolchain: { psyqWasmVersion: "1.0.0", psyqAsmVersion: "0.2.0" },
     symbol: "sample_function",
     source: {
       kind: "mgs-reversing",

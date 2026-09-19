@@ -35,6 +35,8 @@ function sdk(name: string, sha256: string): RemoteCReference {
 export const feasibilityPointers: readonly FeasibilityPointer[] = [
   {
     schemaVersion: 1,
+    // Proved by realFunction.node.test.ts with local checkouts.
+    toolchain: { psyqWasmVersion: "1.0.0", psyqAsmVersion: "0.2.0" },
     symbol: "GV_VecDir2",
     source: {
       kind: "mgs-reversing",

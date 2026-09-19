@@ -145,6 +145,7 @@ describe("checkPointers", () => {
     importerVersion: "1.0.0",
     upstreamCommit: "1".repeat(40),
     sdkCommit: "1".repeat(40),
+    toolchain: { psyqWasmVersion: "1.0.0", psyqAsmVersion: "0.2.0" },
     missions: [mission],
   };
 

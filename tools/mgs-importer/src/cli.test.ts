@@ -81,6 +81,7 @@ const corpus = {
   importerVersion: "1.0.0",
   upstreamCommit: UPSTREAM_COMMIT,
   sdkCommit: "2".repeat(40),
+  toolchain: { psyqWasmVersion: "1.0.0", psyqAsmVersion: "0.2.0" },
   missions: [],
 };
 

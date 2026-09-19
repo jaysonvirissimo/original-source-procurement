@@ -1,5 +1,6 @@
 import type {
   CompilerSettings,
+  VerifiedToolchain,
   RemoteCReference,
   RemoteWords,
 } from "@osp/mission-schema";
@@ -77,7 +78,7 @@ export interface ImportIndex {
   readonly functions: readonly FunctionRecord[];
 }
 
-export const VERDICT_INDEX_VERSION = 2;
+export const VERDICT_INDEX_VERSION = 3;
 
 export type Verdict =
   | "exact"
@@ -121,6 +122,8 @@ export interface VerdictIndex {
   readonly importerVersion: string;
   readonly upstreamCommit: string;
   readonly sdkCommit: string;
+  /** The toolchain the reproduction ran with, copied into the corpus. */
+  readonly toolchain: VerifiedToolchain;
   readonly files: readonly FileVerdict[];
   readonly functions: readonly FunctionVerdict[];
 }

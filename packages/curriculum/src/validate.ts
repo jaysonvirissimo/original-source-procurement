@@ -7,6 +7,7 @@ import {
   type ManualEntry,
   type Mission,
   type Skill,
+  type VerifiedToolchain,
   realMissionTextIssues,
 } from "@osp/mission-schema";
 import { findCycle, missionNeeds } from "./graph.ts";
@@ -29,6 +30,7 @@ export type CurriculumIssueCode =
   | "solution-hash"
   | "words-hash"
   | "target-toolchain"
+  | "proof-toolchain"
   | "corpus-commit"
   | "corpus-symbol"
   | "corpus-text";
@@ -347,6 +349,28 @@ async function checkHashes(
 }
 
 /**
+ * A real function's reproduction was proved with one toolchain. A real target
+ * cannot be regenerated the way a synthetic one is, so after a bump the proof
+ * is simply out of date until someone with local checkouts reruns it
+ * (`pnpm corpus:verify`, then `pnpm corpus:write`), which restamps it.
+ */
+function checkProofToolchain(
+  toolchain: VerifiedToolchain,
+  at: readonly PathSegment[],
+  report: Report,
+): void {
+  for (const key of ["psyqWasmVersion", "psyqAsmVersion"] as const) {
+    if (toolchain[key] !== TOOLCHAIN_PINS[key]) {
+      report(
+        "proof-toolchain",
+        [...at, "toolchain", key],
+        `The reproduction was proved with ${key} ${toolchain[key]}, but the pinned toolchain is ${TOOLCHAIN_PINS[key]}. Rerun pnpm corpus:verify and pnpm corpus:write with local checkouts.`,
+      );
+    }
+  }
+}
+
+/**
  * Checks the generated pointer corpus.
  *
  * The schema covers a mission on its own. The rules here are the ones that
@@ -367,6 +391,7 @@ function checkPointerCorpus(value: unknown, report: Report): void {
   }
 
   const corpus = result.data;
+  checkProofToolchain(corpus.toolchain, ["pointerCorpus"], report);
   const expected = {
     "FoxdieTeam/mgs_reversing": corpus.upstreamCommit,
     "FoxdieTeam/psyq_sdk": corpus.sdkCommit,
@@ -456,6 +481,11 @@ function checkFeasibilityPointers(
   pointers.forEach((value, index) => {
     const result = FeasibilityPointerSchema.safeParse(value);
     if (result.success) {
+      checkProofToolchain(
+        result.data.toolchain,
+        ["feasibilityPointers", index],
+        report,
+      );
       return;
     }
     for (const issue of result.error.issues) {

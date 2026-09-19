@@ -12,6 +12,7 @@ const corpus = {
   importerVersion: "0.0.0",
   upstreamCommit: PLACEHOLDER_COMMIT,
   sdkCommit: "2".repeat(40),
+  toolchain: { psyqWasmVersion: "1.0.0", psyqAsmVersion: "0.2.0" },
   missions: [
     realMission(),
     realMission({ id: "sample-live", kind: "live", hints: [] }),
@@ -23,6 +24,11 @@ describe("PointerCorpusSchema", () => {
     expect(
       PointerCorpusSchema.parse(JSON.parse(JSON.stringify(corpus))),
     ).toEqual(corpus);
+  });
+
+  it("requires the toolchain the reproduction was proved with", () => {
+    const unstamped = { ...corpus, toolchain: undefined };
+    expect(PointerCorpusSchema.safeParse(unstamped).success).toBe(false);
   });
 
   it("rejects a synthetic mission", () => {
