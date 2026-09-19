@@ -37,6 +37,7 @@ export const noMultiply: MissionDraft = {
     "glossary.back-edge",
     "glossary.guard",
     "glossary.temporary",
+    "glossary.v1",
   ],
   starterSource:
     "int no_multiply(int *p, int n)\n{\n    int i;\n    int s = 0;\n    for (i = 0; i < n; i = i + 2) {\n        s = s + p[i];\n    }\n    return s;\n}\n",

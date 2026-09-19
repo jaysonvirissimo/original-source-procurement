@@ -29,6 +29,8 @@ export const scratch: MissionDraft = {
     "glossary.temporary",
     "glossary.xor",
     "glossary.and",
+    "glossary.or",
+    "glossary.v1",
   ],
   starterSource:
     "int scratch(int a, int b, int c, int d)\n{\n    int w = a + b;\n    int x = b + c;\n    int y = c + d;\n    int z = d + a;\n    return (w ^ x) + (y ^ z) + (w & y) + (x & z);\n}\n",

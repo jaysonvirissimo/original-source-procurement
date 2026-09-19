@@ -14,6 +14,13 @@ function mission(id: string): Mission {
   return found;
 }
 
+/**
+ * Manual entries whose text looks ahead, each checked against the shipped
+ * course on 2026-09-18: abi.arguments names where $v1, $sp, $s and $t are
+ * taught, and orientation.c-functions says void has a second meaning later.
+ */
+const REVIEWED_PROMISES = ["abi.arguments", "orientation.c-functions"];
+
 describe("missions", () => {
   it("attaches a generated inline target to every draft, in order", () => {
     expect(missions.map((entry) => entry.id)).toEqual(
@@ -307,6 +314,42 @@ describe("the first teaching slice", () => {
       `${String(reuse?.title)}, under MATCHING`,
     );
     expect(pointerArithmetic).toContain(`${String(storing?.title)}, under C`);
+  });
+
+  it("points only at manual entries that exist, in the section it names", () => {
+    const references = manualEntries.flatMap((entry) =>
+      entry.body.flatMap((paragraph) =>
+        [...paragraph.matchAll(/, under ([A-Z]+)/g)].map((match) => ({
+          from: entry.id,
+          before: paragraph.slice(0, match.index),
+          section: match[1],
+        })),
+      ),
+    );
+    expect(references.length).toBeGreaterThan(0);
+    for (const { from, before, section } of references) {
+      const named = manualEntries.some(
+        (entry) => entry.section === section && before.endsWith(entry.title),
+      );
+      expect(
+        named,
+        `${from}: "…${before.slice(-40)}, under ${String(section)}"`,
+      ).toBe(true);
+    }
+  });
+
+  it("promises nothing the course has not reviewed", () => {
+    // A manual entry is read at many points in the course, so a sentence
+    // about what comes later goes stale quietly. Each one here was checked
+    // against the shipped course; a new one needs the same check.
+    const promises = manualEntries.flatMap((entry) =>
+      entry.body
+        .filter((paragraph) =>
+          /later mission|next mission|for now|until then/i.test(paragraph),
+        )
+        .map(() => entry.id),
+    );
+    expect(promises).toEqual(REVIEWED_PROMISES);
   });
 
   it("writes a body for every manual entry a skill links to", () => {

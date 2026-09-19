@@ -126,7 +126,8 @@ export const skills: readonly Skill[] = [
   {
     id: "MIPS.ARITH.ADD",
     name: "Register addition",
-    description: "addu adds two registers. subtracting a constant uses it too.",
+    description:
+      "addu adds two registers. Subtracting a constant is not a subtract at all: it is addiu with the constant negated.",
     prerequisites: ["MIPS.ARITH.ADD_IMMEDIATE"],
     manualEntry: "mips.arithmetic",
   },

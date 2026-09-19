@@ -54,7 +54,7 @@ export const manualEntries: readonly ManualEntry[] = [
       "samples[i] is element i. Indexes count from 0, so samples[3] is the last of four, and it sits 3 × 4 = 12 bytes from the start of the array.",
       "Inside a struct, an array takes its whole size. In struct Log { int samples[4]; int total; }, total is at offset 16.",
       "With a constant index, the compiler adds the element's offset to the field's offset and loads once, just as for an ordinary field.",
-      "The name of an array, used as a value, is the address of element 0. A variable index needs arithmetic on that address, which later missions cover.",
+      "The name of an array, used as a value, is the address of element 0. A variable index needs arithmetic on that address: Pointer arithmetic, under C, shows it.",
     ],
   },
   {
@@ -125,8 +125,8 @@ export const manualEntries: readonly ManualEntry[] = [
     body: [
       "A value is a row of bits. & keeps a bit only where both sides have it, | keeps a bit where either side has it, and ^ keeps a bit where exactly one side has it.",
       "A mask is a constant chosen for its bit pattern rather than its size. a & 0xFF keeps the low 8 bits and clears the rest, because 0xFF is eight 1 bits. The result is whatever those 8 bits held, so it ranges from 0 to 255.",
-      "Masking with a constant that fits in 16 bits compiles to one instruction, andi. A wider mask does not fit inside the instruction, so the compiler first builds the constant in a register and then uses the two-register form, and. Two instructions instead of one, from changing only the constant.",
-      "Between two registers the forms are and, or, and xor, with no constant to carry.",
+      "Masking with a constant that fits in 16 bits compiles to one instruction, andi. A wider mask does not fit inside the instruction, so the compiler first builds the constant in a register and then uses the two-register form, and. At least two instructions instead of one, from changing only the constant.",
+      "Between two registers the forms are and, or, and xor, with no constant to carry: or sets a bit where either register has it, and xor where exactly one does.",
       "Masking and shifting are often used together: a shift moves the bits you want into place, and a mask discards the rest.",
     ],
   },
@@ -164,7 +164,7 @@ export const manualEntries: readonly ManualEntry[] = [
       "The processor widens the immediate to 32 bits by sign extension: it copies the top bit into the new bits, so a negative constant stays negative. The u in addiu does not mean unsigned. It means an overflow does not stop the program.",
       "sll $v0,$a0,n stores $a0 shifted left by n bits in $v0. Every bit moves n places toward the high end and zeros fill the low places. Each place doubles the value, so shifting left by n multiplies by 2 to the power n.",
       "In C, a << 3 shifts left by 3 and a * 8 multiplies by 8. The compiler emits the same sll for both, so either one matches. A match shows the output is the same, not that the original source used that exact text.",
-      "The analogy has limits. Bits shifted past the top are lost, so a large value overflows, and shifting right does not divide negative numbers the same way. Later missions cover those cases.",
+      "The analogy has limits. Bits shifted past the top are lost, so a large value overflows, and shifting right does not divide negative numbers the same way. The last two paragraphs of this entry cover shifting right.",
       "The listing shows immediates in hexadecimal: 0x5 is 5 and 0x2A is 42. Shift amounts are decimal.",
       "When one expression needs two steps, the compiler keeps the intermediate value in a register, often the destination register itself.",
       "C applies * before +, and + before <<. Parentheses change the order: (a + 3) * 4 adds first, while a + 3 * 4 multiplies 3 by 4 first.",
@@ -226,8 +226,8 @@ export const manualEntries: readonly ManualEntry[] = [
     title: "Branches",
     body: [
       "A branch skips forward when its question is answered yes. Everything between the branch and where it lands is a path that only sometimes runs.",
-      "After a test, the branch reads the test's answer: beq goes when the value is zero and bne when it is not. The listing usually shows them as beqz and bnez, which is the same instruction compared against nothing.",
-      "Against zero there is no test at all. bltz goes when a value is negative, bgez when it is not, bgtz when it is above zero, and blez when it is at most zero. One instruction asks and jumps, where a comparison against anything else needs two.",
+      "After a test, the branch reads the test's answer: beq goes when the value is zero and bne when it is not. The listing usually shows them as beqz and bnez, which is the same instruction with $zero as its second register.",
+      "Against zero there is no test at all. bltz goes when a value is negative, bgez when it is not, bgtz when it is above zero, and blez when it is at most zero. One instruction asks and jumps, where the same question about two registers needs a test and then a branch.",
       "The number on a branch is a distance, not an address. It counts bytes from the branch's own row, and a row is 4 bytes, so .+12 lands three rows further down. It is written in decimal even though other constants are hexadecimal.",
       "Counting those rows is how you find where a path ends. The listing does not draw it for you.",
       "A distance can be negative. .-4 lands one row up, on a row that has already run, so the rows from there down to the branch run again. That is a loop, and it is the only way this compiler writes one.",
@@ -238,7 +238,7 @@ export const manualEntries: readonly ManualEntry[] = [
     section: "MIPS",
     title: "Loops",
     body: [
-      "A loop is a branch that points backward. It sits at the bottom of the rows it repeats, asks its question there, and while the answer is yes goes back up to the first of them. When the answer is no, the row after it runs and the function carries on below.",
+      "A loop is a branch that points backward. It sits at the bottom of the rows it repeats, asks its question there, and while the answer is yes goes back up to the first of them. In the listing that branch ends in a negative distance, such as bgtz $a0,.-4. When the answer is no, the row after it runs and the function carries on below.",
       "That is a do/while: the body runs once before the question is ever asked. do { a = a - 1; } while (a > 0); compiles to the subtraction, then bgtz $a0 pointing back at it.",
       "A while loop asks first, and a body that runs zero times is a different program. The compiler does not build a second kind of loop for it. It writes the same do/while, and puts one extra branch in front, the guard, which asks the opposite question and skips the whole loop when the body should not run at all.",
       "So while (a > 0) begins with blez $a0: at most zero, skip everything. The branch at the bottom is still bgtz. The two ask opposite questions about the same value, and a listing that has both is a while; a listing with only the one at the bottom is a do/while.",
@@ -253,7 +253,7 @@ export const manualEntries: readonly ManualEntry[] = [
     body: [
       "j goes somewhere else with no question asked. jr $ra is the one you already know: it goes to the address held in a register. j carries its destination inside the instruction instead.",
       "An if/else needs one. The branch at the top chooses between the two arms, but when the first arm finishes, something has to stop it running straight on into the second. That something is j, pointing past the else.",
-      "In the target it reads j 0x0. The destination is an address, and addresses are not known until the linker has placed every function, so the compiler leaves the field zero and records a relocation saying where it should point. The comparison checks that relocation, not the zeros, exactly as it did for a global's address.",
+      "In the target it reads j 0x0. The destination is an address, and addresses are not known until the linker has placed every function, so the assembler leaves the field zero and records a relocation saying where it should point. The comparison checks that relocation, not the zeros, exactly as it did for a global's address.",
       "The comparison describes the destination as .text plus a number of bytes. .text is where the code lives, and in a mission's listing the function starts at byte 0, so .text+0x18 is 24 bytes in: row 6.",
       "Like every jump, j has a delay slot, and the compiler usually puts the last step of the first arm there. So the row after j belongs to the arm above it, not to the else below it.",
       "An if with no else needs no jump. When one arm only sets a default that the other replaces, the compiler puts the default in the branch's delay slot and there is nothing to skip.",
@@ -279,7 +279,7 @@ export const manualEntries: readonly ManualEntry[] = [
       "The first four integer or pointer arguments arrive in $a0, $a1, $a2, and $a3, in order.",
       "In int f(int a, int b), a is in $a0 and b is in $a1 when the function starts.",
       "Registers to know now: $a0 to $a3 carry arguments, $v0 carries the return value, $ra holds the return address, and $zero always reads 0.",
-      "Other names, such as $v1, $s0 to $s7, $t0 to $t9, and $sp, appear in later missions. You can ignore them for now.",
+      "Other names appear later: $v1 as a second place for an intermediate, $sp with the first function that makes a call, and $s0 to $s7 and $t0 to $t9 in the Functions phase. You can ignore them until then.",
       "A fifth argument has no register. The caller stores it in its own stack frame, 16 bytes up from $sp, where the called function knows to look: sw $a0,0x10($sp) just before or in the delay slot of the jal is the caller handing over argument five.",
       "Those first 16 bytes are the argument area. Every caller reserves them, even when it passes fewer than five arguments, so a called function always has somewhere to put its four argument registers if it needs to.",
     ],
@@ -293,7 +293,7 @@ export const manualEntries: readonly ManualEntry[] = [
       "Before the call the caller puts the arguments in $a0 to $a3. After it, the answer is in $v0. That is the same agreement every function in this course has kept from the other side; now you see the caller keeping it.",
       "In a mission's target a call reads jal 0x0, for the same reason a jump does: the called function's address is filled in by the linker. The relocation names the function, and the comparison checks the name. Calling the wrong function is reported as a call target.",
       "The function being called is declared but never defined in the mission's source, as in int helper(int x);. That tells the compiler how to call it. Where it actually lives is the linker's business.",
-      "A call overwrites $ra, and this function needs its own $ra to get back to its own caller. So any function that makes a call saves $ra first and loads it back before returning. That is what the first and last rows around every call are, and the next mission explains where they put it.",
+      "A call overwrites $ra, and this function needs its own $ra to get back to its own caller. So any function that makes a call saves $ra first and loads it back before returning. That is what the first and last rows around every call are. Stack frames, under ABI, explains where they put it.",
       "Like every jump, jal has a delay slot, and the compiler puts the last step of preparing the call there: often the copy of an argument.",
     ],
   },
@@ -303,7 +303,7 @@ export const manualEntries: readonly ManualEntry[] = [
     title: "Stack frames",
     body: [
       "$sp, the stack pointer, holds an address below which memory is free. A function that needs memory of its own moves $sp down by that much on entry, uses the bytes between the new and old values, and moves it back up before returning. Those bytes are its stack frame.",
-      "addiu $sp,$sp,-0x18 at the top makes a 24-byte frame. addiu $sp,$sp,0x18 at the bottom, usually in the delay slot of jr $ra, gives it back. The row at the top is often called the prologue and the rows at the bottom the epilogue.",
+      "addiu $sp,$sp,-0x18 at the top makes a 24-byte frame. addiu $sp,$sp,0x18 at the bottom, usually in the delay slot of jr $ra, gives it back. The rows at the top, which make the frame and save what the function must keep, are called the prologue, and the rows at the bottom that restore them and give the frame back are the epilogue.",
       "The first 16 bytes, 0x0 to 0xF, are the argument area every caller reserves. $ra and anything else the function keeps go above that, so sw $ra,0x10($sp) is the smallest case: 16 bytes of argument area, 4 for $ra, and 4 more because frames are kept to a multiple of 8.",
       "A local variable whose address is taken has to live in memory, because an address points at memory, not at a register. It gets a place in the frame too. addiu $a0,$sp,0x10 is that place's address being passed as an argument.",
       "A frame's offsets are counted from $sp after it has moved, so the same variable is at the same offset every time the function runs, wherever the stack happens to be.",
@@ -342,6 +342,7 @@ export const manualEntries: readonly ManualEntry[] = [
       "Fix it where the type is declared. If the target uses lb, the field is signed char. If it uses lbu, it is unsigned char or plain char.",
       "The same rule holds one width up. lh means short and lhu means unsigned short, and a halfword field declared with the wrong signedness misses by exactly one instruction, the way a byte field does.",
       "Stores are not part of this. A narrow store picks its instruction from the width alone, so a wrong signedness on a field that is only written cannot show up in the listing.",
+      "The same rule picks a test. slt compares its operands as signed and sltu as unsigned, so a comparison whose operands are declared with the wrong signedness misses by that one instruction.",
     ],
   },
   {
@@ -375,7 +376,7 @@ export const manualEntries: readonly ManualEntry[] = [
       "Every question has an opposite. Asking whether a value is below another and acting on yes does the same work as asking whether it is not below and acting on no, with the two paths written the other way round.",
       "Both are correct C and they compile differently. The branch instruction changes, and so does the order the two paths appear in the listing.",
       "The comparison names both halves of that when it happens. A difference in the branch itself is reported as a branch condition; the paths appearing in the other order is reported separately as an instruction order. Those two together are the signature of a test written the opposite way round, not two unrelated mistakes.",
-      "Fix it by reading the branch first. It tells you which question the source asked, and the path immediately after it is the one that runs when the answer is no.",
+      "Fix it by reading the branch first. It tells you which question decides the paths, and the path immediately after it runs when the branch's answer is no. The source's if may have asked that question or its opposite, so check which path holds the if's body.",
     ],
   },
   {
@@ -410,7 +411,7 @@ export const manualEntries: readonly ManualEntry[] = [
       "Each listing line is one instruction: a mnemonic, then operands separated by commas. The mnemonic names the operation.",
       "Arithmetic writes to its first operand. addiu $v0,$a0,0x5 reads $a0, adds 5, and writes the sum to $v0. move $v0,$a0 copies $a0 into $v0.",
       "A load also writes to its first operand. lw $v0,0x8($a0) reads memory at the address in $a0 plus 8 and writes the value to $v0.",
-      "A store reads from its first operand. sw $a1,0x0($a0) and sb $a1,0x0($a0) write the value in $a1 to memory at the address in $a0. No register changes.",
+      "A store reads from its first operand. sw $a1,0x0($a0) writes the value in $a1 to memory at the address in $a0. No register changes. Narrower stores such as sb read their operands the same way.",
       "A jump names where to go. jr $ra jumps to the address held in $ra.",
       "A test writes to its first operand, like arithmetic. slt $v0,$a0,$a1 asks whether $a0 is less than $a1 and writes 1 or 0 to $v0. The order of the two source operands is the order of the question.",
       "A branch writes nothing. It reads one or two registers and ends with a distance: bnez $v0,.+12 reads $v0 and, when it is not zero, continues three rows further down. A negative distance goes up: bgtz $a0,.-4 goes back one row while $a0 is above zero.",
@@ -946,7 +947,7 @@ export const manualEntries: readonly ManualEntry[] = [
     section: "GLOSSARY",
     title: "relocation",
     body: [
-      "A note that a constant in an instruction is not final. The compiler leaves the field zero and records which symbol it refers to; the linker fills it in once it has placed everything. The comparison checks the symbol, not the zeros.",
+      "A note that a constant in an instruction is not final. The assembler leaves the field zero and records which symbol it refers to; the linker fills it in once it has placed everything. The comparison checks the symbol, not the zeros.",
     ],
   },
   {
@@ -974,6 +975,14 @@ export const manualEntries: readonly ManualEntry[] = [
     ],
   },
   {
+    id: "glossary.or",
+    section: "GLOSSARY",
+    title: "or and ori",
+    body: [
+      "Inclusive or. Each result bit is 1 when either source bit is 1. In C it is |, and ori does the same with a constant that fits 16 bits.",
+    ],
+  },
+  {
     id: "glossary.nor",
     section: "GLOSSARY",
     title: "nor",
@@ -994,7 +1003,7 @@ export const manualEntries: readonly ManualEntry[] = [
     section: "GLOSSARY",
     title: "beq and bne",
     body: [
-      "Branch on equal and branch on not equal. Each reads two registers and skips forward when they match, or when they do not. Compared against zero they are written beqz and bnez.",
+      "Branch on equal and branch on not equal. Each reads two registers and goes to the row its distance names when they match, or when they do not. Compared against zero they are written beqz and bnez.",
     ],
   },
   {
