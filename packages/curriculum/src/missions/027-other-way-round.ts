@@ -21,7 +21,7 @@ export const otherWayRound: MissionDraft = {
     objective:
       "The target asks whether the first argument is above the second. There is no instruction for that, so the listing shows the only test the machine has, reading its two sources in an order you have to match.",
     newTechnique:
-      "Above and below are the same question asked from opposite ends. Writing it either way is correct C; only one of them produces the row in front of you.",
+      "Above and below are the same question asked from opposite ends, and asking it either way compiles to the same row. What the row fixes is which value it reads first; the starting source reads them the other way round.",
   },
   terms: ["glossary.slt", "glossary.condition", "glossary.a0"],
   starterSource: "int other_way_round(int a, int b)\n{\n    return a < b;\n}\n",

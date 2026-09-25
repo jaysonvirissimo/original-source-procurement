@@ -19,7 +19,7 @@ export const signBit: MissionDraft = {
   compiler: trainingCompiler("sign_bit.c"),
   briefing: {
     objective:
-      "Return whether the argument is negative. Nothing in the listing looks like a question, and no test you write will produce that row: read what it actually does before you write anything.",
+      "Return whether the argument is negative. Nothing in the listing looks like a question, because the compiler answers this one without a test instruction: read what it actually does before you write anything.",
     newTechnique:
       "A negative value is exactly one whose top bit is set. The compiler knows that, so against zero it stops asking and moves that bit down to where an answer of 1 or 0 belongs.",
   },
@@ -52,7 +52,7 @@ export const signBit: MissionDraft = {
   hints: [
     {
       stage: 1,
-      text: "Compile the starting source. It asks a question and the target does not: the highlighted row is not a test at all, and no change to which value you test against will turn one into the other.",
+      text: "Compile the starting source. It asks a question and the target does not: the highlighted row is not a test at all.",
       highlight: { start: 1, end: 2 },
     },
     {

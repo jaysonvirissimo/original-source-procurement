@@ -21,7 +21,7 @@ export const orEqual: MissionDraft = {
     objective:
       "Return whether the first argument is at most the second. The starting source leaves out the at-most part, and adding it costs a row — but not the row you would expect, and not in the place you would expect.",
     newTechnique:
-      "Every mission so far has had one instruction after the return. This one has an instruction before it as well, so the listing finally shows a choice: the compiler decides what to put in the slot after a return, and it is the last step, not the first.",
+      "This answer takes two steps, a test and a flip. Only one fits in the slot after the return, and the compiler puts the last step there, not the first, so the test runs before the return.",
   },
   terms: [
     "glossary.slt",

@@ -27,7 +27,7 @@ export const qualification03: MissionDraft = {
   compiler: trainingCompiler("qualification_03.c"),
   briefing: {
     objective:
-      "Mask the low bits of two different sums and return the difference between them. Every constant and every operand order follows from the listing: read all six rows before you write anything.",
+      "Mask the low bits of two different intermediate results and return the difference between them. Every constant and every operand order follows from the listing: read all six rows before you write anything.",
   },
   terms: [
     "glossary.mask",
