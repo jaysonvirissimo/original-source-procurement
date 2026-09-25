@@ -41,9 +41,11 @@ describe("completionMode", () => {
   });
 
   it("names each mode for players", () => {
-    expect(completionModeText("independent", 0)).toBe("Independent");
-    expect(completionModeText("hinted", 3)).toBe("Hints to stage 3");
-    expect(completionModeText("solution-revealed", 9)).toBe(
+    expect(completionModeText("independent", undefined)).toBe("Independent");
+    expect(completionModeText("hinted", "Hint 3 of 4")).toBe(
+      "Hints through Hint 3 of 4",
+    );
+    expect(completionModeText("solution-revealed", "Solution reveal")).toBe(
       "Solution revealed",
     );
   });

@@ -25,7 +25,7 @@ describe("MatchSummary", () => {
     render(
       <MatchSummary
         result={result}
-        hints={{ opened: 0, available: 5, stage: 0 }}
+        hints={{ opened: 0, stage: 0, reached: undefined }}
       />,
     );
 

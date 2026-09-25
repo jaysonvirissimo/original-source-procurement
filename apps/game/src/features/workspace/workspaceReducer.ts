@@ -12,6 +12,7 @@ import {
   type CompletionState,
   type RecordedActions,
 } from "./completion";
+import { hintPosition, hintReached } from "./hintLabel";
 import type { MissionContextOutcome } from "./missionContext";
 import type { BuildRequest, MissionResult } from "./missionResult";
 
@@ -180,16 +181,21 @@ export function hintsUsed(state: WorkspaceState): number {
 /** How much of the hint ladder the player has opened. */
 export interface HintUsage {
   readonly opened: number;
-  readonly available: number;
   /** The highest stage opened, or 0. */
   readonly stage: number;
+  /** How far the ladder was opened, such as "Hint 2 of 4", if at all. */
+  readonly reached: string | undefined;
 }
 
 export function hintUsage(state: WorkspaceState): HintUsage {
+  const reached = hintReached(state.mission.hints, state.hintStage);
   return {
     opened: hintsUsed(state),
-    available: state.mission.hints.length,
     stage: state.hintStage,
+    reached:
+      reached === undefined
+        ? undefined
+        : hintPosition(state.mission.hints, reached),
   };
 }
 

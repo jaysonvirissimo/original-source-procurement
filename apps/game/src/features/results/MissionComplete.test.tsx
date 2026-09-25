@@ -11,7 +11,7 @@ describe("MissionComplete", () => {
       <MissionComplete
         exact
         attempts={11}
-        hints={{ opened: 1, available: 3, stage: 2 }}
+        hints={{ opened: 1, stage: 2, reached: "Hint 1 of 2" }}
         mode="hinted"
         prediction={{ chosen: "$v0", answer: "$a0", correct: false }}
         skillChanges={[
@@ -47,7 +47,7 @@ describe("MissionComplete", () => {
     );
     expect(screen.getByText("11")).toBeTruthy();
     expect(screen.getByText("HINTS").nextElementSibling?.textContent).toBe(
-      "1 of 3 · stage 2",
+      "Through Hint 1 of 2",
     );
     expect(screen.getByText("PREDICTION").nextElementSibling?.textContent).toBe(
       "First choice $v0; corrected to $a0.",
@@ -62,7 +62,7 @@ describe("MissionComplete", () => {
     expect(screen.queryByText(/verified/i)).toBeNull();
 
     expect(screen.getByText("MODE").nextElementSibling?.textContent).toBe(
-      "Hints to stage 2",
+      "Hints through Hint 1 of 2",
     );
     expect(screen.queryByRole("button", { name: "Practice again" })).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Review workspace" }));
@@ -82,7 +82,7 @@ describe("MissionComplete", () => {
       <MissionComplete
         exact={false}
         attempts={1}
-        hints={{ opened: 3, available: 3, stage: 9 }}
+        hints={{ opened: 3, stage: 9, reached: "Solution reveal" }}
         mode="solution-revealed"
         prediction={{ chosen: "$a0", answer: "$a0", correct: true }}
         skillChanges={[
@@ -119,7 +119,7 @@ describe("MissionComplete", () => {
       <MissionComplete
         exact
         attempts={1}
-        hints={{ opened: 2, available: 2, stage: 9 }}
+        hints={{ opened: 2, stage: 9, reached: "Solution reveal" }}
         mode="solution-revealed"
         prediction={undefined}
         skillChanges={[]}
@@ -139,7 +139,7 @@ describe("MissionComplete", () => {
       <MissionComplete
         exact
         attempts={2}
-        hints={{ opened: 0, available: 3, stage: 0 }}
+        hints={{ opened: 0, stage: 0, reached: undefined }}
         mode={undefined}
         prediction={undefined}
         skillChanges={[]}
@@ -159,7 +159,7 @@ describe("MissionComplete", () => {
       <MissionComplete
         exact
         attempts={1}
-        hints={{ opened: 0, available: 9, stage: 0 }}
+        hints={{ opened: 0, stage: 0, reached: undefined }}
         mode="independent"
         prediction={undefined}
         skillChanges={[]}

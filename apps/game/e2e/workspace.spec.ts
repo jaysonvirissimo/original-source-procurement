@@ -237,6 +237,11 @@ test("hints climb from a weak hint to the solution, and completion still works",
 
   await page.getByRole("button", { name: "Hint" }).click();
   const hints = page.getByRole("region", { name: "Hints" });
+  await expect(
+    hints.getByText(
+      /^4 hints, then a final step that shows the known matching solution\./,
+    ),
+  ).toBeVisible();
   await hints.getByRole("button", { name: "Reveal next hint" }).click();
   await expect(hints.getByText("Hint 1 of 4 · Skill")).toBeVisible();
   for (let stage = 0; stage < 3; stage += 1) {
@@ -252,14 +257,14 @@ test("hints climb from a weak hint to the solution, and completion still works",
   await page.keyboard.press("Escape");
   await expect(hints).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Hint" })).toBeFocused();
-  await expect(summary).toContainText("HINTS5 of 5 · stage 9");
+  await expect(summary).toContainText("HINTSThrough Solution reveal");
 
   await setSource(page, addImmediate(5));
   await compile(page);
   await missionComplete(page);
   await expect(
     page.getByRole("region", { name: "Mission complete" }),
-  ).toContainText("HINTS5 of 5 · stage 9");
+  ).toContainText("HINTSThrough Solution reveal");
 });
 
 test("a mismatch opens on request with a hypothesis about its cause", async ({

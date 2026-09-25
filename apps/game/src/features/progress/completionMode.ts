@@ -11,16 +11,19 @@ export const COMPLETION_MODES = [
 ] as const;
 export type CompletionMode = (typeof COMPLETION_MODES)[number];
 
-/** Words players read for each mode. */
+/**
+ * Words players read for each mode. `reached` is how far the ladder was
+ * opened, such as "Hint 2 of 4"; a raw stage number is never shown.
+ */
 export function completionModeText(
   mode: CompletionMode,
-  stage: number,
+  reached: string | undefined,
 ): string {
   switch (mode) {
     case "independent":
       return "Independent";
     case "hinted":
-      return `Hints to stage ${String(stage)}`;
+      return reached === undefined ? "Hints" : `Hints through ${reached}`;
     case "solution-revealed":
       return "Solution revealed";
   }

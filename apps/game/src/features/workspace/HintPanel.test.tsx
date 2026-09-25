@@ -87,7 +87,7 @@ describe("HintPanel", () => {
       { stage: 1, text: "Name the skill." },
       { stage: 9, text: "The answer.", revealSolution: true },
     ];
-    const notice = /does not advance skills/;
+    const notice = /The next step reveals the solution/;
     const { rerender } = render(
       panel(0, offlineUpstream, { hints: ladder, solution: "" }),
     );
@@ -101,6 +101,42 @@ describe("HintPanel", () => {
 
     rerender(panel(9, offlineUpstream, { hints: ladder, solution: "" }));
     expect(within(region()).queryByText(notice)).toBeNull();
+  });
+
+  it("states the ladder's size and cost before the first hint and keeps it in view", () => {
+    const ladder: Hint[] = [
+      { stage: 1, text: "Name the skill." },
+      { stage: 2, text: "Look here." },
+      { stage: 9, text: "The answer.", revealSolution: true },
+    ];
+    const summary =
+      /^2 hints, then a final step that shows the known matching solution\..*does not advance skills\.$/;
+    const { rerender } = render(
+      panel(0, offlineUpstream, { hints: ladder, solution: "" }),
+    );
+    expect(within(region()).getByText(summary)).toBeTruthy();
+
+    rerender(panel(2, offlineUpstream, { hints: ladder, solution: "" }));
+    expect(within(region()).getByText(summary)).toBeTruthy();
+  });
+
+  it("names each hint's own rows, and marks only the newest highlight", () => {
+    const ladder: Hint[] = [
+      { stage: 2, text: "Start here.", highlight: { start: 0, end: 1 } },
+      { stage: 3, text: "Then these.", highlight: { start: 1, end: 4 } },
+    ];
+    const { rerender } = render(panel(2, offlineUpstream, { hints: ladder }));
+    expect(region().textContent).toContain(
+      "Where to look: Word 0 (marked HINT in the target)",
+    );
+
+    rerender(panel(3, offlineUpstream, { hints: ladder }));
+    const items = within(region()).getAllByRole("listitem");
+    expect(items[0]?.textContent).toContain("Where to look: Word 0");
+    expect(items[0]?.textContent).not.toContain("marked HINT");
+    expect(items[1]?.textContent).toContain(
+      "Where to look: Words 1–3 (marked HINT in the target)",
+    );
   });
 
   it("loads upstream source only once its stage is revealed, and shows it read-only", async () => {

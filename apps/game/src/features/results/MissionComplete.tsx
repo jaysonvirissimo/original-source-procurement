@@ -85,7 +85,7 @@ export function MissionComplete({
         {mode === undefined ? null : (
           <>
             <dt>MODE</dt>
-            <dd>{completionModeText(mode, hints.stage)}</dd>
+            <dd>{completionModeText(mode, hints.reached)}</dd>
           </>
         )}
         {prediction === undefined ? null : (

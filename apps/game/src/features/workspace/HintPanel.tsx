@@ -3,6 +3,7 @@ import { useEffect, useId, useRef, useState, type ReactElement } from "react";
 import { classNames } from "../../styles/classNames";
 import controls from "../../styles/controls.module.css";
 import prose from "../../styles/prose.module.css";
+import { wordsLabel } from "../diff/diffLabels";
 import {
   UPSTREAM_CONTENT_MISMATCH,
   UPSTREAM_HINT_UNAVAILABLE,
@@ -10,7 +11,7 @@ import {
 import type { UpstreamOutcome } from "../upstream/types";
 import { UpstreamErrorState } from "../upstream/UpstreamErrorState";
 import { useUpstream } from "../upstream/upstreamContext";
-import { hintLabel, revealsSolution } from "./hintLabel";
+import { hintLabel, ladderSummary, revealsSolution } from "./hintLabel";
 import styles from "./ReferencePane.module.css";
 
 interface HintPanelProps {
@@ -34,6 +35,8 @@ export function HintPanel({
   const titleId = useId();
   const revealed = mission.hints.filter((hint) => hint.stage <= stage);
   const next = mission.hints.find((hint) => hint.stage > stage);
+  // The target marks only the newest highlight, as the workspace does.
+  const marked = revealed.findLast((hint) => hint.highlight !== undefined);
   const newest = useRef<HTMLParagraphElement>(null);
   const openedAt = useRef(stage);
 
@@ -59,12 +62,8 @@ export function HintPanel({
           Close
         </button>
       </header>
-      {revealed.length === 0 ? (
-        <p className={styles.dim}>
-          Each hint gives away more than the one before it. Using hints never
-          blocks completion.
-        </p>
-      ) : (
+      <p className={styles.dim}>{ladderSummary(mission.hints)}</p>
+      {revealed.length === 0 ? null : (
         <ol className={styles.list}>
           {revealed.map((hint, index) => (
             <li className={styles.item} key={hint.stage}>
@@ -83,7 +82,8 @@ export function HintPanel({
               <p className={prose.prose}>{hint.text}</p>
               {hint.highlight === undefined ? null : (
                 <p className={styles.dim}>
-                  Target rows marked HINT show where to look.
+                  Where to look: {wordsLabel(hint.highlight)}
+                  {hint === marked ? " (marked HINT in the target)" : ""}
                 </p>
               )}
               {hint.revealSolution === true ? (
