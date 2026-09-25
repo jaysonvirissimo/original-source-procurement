@@ -8,8 +8,8 @@ Players write C, compile it in the browser with the PsyQ 4.4 toolchain, and comp
 
 Playable and growing. The game ships:
 
-- Forty-one training missions in seven phases (translation, memory, types and layout, arithmetic, memory widths, conditions, and branches), each with a target generated from its solution by the pinned toolchain, staged hints, walkthroughs, and machine diagrams. Loops, functions, and the calling convention are next.
-- Four field missions on real solved functions from `mgs_reversing`. The repository holds only pointers and hashes; the game fetches the target, headers, and context at runtime from pinned commits.
+- Fifty-six training missions in nine phases (translation, memory, types and layout, arithmetic, memory widths, conditions, branches, loops, and functions), each with a target generated from its solution by the pinned toolchain, staged hints, walkthroughs, and machine diagrams.
+- Six field missions on real solved functions from `mgs_reversing`. The repository holds only pointers and hashes; the game fetches the target, headers, and context at runtime from pinned commits.
 - An in-browser toolchain: C compiles with `psyq-wasm` and assembles with `psyq-asm`. The Settings screen runs a toolchain check.
 - Matching on assembled words with mismatch classification, teaching hypotheses, and an aligned diff view.
 - A mission map with recommendations, an orientation, a searchable manual with a glossary, a context panel with a compiler-verified offset probe, and a docked reference pane.
