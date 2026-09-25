@@ -91,4 +91,4 @@ The compiler and preprocessor artifacts from `psyq-wasm` are GPL-2.0-only. The s
 
 ## License
 
-A license for OSP's own code has not been chosen yet.
+OSP's own code and content are released under the [MIT License](LICENSE). The license covers only what this repository holds. It does not cover the `psyq-wasm` artifacts the site ships, which keep their GPL-2.0-only license, or anything the game loads from `mgs_reversing` or `psyq_sdk` at runtime.

@@ -13,7 +13,8 @@ Use Node.js 24. The exact version is in `.nvmrc` and `.tool-versions`.
 ## Workflow
 
 The maintainer commits to `main` directly. Outside contributors work on a branch and open a pull
-request, whose template carries the same attestation as the commit checklist below.
+request, whose template carries the same attestation as the commit checklist below. Contributions
+are accepted under the project's [MIT License](LICENSE).
 
 - Before every commit, run:
 
