@@ -42,7 +42,7 @@ describe("Briefing", () => {
     ).toEqual(["Return values · Practiced", "OSP.UNKNOWN · New"]);
     expect(
       screen.getByText(
-        "Guided: notes and their explanations appear on their own.",
+        "Guided: notes, their explanations, diagrams and walkthroughs appear on their own.",
       ),
     ).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Enter" }));
@@ -79,7 +79,9 @@ describe("Briefing", () => {
         .map((item) => item.textContent),
     ).toEqual(["Arguments · New", "Shifts · New"]);
     expect(
-      screen.getByText("Minimal: notes appear only through Scan."),
+      screen.getByText(
+        "Minimal: notes, diagrams and walkthroughs appear only through Scan.",
+      ),
     ).toBeTruthy();
   });
 

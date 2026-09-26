@@ -62,7 +62,7 @@ export function rowMarker(
 }
 
 const NOP_LABELS: Readonly<Record<string, string>> = {
-  "branch-delay-nop": "branch delay nop",
+  "branch-delay-nop": "delay-slot nop",
   "load-delay-nop": "load delay nop",
   "hilo-gap-nop": "mult/div gap nop",
   "cop-delay-nop": "coprocessor delay nop",

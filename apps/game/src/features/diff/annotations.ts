@@ -1,4 +1,8 @@
-import { observations, type ObservationKind } from "@osp/matching-core";
+import {
+  observations,
+  wordFacts,
+  type ObservationKind,
+} from "@osp/matching-core";
 import type { InstructionRange, Mission } from "@osp/mission-schema";
 import { presentationFor, type ScaffoldPlan } from "../progress/scaffold";
 
@@ -19,25 +23,36 @@ export interface ShownAnnotation extends WordAnnotation {
   readonly explained: boolean;
 }
 
-const OBSERVED: Readonly<
-  Record<ObservationKind, Omit<WordAnnotation, "range">>
-> = {
-  "delay-slot": {
-    label: "delay slot",
-    text: "This instruction runs in the delay slot of the jump before it, before the jump takes effect.",
-    manualEntry: "mips.delay-slots",
-  },
-  "branch-delay-nop": {
-    label: "branch delay nop",
-    text: "The assembler inserted this nop to fill the delay slot of the jump before it.",
-    manualEntry: "mips.assembler-nops",
-  },
-  "load-delay-nop": {
-    label: "load delay nop",
-    text: "The assembler inserted this nop because the next instruction reads the register just loaded.",
-    manualEntry: "mips.assembler-nops",
-  },
-};
+/**
+ * What the machine does at an observed word. A delay slot follows either a
+ * jump, which always goes, or a branch, which asks first, and the note names
+ * the one the listing shows.
+ */
+function observed(
+  kind: ObservationKind,
+  control: "jump" | "branch",
+): Omit<WordAnnotation, "range"> {
+  switch (kind) {
+    case "delay-slot":
+      return {
+        label: "delay slot",
+        text: `This instruction runs in the delay slot of the ${control} before it, before the ${control} takes effect.`,
+        manualEntry: "mips.delay-slots",
+      };
+    case "branch-delay-nop":
+      return {
+        label: "delay-slot nop",
+        text: `The assembler inserted this nop to fill the delay slot of the ${control} before it.`,
+        manualEntry: "mips.assembler-nops",
+      };
+    case "load-delay-nop":
+      return {
+        label: "load delay nop",
+        text: "The assembler inserted this nop because the next instruction reads the register just loaded.",
+        manualEntry: "mips.assembler-nops",
+      };
+  }
+}
 
 /**
  * Every note on a mission's target, whatever help the player gets: machine
@@ -50,12 +65,16 @@ export function missionAnnotations(
   if (mission.target.kind !== "inline") {
     return [];
   }
-  const observed = observations(
+  const facts = wordFacts(mission.target.words);
+  const machine = observations(
     mission.target.words,
     mission.target.provenance,
   ).map(({ index, kind }): WordAnnotation => ({
     range: { start: index, end: index + 1 },
-    ...OBSERVED[kind],
+    ...observed(
+      kind,
+      facts[index - 1]?.branch === undefined ? "jump" : "branch",
+    ),
   }));
   const authored = (mission.annotations ?? []).map(
     ({ range, text, manualEntry, skill }): WordAnnotation => ({
@@ -66,7 +85,7 @@ export function missionAnnotations(
       ...(skill === undefined ? {} : { skill }),
     }),
   );
-  return [...observed, ...authored].sort(
+  return [...machine, ...authored].sort(
     (first, second) => first.range.start - second.range.start,
   );
 }

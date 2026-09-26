@@ -1202,7 +1202,7 @@ describe("Workspace teaching support", () => {
 
     expect(
       screen.getByText(
-        "Guided: notes and their explanations appear on their own.",
+        "Guided: notes, their explanations, diagrams and walkthroughs appear on their own.",
       ),
     ).toBeTruthy();
     enter();
@@ -1215,7 +1215,9 @@ describe("Workspace teaching support", () => {
     await renderWorkspace(returnPath, { player: practicedReturn() });
 
     expect(
-      screen.getByText("Assisted: short labels appear; Scan explains them."),
+      screen.getByText(
+        "Assisted: short labels appear; their explanations, diagrams and walkthroughs are in Scan.",
+      ),
     ).toBeTruthy();
     enter();
     expect(targetNotes().join(" · ")).toContain("delay slot");
@@ -1282,7 +1284,7 @@ describe("Workspace teaching support", () => {
     ).toContain("The delay slot runs");
     expect(
       screen.getByText(
-        "Teaching support · Guided: notes and their explanations appear on their own.",
+        "Teaching support · Guided: notes, their explanations, diagrams and walkthroughs appear on their own.",
       ),
     ).toBeTruthy();
   });
@@ -1293,8 +1295,11 @@ describe("Workspace teaching support", () => {
 
     expect(screen.queryByRole("region", { name: "Walkthrough" })).toBeNull();
     expect(
+      screen.getByText("This mission's walkthrough is in Scan."),
+    ).toBeTruthy();
+    expect(
       screen.getByText(
-        "Teaching support · Assisted: short labels appear; Scan explains them.",
+        "Teaching support · Assisted: short labels appear; their explanations, diagrams and walkthroughs are in Scan.",
       ),
     ).toBeTruthy();
     fireEvent.click(button("Scan"));
@@ -1302,6 +1307,25 @@ describe("Workspace teaching support", () => {
     expect(
       screen.getByRole("table", { name: "Step by step" }).textContent,
     ).toContain("5 × 4 = 20");
+  });
+
+  it("holds a walkthrough back until the prediction it would answer is recorded", async () => {
+    await renderWorkspace(shippedMission("033"));
+    enter();
+
+    expect(screen.queryByRole("region", { name: "Walkthrough" })).toBeNull();
+    expect(
+      screen.getByText(
+        "The walkthrough appears here once you record a prediction.",
+      ),
+    ).toBeTruthy();
+    const [first] = screen.getAllByRole("radio");
+    if (first === undefined) {
+      throw new Error("033 offers no choices.");
+    }
+    fireEvent.click(first);
+    fireEvent.click(button("Record prediction"));
+    expect(screen.getByRole("region", { name: "Walkthrough" })).toBeTruthy();
   });
 
   it("moves the memory diagram to Scan once the skill is practiced", async () => {

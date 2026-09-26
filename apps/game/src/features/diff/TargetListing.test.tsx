@@ -42,7 +42,7 @@ describe("TargetListing", () => {
         annotations={[
           {
             range: { start: 1, end: 2 },
-            label: "branch delay nop",
+            label: "delay-slot nop",
             text: "The assembler inserted this nop.",
             explained: false,
           },
@@ -54,7 +54,7 @@ describe("TargetListing", () => {
       within(screen.getByRole("table", { name: "Target instructions" }))
         .getAllByRole("row")
         .map((row) => row.textContent),
-    ).toEqual(["WordTargetNote", "0jr $ra", "1nopbranch delay nop"]);
+    ).toEqual(["WordTargetNote", "0jr $ra", "1nopdelay-slot nop"]);
     expect(screen.queryByRole("list", { name: "Annotations" })).toBeNull();
   });
 

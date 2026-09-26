@@ -5,7 +5,7 @@ import { classNames } from "../../styles/classNames";
 import controls from "../../styles/controls.module.css";
 import table from "../diff/DiffPanel.module.css";
 import { wordsLabel } from "../diff/diffLabels";
-import { hex } from "../scan/format";
+import { exampleNumber, hex } from "../scan/format";
 import { bitGroups } from "./bits";
 import { operandReading } from "./operands";
 import styles from "./Walkthrough.module.css";
@@ -16,7 +16,7 @@ const WALKTHROUGH_TITLES: Readonly<Record<MissionWalkthrough["kind"], string>> =
     trace: "Step by step",
     timeline: "Timeline",
     bits: "Bits",
-    caller: "From the caller",
+    caller: "Before and after",
     operands: "Reading the operands",
   };
 
@@ -179,7 +179,7 @@ function exampleValue(value: number | undefined): ReactElement | string {
   if (value === undefined) {
     return "—";
   }
-  return value >= 0x1000 ? <code>{hex(value)}</code> : <code>{value}</code>;
+  return <code>{exampleNumber(value)}</code>;
 }
 
 interface StepTableProps {

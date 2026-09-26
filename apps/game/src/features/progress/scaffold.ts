@@ -69,15 +69,15 @@ export function selectScaffold(
 /** One line telling the player how much help a mission will show. */
 export function supportLabel(plan: ScaffoldPlan): string {
   if (!plan.automaticTeaching) {
-    return "Minimal: notes appear only through Scan.";
+    return "Minimal: notes, diagrams and walkthroughs appear only through Scan.";
   }
   switch (plan.layout) {
     case "guided":
-      return "Guided: notes and their explanations appear on their own.";
+      return "Guided: notes, their explanations, diagrams and walkthroughs appear on their own.";
     case "assisted":
-      return "Assisted: short labels appear; Scan explains them.";
+      return "Assisted: short labels appear; their explanations, diagrams and walkthroughs are in Scan.";
     case "independent":
-      return "Independent: notes appear only through Scan.";
+      return "Independent: notes, diagrams and walkthroughs appear only through Scan.";
     case "field":
       return "Field: a plain workspace; Scan, hints, and the manual stay available.";
   }

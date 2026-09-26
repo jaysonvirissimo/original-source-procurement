@@ -41,7 +41,7 @@ describe("provenanceLabel", () => {
   it("labels inserted nops only", () => {
     expect(provenanceLabel({ kind: "load-delay-nop" })).toBe("load delay nop");
     expect(provenanceLabel({ kind: "branch-delay-nop" })).toBe(
-      "branch delay nop",
+      "delay-slot nop",
     );
     expect(provenanceLabel({ kind: "instruction" })).toBe("");
     expect(provenanceLabel(undefined)).toBe("");
@@ -52,14 +52,14 @@ describe("noteText", () => {
   it("joins labels once each, in order, skipping empty ones", () => {
     expect(
       noteText([
-        "branch delay nop",
-        "branch delay nop",
+        "delay-slot nop",
+        "delay-slot nop",
         "",
         undefined,
         false,
         "HINT",
       ]),
-    ).toBe("branch delay nop · HINT");
+    ).toBe("delay-slot nop · HINT");
     expect(noteText([])).toBe("");
   });
 });

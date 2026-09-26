@@ -56,6 +56,9 @@ describe("MissionMap", () => {
     expect(skipped.textContent).toContain("SKIPS AHEAD");
     expect(skipped.textContent).toContain("Not yet introduced:");
     expect(
+      within(skipped).getByTitle(/^Playable now, but it assumes/),
+    ).toBeTruthy();
+    expect(
       within(skipped)
         .getByRole("link", { name: "009 FIELD OFFSET" })
         .getAttribute("href"),

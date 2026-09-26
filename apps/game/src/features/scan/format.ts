@@ -5,6 +5,14 @@ export function hex(value: number): string {
   return `0x${(value >>> 0).toString(16).toUpperCase()}`;
 }
 
+/**
+ * An illustrative value: an address-sized number in hex, as the prose and
+ * listings write addresses, and anything smaller in decimal.
+ */
+export function exampleNumber(value: number): string {
+  return value >= 0x1000 ? hex(value) : String(value);
+}
+
 /** `word 2`, or `words 0, 3`; a dash when there are none. */
 export function wordList(indexes: readonly number[]): string {
   if (indexes.length === 0) {

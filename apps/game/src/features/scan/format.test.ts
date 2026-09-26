@@ -1,11 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { accessText, hex, wordList } from "./format";
+import { accessText, exampleNumber, hex, wordList } from "./format";
 
 describe("scan formatting", () => {
   it("writes addresses in hexadecimal, including values stored signed", () => {
     expect(hex(0x1000)).toBe("0x1000");
     expect(hex(0x3020)).toBe("0x3020");
     expect(hex(-1)).toBe("0xFFFFFFFF");
+  });
+
+  it("writes address-sized example values in hex and small ones in decimal", () => {
+    expect(exampleNumber(0x3000)).toBe("0x3000");
+    expect(exampleNumber(34)).toBe("34");
   });
 
   it("lists word indexes", () => {

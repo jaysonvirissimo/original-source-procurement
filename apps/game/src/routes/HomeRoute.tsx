@@ -25,7 +25,8 @@ export function HomeRoute(): ReactElement {
           <p className={styles.startText}>
             New to C or assembly? The orientation explains what OSP asks you to
             do and the words mission 001 uses. It is optional: every mission
-            below is open now.
+            below is open now. One marked SKIPS AHEAD is playable too, but it
+            assumes skills that earlier missions introduce.
           </p>
           <a
             className={classNames(controls.button, controls.primary)}

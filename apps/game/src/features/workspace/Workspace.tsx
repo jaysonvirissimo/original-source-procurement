@@ -224,9 +224,13 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
     ).diagrams;
   const showDiagram = diagramShown(example?.skill);
   const walkthroughs = mission.walkthroughs ?? [];
-  const shownWalkthroughs = walkthroughs.filter(({ skill }) =>
+  const levelWalkthroughs = walkthroughs.filter(({ skill }) =>
     diagramShown(skill),
   );
+  // A walkthrough can give a prediction's answer away, so it waits for one.
+  const awaitingPrediction =
+    mission.prediction !== undefined && state.actions.prediction === undefined;
+  const shownWalkthroughs = awaitingPrediction ? [] : levelWalkthroughs;
   const skillNames = useMemo(
     () => new Map(catalog.skills.map((skill) => [skill.id, skill.name])),
     [catalog],
@@ -528,6 +532,13 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
                 <h3 className={controls.label}>MEMORY</h3>
                 <MemoryLayer example={example} facts={facts} />
               </section>
+            ) : null}
+            {walkthroughs.length > shownWalkthroughs.length ? (
+              <p className={scan.caption} role="note">
+                {awaitingPrediction && levelWalkthroughs.length > 0
+                  ? "The walkthrough appears here once you record a prediction."
+                  : "This mission's walkthrough is in Scan."}
+              </p>
             ) : null}
             {shownWalkthroughs.length === 0 ? null : (
               <section className={scan.inline} aria-label="Walkthrough">

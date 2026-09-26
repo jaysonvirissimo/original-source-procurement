@@ -188,7 +188,7 @@ describe("DiffPanel", () => {
         annotations={[
           {
             range: { start: 0, end: 1 },
-            label: "branch delay nop",
+            label: "delay-slot nop",
             text: "The assembler inserted this nop.",
             explained: true,
           },
@@ -200,7 +200,7 @@ describe("DiffPanel", () => {
       screen.getByRole("table", { name: "Target and generated instructions" }),
     ).getAllByRole("row");
     expect(rows[1]?.textContent).toBe(
-      "≈Equal outside relocated fieldslw $v1,0x20($a0)lw $v1,0x20($a0)branch delay nop",
+      "≈Equal outside relocated fieldslw $v1,0x20($a0)lw $v1,0x20($a0)delay-slot nop",
     );
   });
 

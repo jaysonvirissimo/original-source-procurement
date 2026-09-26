@@ -94,7 +94,7 @@ describe("WalkthroughView", () => {
       ],
     });
     expect(screen.getByText(/store_word\(&x, 9\);/)).toBeTruthy();
-    expect(rows("From the caller")).toEqual([
+    expect(rows("Before and after")).toEqual([
       "NameBeforeAfterNote",
       "x429",
       "$a00x1000—&x",

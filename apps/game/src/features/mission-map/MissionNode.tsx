@@ -32,7 +32,16 @@ export function MissionNode({
         <span className={styles.nodeId}>{mission.id}</span> {mission.title}
       </a>
       {marks.length === 0 ? null : (
-        <span className={styles.marks}>{marks.join(" · ")}</span>
+        <span
+          className={styles.marks}
+          title={
+            marks.includes("SKIPS AHEAD")
+              ? "Playable now, but it assumes skills that earlier missions introduce."
+              : undefined
+          }
+        >
+          {marks.join(" · ")}
+        </span>
       )}
       {warning === undefined ? null : (
         <span className={styles.warning}>{warning}</span>

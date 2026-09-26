@@ -62,7 +62,9 @@ test("the minimal setting removes automatic notes and keeps Scan, hints, and the
 
   await page.goto("./#/mission/006");
   await expect(
-    page.getByText("Minimal: notes appear only through Scan."),
+    page.getByText(
+      "Minimal: notes, diagrams and walkthroughs appear only through Scan.",
+    ),
   ).toBeVisible();
   await page.getByRole("button", { name: "Enter" }).click();
   await expect(page.getByRole("button", { name: "Scan" })).toBeVisible();

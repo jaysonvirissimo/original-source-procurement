@@ -153,16 +153,28 @@ describe("supportLabel", () => {
     [
       "guided",
       true,
-      "Guided: notes and their explanations appear on their own.",
+      "Guided: notes, their explanations, diagrams and walkthroughs appear on their own.",
     ],
-    ["assisted", true, "Assisted: short labels appear; Scan explains them."],
-    ["independent", true, "Independent: notes appear only through Scan."],
+    [
+      "assisted",
+      true,
+      "Assisted: short labels appear; their explanations, diagrams and walkthroughs are in Scan.",
+    ],
+    [
+      "independent",
+      true,
+      "Independent: notes, diagrams and walkthroughs appear only through Scan.",
+    ],
     [
       "field",
       true,
       "Field: a plain workspace; Scan, hints, and the manual stay available.",
     ],
-    ["guided", false, "Minimal: notes appear only through Scan."],
+    [
+      "guided",
+      false,
+      "Minimal: notes, diagrams and walkthroughs appear only through Scan.",
+    ],
   ])(
     "describes %s help with automatic teaching %s",
     (layout, automaticTeaching, label) => {

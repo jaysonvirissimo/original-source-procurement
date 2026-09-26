@@ -75,9 +75,30 @@ describe("missionAnnotations", () => {
 
     expect(annotations.map(({ label }) => label)).toEqual([
       "load delay nop",
-      "branch delay nop",
+      "delay-slot nop",
     ]);
     expect(manualLinks(annotations)).toEqual(["mips.assembler-nops"]);
+  });
+
+  it("names a branch or a jump before a delay slot", () => {
+    // OSP-authored words: beqz $a0,+2; addiu $v0,$a0,5; jr $ra; nop.
+    const annotations = missionAnnotations({
+      target: {
+        ...target,
+        words: [0x10800002, 0x24820005, 0x03e00008, 0],
+        provenance: [
+          { kind: "instruction" },
+          { kind: "instruction" },
+          { kind: "macro", macro: "j" },
+          { kind: "branch-delay-nop" },
+        ],
+      },
+    });
+
+    expect(annotations.map(({ text }) => text)).toEqual([
+      "This instruction runs in the delay slot of the branch before it, before the branch takes effect.",
+      "The assembler inserted this nop to fill the delay slot of the jump before it.",
+    ]);
   });
 
   it("shows nothing for a remote target", () => {

@@ -3,7 +3,7 @@ import type { MissionExample } from "@osp/mission-schema";
 import type { ReactElement } from "react";
 import table from "../diff/DiffPanel.module.css";
 import { memoryDiagram } from "./diagrams";
-import { accessText, hex } from "./format";
+import { accessText, exampleNumber, hex } from "./format";
 import styles from "./Scan.module.css";
 
 interface MemoryLayerProps {
@@ -47,7 +47,7 @@ export function MemoryLayer({
                   <td>{cell.size}</td>
                   <td>
                     {cell.pointsTo === undefined ? (
-                      <code>{cell.value}</code>
+                      <code>{exampleNumber(cell.value)}</code>
                     ) : (
                       <>
                         <code>{hex(cell.value)}</code>, the address of{" "}
