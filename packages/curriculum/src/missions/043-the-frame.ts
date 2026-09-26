@@ -19,7 +19,7 @@ export const theFrame: MissionDraft = {
   compiler: trainingCompiler("the_frame.c"),
   briefing: {
     objective:
-      "Copy the argument into a local int and pass fill the address of that local. The starting source keeps the value one int too far up in its frame; the comparison names the offset.",
+      "Copy the argument into a single local int and pass that local's address to fill. The starting source uses a two-int array instead and stores into its second element, so the value sits one int too far up in the frame; the comparison names the offset.",
     newTechnique:
       "A function that calls another makes itself a stack frame: it moves $sp down on entry, keeps $ra and anything else it needs between the old and new values, and moves $sp back before returning. A local whose address is taken lives there too, because an address has to point at memory.",
   },

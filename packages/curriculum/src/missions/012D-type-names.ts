@@ -37,6 +37,7 @@ export const typeNames: MissionDraft = {
   starterSource: `${INCLUDE}void *slot_data(Slot *s)\n{\n    return 0;\n}\n`,
   solution: `${INCLUDE}void *slot_data(Slot *s)\n{\n    return s->data;\n}\n`,
   symbol: "slot_data",
+  contextTypes: ["Slot"],
   example: {
     caption:
       "bridge_types.h declares typedef struct { int kind; void *data; } Slot;. s holds 0x2000, where a Slot starts: kind at +0 and data at +4. data holds 0x3000, the address of something the function never looks at. Values are illustrative.",

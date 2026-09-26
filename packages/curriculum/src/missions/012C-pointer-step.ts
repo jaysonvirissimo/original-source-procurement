@@ -20,7 +20,7 @@ export const pointerStep: MissionDraft = {
   briefing: {
     objective: "Return the address a few ints past a pointer.",
     newTechnique:
-      "p + n moves n elements, not n bytes: the compiler multiplies n by the size of what p points to.",
+      "p + n moves n elements, not n bytes: the compiler multiplies n by the size of what p points to. Indexing is the same arithmetic: p[n] means *(p + n).",
   },
   terms: [
     "glossary.pointer",

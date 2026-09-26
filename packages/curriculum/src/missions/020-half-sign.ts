@@ -23,7 +23,7 @@ export const halfSign: MissionDraft = {
   compiler: trainingCompiler("half_sign.c"),
   briefing: {
     objective:
-      "The body already reads the right field at the right offset, and the listing still does not match. The struct declaration is part of your source, and you may edit it.",
+      "The body already reads the right field at the right offset, and the listing still does not match. The struct declaration is part of your source, and you may edit it. The function's name, gauge_signed, describes the starting declaration, not the one that matches.",
     newTechnique:
       "Signedness picks the load at every width, not only at a byte. The body cannot show it, because the choice is made where the field is declared.",
   },

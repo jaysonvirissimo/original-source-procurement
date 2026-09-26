@@ -37,6 +37,8 @@ export const staticStorage: MissionDraft = {
     "glossary.lw",
     "glossary.address",
     "glossary.relocation",
+    "glossary.linker",
+    "glossary.symbol",
   ],
   starterSource: `${GLOBAL}int read_level(void)\n{\n    return 0;\n}\n`,
   solution: `${GLOBAL}int read_level(void)\n{\n    return level;\n}\n`,
@@ -44,7 +46,7 @@ export const staticStorage: MissionDraft = {
   annotations: [
     {
       range: { start: 0, end: 1 },
-      text: "This row builds the upper half of the variable's address. Its constant reads as zero because the address is not known yet; the linker fills both halves in once it has placed the variable.",
+      text: "This row builds the upper half of the variable's address; the lower half is the offset of the lw below it. Both read as zero because the address is not known yet. The linker fills both in once it has placed the variable.",
       manualEntry: "c.static-storage",
     },
   ],

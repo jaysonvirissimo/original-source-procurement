@@ -25,7 +25,7 @@ export const shiftRight: MissionDraft = {
     objective:
       "The expression already shifts by the right amount and still does not match. What differs is the parameter's declared type, which you may edit.",
     newTechnique:
-      "Shifting right has two instructions. One fills the vacated top bits with zeros; the other copies the sign bit into them so a negative value stays negative. Which one appears depends on the type being shifted, not on the shift.",
+      "Shifting right has two instructions. One fills the vacated top bits with zeros; the other copies the sign bit into them so a negative value stays negative. Which one appears depends on the type being shifted, not on the shift. JavaScript spells the two >>> and >>; C spells both >> and lets the type choose.",
   },
   terms: [
     "glossary.sra",

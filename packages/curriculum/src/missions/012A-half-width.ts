@@ -22,7 +22,7 @@ export const halfWidth: MissionDraft = {
   briefing: {
     objective: "Read a 16-bit short field.",
     newTechnique:
-      "On this target, char is 8 bits, short is 16, and int is 32. The load instruction shows the width.",
+      "On this target, char is 8 bits, short is 16, and int is 32. The load instruction shows the width. Plain char is the exception in PsyQ: it loads unsigned, while plain short and int load signed.",
   },
   terms: [
     "glossary.short",

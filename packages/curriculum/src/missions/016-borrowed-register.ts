@@ -61,7 +61,7 @@ export const borrowedRegister: MissionDraft = {
         },
         {
           range: { start: 3, end: 4 },
-          text: "The second sum is subtracted from the first, and the result lands in the return register: 12 - 6 = 6. This row runs in the delay slot after the return.",
+          text: "The second sum is subtracted from the first, and the result lands in the return register: 12 - 6 = 6. This row sits after the return in the listing, but it runs in the return's delay slot, before the return takes effect.",
         },
       ],
     },

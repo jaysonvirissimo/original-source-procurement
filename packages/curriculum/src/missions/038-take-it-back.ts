@@ -61,6 +61,46 @@ export const takeItBack: MissionDraft = {
     {
       kind: "trace",
       caption:
+        "Two passes, with the argument starting at 2. Each pass's add is done in the delay slot of the pass before it. Values are illustrative.",
+      skill: "MATCH.LOOP_UNDO",
+      steps: [
+        {
+          range: { start: 0, end: 2 },
+          text: "The total starts at zero and the first pass's add runs above the loop: the total is 2.",
+        },
+        {
+          range: { start: 2, end: 3 },
+          text: "Take one off the argument: 2 becomes 1.",
+        },
+        {
+          range: { start: 3, end: 4 },
+          text: "The back edge asks whether 1 is above zero. It is, so the branch will go back up to the row that takes one off.",
+        },
+        {
+          range: { start: 4, end: 5 },
+          text: "Its delay slot runs first and adds 1: the second pass's add, done early. The total is 3.",
+        },
+        {
+          range: { start: 2, end: 3 },
+          text: "Back at the top of the loop, take one off again: 1 becomes 0.",
+        },
+        {
+          range: { start: 3, end: 4 },
+          text: "0 is not above zero, so this time the branch is not taken.",
+        },
+        {
+          range: { start: 4, end: 5 },
+          text: "The delay slot runs anyway and adds 0, for a pass that will not happen. The total stays 3.",
+        },
+        {
+          range: { start: 5, end: 7 },
+          text: "The return's delay slot subtracts the argument, 0, and 3 is returned: 2 + 1, what the do/while adds up.",
+        },
+      ],
+    },
+    {
+      kind: "trace",
+      caption:
         "One pass, with the argument starting at -3, so the loop stops straight away. That is where the extra add is easiest to see, because it is not zero.",
       skill: "MATCH.LOOP_UNDO",
       steps: [

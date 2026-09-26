@@ -58,6 +58,13 @@ export const loadWord: MissionDraft = {
       },
     ],
   },
+  annotations: [
+    {
+      range: { start: 2, end: 3 },
+      text: "Why a nop and not the lw: a loaded value arrives one instruction late, and after a return the next instruction is the caller's, which may read $v0 at once. So the load stays before jr, nothing else is left for the slot, and the assembler fills it.",
+      manualEntry: "mips.assembler-nops",
+    },
+  ],
   walkthroughs: [
     {
       kind: "operands",

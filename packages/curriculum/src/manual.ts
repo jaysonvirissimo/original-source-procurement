@@ -266,7 +266,7 @@ export const manualEntries: readonly ManualEntry[] = [
     body: [
       "A nop is an instruction that does nothing.",
       "The compiler, PsyQ, translates C into assembly. The assembler, ASPSX, turns that assembly into words. Some nops are not in the compiler's output: the assembler inserts them.",
-      "A branch delay nop fills a delay slot that has nothing else to run. In 001, addiu does useful work in jr's delay slot, so no nop is needed there.",
+      "A delay-slot nop fills the delay slot of a jump or branch that has nothing else to run. In 001, addiu does useful work in jr's delay slot, so no nop is needed there.",
       "A load delay nop follows a load when the next instruction reads the register just loaded. The loaded value is not ready one instruction later.",
       "These nops are part of the target. Matching C produces them too.",
     ],
@@ -645,7 +645,7 @@ export const manualEntries: readonly ManualEntry[] = [
     section: "GLOSSARY",
     title: "delay slot",
     body: [
-      "The instruction right after a jump or branch. It runs before the jump takes effect.",
+      "The instruction right after a jump or branch. It runs before the jump takes effect. In jr $ra followed by addiu $v0,$zero,0x2A, the jump is decided first, then the addiu runs, and only then does the caller get control back, with $v0 already set.",
     ],
   },
   {
@@ -677,7 +677,7 @@ export const manualEntries: readonly ManualEntry[] = [
     section: "GLOSSARY",
     title: "sign extension",
     body: [
-      "Widening a value by copying its top bit into the new bits, so a negative number stays negative. Zero extension fills the new bits with 0 instead.",
+      "Widening a value by copying its top bit into the new bits, so a negative number stays negative. In a signed value the top bit is the sign: 1 means negative (see two's complement). Zero extension fills the new bits with 0 instead.",
     ],
   },
   {
@@ -789,7 +789,7 @@ export const manualEntries: readonly ManualEntry[] = [
     section: "GLOSSARY",
     title: "embedded struct",
     body: [
-      "A struct stored inside another struct, reached with a dot. A pointer field, reached with ->, holds the address of a struct stored elsewhere.",
+      "A struct stored inside another struct, reached with a dot. A pointer field, reached with ->, holds the address of a struct stored elsewhere. p->f is short for (*p).f: -> follows an address first, while . names a field of a struct you already have.",
     ],
   },
   {
@@ -943,6 +943,22 @@ export const manualEntries: readonly ManualEntry[] = [
     ],
   },
   {
+    id: "glossary.linker",
+    section: "GLOSSARY",
+    title: "linker",
+    body: [
+      "The tool that joins separately assembled pieces into one program. It decides where every function and variable lives, then fills in each address the assembler left as zero, following the relocations.",
+    ],
+  },
+  {
+    id: "glossary.symbol",
+    section: "GLOSSARY",
+    title: "symbol",
+    body: [
+      "A name the assembler records for a function or a variable, such as helper or level, so the linker can find it. A relocation says which symbol a field refers to.",
+    ],
+  },
+  {
     id: "glossary.relocation",
     section: "GLOSSARY",
     title: "relocation",
@@ -1003,7 +1019,7 @@ export const manualEntries: readonly ManualEntry[] = [
     section: "GLOSSARY",
     title: "beq and bne",
     body: [
-      "Branch on equal and branch on not equal. Each reads two registers and goes to the row its distance names when they match, or when they do not. Compared against zero they are written beqz and bnez.",
+      "Branch on equal and branch on not equal. Each reads two registers and goes to the row its distance names when they match, or when they do not. Compared against zero they are written beqz and bnez: bnez $a0,.+12 is bne $a0,$zero,.+12, which reads one register against zero.",
     ],
   },
   {

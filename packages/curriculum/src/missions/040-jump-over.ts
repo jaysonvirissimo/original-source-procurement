@@ -19,7 +19,7 @@ export const jumpOver: MissionDraft = {
   compiler: trainingCompiler("jump_over.c"),
   briefing: {
     objective:
-      "When the first argument is odd, work with one more than the second argument, and otherwise with one less; return half of it. The starting source sets a default and overrides it, which is the same program without the instruction this mission is about.",
+      "When the first argument is odd, work with one more than the second argument, and otherwise with one less; return half of it. The starting source sets a default and overrides it, which is the same program without the instruction this mission is about. It sits with the loops because the qualification that follows puts an if/else like this one inside a loop.",
     newTechnique:
       "j always goes, with no question asked. An if/else needs one, because when the first arm finishes something has to carry it past the second. Its destination is filled in by the linker, so the target shows 0x0.",
   },

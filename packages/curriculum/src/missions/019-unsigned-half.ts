@@ -39,7 +39,7 @@ export const unsignedHalf: MissionDraft = {
   annotations: [
     {
       range: { start: 0, end: 1 },
-      text: "This load reads 2 bytes and fills the top 16 bits with zeros, because reading is unsigned. A plain short field would sign-extend instead.",
+      text: "This load reads 2 bytes and fills the top 16 bits with zeros, because the field reading is declared unsigned. A plain short field would sign-extend instead.",
       manualEntry: "c.integer-widths",
     },
   ],

@@ -291,11 +291,12 @@ describe("the first teaching slice", () => {
     ["011", ["lb and lbu", "PsyQ"]],
     ["011A", ["array", "element", "offset"]],
     ["011B", ["pointer", "embedded struct", "nop"]],
-    ["012", ["pointer", "struct", "temporary", "nop"]],
+    ["012", ["pointer", "struct", "temporary", "$v1", "nop"]],
     ["012A", ["short", "lh and lhu", "sign extension"]],
     ["012B", ["padding", "alignment", "embedded struct"]],
     ["012C", ["pointer", "element"]],
     ["012D", ["typedef", "header file", "void *", "void"]],
+    ["023", ["relocation", "linker", "symbol"]],
   ])("links glossary entries for the terms %s introduces", (id, expected) => {
     const glossary = new Map(
       manualEntries

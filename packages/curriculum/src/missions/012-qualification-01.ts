@@ -36,6 +36,7 @@ export const qualification01: MissionDraft = {
     "glossary.pointer",
     "glossary.struct",
     "glossary.temporary",
+    "glossary.v1",
     "glossary.lw",
     "glossary.lb",
     "glossary.sw",

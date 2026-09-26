@@ -24,7 +24,7 @@ export const putItBack: MissionDraft = {
     objective:
       "Predict why this function stores $s0 and $s1 at the top and loads them back at the bottom, when its own values in them are never needed again after the additions.",
     newTechnique:
-      "$s0 to $s7 come with a promise: a function that uses one must give it back as it found it. That promise is what made $s0 safe across a call in the last mission, and keeping it costs a store at the top and a load at the bottom for each one, the loads in the reverse order of the stores.",
+      "$s0 to $s7 are the saved registers. In the last mission $s0 kept a value safe across a call. Here each one costs a store at the top and a load at the bottom, the loads in the reverse order of the stores, and the prediction asks why they are needed.",
   },
   terms: [
     "glossary.s0",
@@ -52,12 +52,12 @@ export const putItBack: MissionDraft = {
   annotations: [
     {
       range: { start: 1, end: 4 },
-      text: "The caller's $s0 and $s1 are stored before this function puts b and c in them.",
+      text: "$s0 and $s1 are stored into the frame before b and c go into them.",
       manualEntry: "abi.saved-registers",
     },
     {
       range: { start: 10, end: 12 },
-      text: "The caller's values loaded back, $s1 first and $s0 last: the reverse of the stores, like brackets closing.",
+      text: "$s1 and $s0 are loaded back from the frame, $s1 first and $s0 last: the reverse of the stores, like brackets closing.",
       manualEntry: "abi.saved-registers",
     },
   ],

@@ -19,7 +19,8 @@ export const storeWord: MissionDraft = {
   compiler: trainingCompiler("store_word.c"),
   briefing: {
     objective: "Update a pointed-to integer.",
-    newTechnique: "sw writes 32 bits to a base register plus an offset.",
+    newTechnique:
+      "sw writes 32 bits to a base register plus an offset. Its first operand is the source: the value written, not a destination.",
   },
   terms: ["glossary.sw", "glossary.pointer", "glossary.void", "glossary.a0"],
   starterSource: "void store_word(int *p, int v)\n{\n}\n",

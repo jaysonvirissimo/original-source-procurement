@@ -36,7 +36,7 @@ export const argumentZero: MissionDraft = {
   symbol: "argument_zero",
   prediction: {
     question: "Which register carries the first integer argument?",
-    choices: ["$v0", "$a0", "$s0", "$ra"],
+    choices: ["$v0", "$a0", "$a1", "$ra"],
     answer: 1,
     revealedBy: "The instruction in the delay slot of jr copies $a0 into $v0.",
   },
