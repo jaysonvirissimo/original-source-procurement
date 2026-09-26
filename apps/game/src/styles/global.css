@@ -36,7 +36,7 @@ samp {
 }
 
 a {
-  color: var(--osp-info);
+  color: var(--osp-grid);
   text-underline-offset: 3px;
 }
 

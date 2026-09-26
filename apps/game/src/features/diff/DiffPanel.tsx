@@ -122,13 +122,13 @@ export function DiffPanel({
           </tbody>
         </table>
       </div>
-      <AnnotationList annotations={annotations} />
       <MismatchEvidence
         mismatches={result.mismatches}
         hypotheses={hypotheses}
         selected={selected}
         onSelect={setChosen}
       />
+      <AnnotationList annotations={annotations} />
     </div>
   );
 }

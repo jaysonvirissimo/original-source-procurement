@@ -155,8 +155,7 @@
 }
 
 .nodeLink {
-  display: inline-flex;
-  gap: var(--osp-space-2);
+  display: block;
   color: var(--osp-text);
   text-decoration: none;
   letter-spacing: 0.06em;
@@ -174,6 +173,7 @@
 }
 
 .nodeId {
+  margin-right: var(--osp-space-1);
   font-family: var(--osp-font-code);
   color: var(--osp-text-dim);
 }
@@ -190,16 +190,24 @@
   color: var(--osp-warning);
 }
 
+/* Done work recedes: dimmer surface and text, a solid bar on the left. */
 .complete {
-  border-left: var(--osp-border-strong) solid var(--osp-grid);
+  border-color: var(--osp-grid-dim);
+  border-left: var(--osp-border-strong) solid var(--osp-grid-dim);
+  background: var(--osp-surface-0);
+}
+
+.complete .nodeLink {
+  color: var(--osp-text-dim);
 }
 
 .complete .marks {
   color: var(--osp-grid);
 }
 
+/* The next step is the brightest thing on the map. */
 .recommended {
-  border-color: var(--osp-grid);
+  border: var(--osp-border-strong) solid var(--osp-match);
   background: var(--osp-frame-ticks), var(--osp-surface-2);
 }
 

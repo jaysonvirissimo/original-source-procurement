@@ -12,6 +12,11 @@
     color var(--osp-fast);
 }
 
+.button:any-link {
+  display: inline-block;
+  text-decoration: none;
+}
+
 .button:hover:not(:disabled) {
   border-color: var(--osp-grid);
 }

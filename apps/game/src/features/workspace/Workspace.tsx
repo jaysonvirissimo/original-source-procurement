@@ -629,7 +629,7 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
             `minmax(0, ${String(state.split)}fr) auto minmax(0, ${String(1 - state.split)}fr)`,
             ...(state.overlay === "none"
               ? []
-              : [`auto min(${String(paneWidth)}px, 45%)`]),
+              : [`auto min(${String(paneWidth)}px, 33%)`]),
           ].join(" "),
         }}
       >

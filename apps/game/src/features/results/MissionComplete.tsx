@@ -1,5 +1,6 @@
 import type { Mission } from "@osp/mission-schema";
 import { useEffect, useId, useRef, type ReactElement } from "react";
+import { classNames } from "../../styles/classNames";
 import controls from "../../styles/controls.module.css";
 import { FieldProvenance } from "../field/FieldProvenance";
 import type { MissionProvenance } from "../field/provenance";
@@ -128,9 +129,17 @@ export function MissionComplete({
         </div>
       )}
       {provenance === undefined ? null : (
-        <FieldProvenance provenance={provenance} />
+        <FieldProvenance provenance={provenance} linked />
       )}
       <div className={styles.actions}>
+        {next === undefined ? null : (
+          <a
+            className={classNames(controls.button, controls.primary)}
+            href={`#/mission/${encodeURIComponent(next.id)}`}
+          >
+            Next mission · {next.id} {next.title}
+          </a>
+        )}
         <button className={controls.button} type="button" onClick={onReview}>
           Review workspace
         </button>
@@ -148,12 +157,10 @@ export function MissionComplete({
             No mission follows this one on the training path yet. The map shows
             anything left to play or practice.
           </p>
-        ) : (
-          <a href={`#/mission/${encodeURIComponent(next.id)}`}>
-            Next mission · {next.id} {next.title}
-          </a>
-        )}
-        <a href="#/">Back to map</a>
+        ) : null}
+        <a className={controls.button} href="#/">
+          Back to map
+        </a>
       </div>
     </section>
   );

@@ -217,5 +217,8 @@ describe("Briefing", () => {
     );
 
     expect(screen.queryByLabelText("Provenance")).toBeNull();
+    expect(
+      screen.getByRole("link", { name: "Back to map" }).getAttribute("href"),
+    ).toBe("#/");
   });
 });

@@ -70,7 +70,7 @@ export function Briefing({
       </h1>
       <dl className={styles.facts}>
         <dt>Objective</dt>
-        <dd>{mission.briefing.objective}</dd>
+        <dd className={styles.objective}>{mission.briefing.objective}</dd>
         {mission.briefing.newTechnique === undefined ? null : (
           <>
             <dt>New technique</dt>
@@ -128,13 +128,18 @@ export function Briefing({
       {provenance === undefined ? null : (
         <FieldProvenance provenance={provenance} linked={solved} />
       )}
-      <button
-        className={classNames(controls.button, controls.primary)}
-        type="button"
-        onClick={onEnter}
-      >
-        Enter
-      </button>
+      <div className={styles.actions}>
+        <button
+          className={classNames(controls.button, controls.primary)}
+          type="button"
+          onClick={onEnter}
+        >
+          Enter
+        </button>
+        <a className={controls.button} href="#/">
+          Back to map
+        </a>
+      </div>
     </section>
   );
 }

@@ -13,14 +13,19 @@ export interface AmbientShape {
   readonly radius: number;
 }
 
-/** Sparse wireframe shapes placed around the edges of the view, never behind its center. */
+/**
+ * Sparse wireframe shapes at the side edges of the view, below the eye line.
+ * The upper half holds the wordmark, headings and links, which sit on no
+ * panel, so a shape there crosses text; lower down the opaque panels cover
+ * all but the margins, and the shapes frame them instead.
+ */
 export const AMBIENT_SHAPES: readonly AmbientShape[] = [
-  { position: [-9, 1.5, -6], radius: 1.2 },
-  { position: [8, 3, -9], radius: 1.6 },
-  { position: [-5, 4.5, -14], radius: 1 },
-  { position: [11, 0.5, -4], radius: 0.8 },
-  { position: [3, 5, -16], radius: 1.4 },
-  { position: [-13, 5.5, -12], radius: 1.1 },
+  { position: [-12, -1, -8], radius: 1.2 },
+  { position: [12, -0.5, -10], radius: 1.4 },
+  { position: [-19, -2, -16], radius: 1 },
+  { position: [16, 1, -15], radius: 1.1 },
+  { position: [-10, -3, -6], radius: 0.8 },
+  { position: [11, -3.5, -7], radius: 0.9 },
 ];
 
 /**

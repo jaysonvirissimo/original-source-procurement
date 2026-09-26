@@ -1,3 +1,9 @@
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--osp-space-3);
+}
+
 .briefing {
   display: grid;
   gap: var(--osp-space-4);
@@ -38,6 +44,15 @@
   margin: 0;
 }
 
+/* The objective is what the player came for, so it leads the readout. */
+.objective {
+  max-width: var(--osp-measure-prose);
+  font-family: var(--osp-font-prose);
+  font-size: var(--osp-font-size-prose);
+  line-height: var(--osp-line-height-prose);
+  color: var(--osp-text);
+}
+
 .warning {
   margin-top: var(--osp-space-2);
   color: var(--osp-warning);
@@ -74,7 +89,8 @@
 
 .terms summary {
   font-family: var(--osp-font-code);
-  color: var(--osp-info);
+  font-size: var(--osp-font-size-label);
+  color: var(--osp-grid);
   cursor: pointer;
 }
 
@@ -86,8 +102,4 @@
 
 .orientation {
   color: var(--osp-text-dim);
-}
-
-.orientation a {
-  color: var(--osp-info);
 }

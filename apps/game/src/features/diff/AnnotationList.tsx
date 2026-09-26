@@ -18,7 +18,7 @@ export function AnnotationList({
   return (
     <ul className={styles.mismatches} aria-label="Annotations">
       {explained.map((annotation, index) => (
-        <li className={styles.mismatch} key={index}>
+        <li className={styles.annotation} key={index}>
           <p className={styles.kind}>
             {wordsLabel(annotation.range)} · {annotation.label}
           </p>

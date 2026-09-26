@@ -607,7 +607,7 @@ describe("Workspace", () => {
     fireEvent.click(button("Hint"));
     const hints = screen.getByRole("region", { name: "Hints" });
     expect(hints.parentElement?.parentElement).toBe(split);
-    expect(split?.style.gridTemplateColumns).toContain("min(420px, 45%)");
+    expect(split?.style.gridTemplateColumns).toContain("min(420px, 33%)");
     expect(screen.getByRole("textbox", { name: "C source" })).toBeTruthy();
     expect(screen.getByRole("region", { name: "Assembly" })).toBe(assembly);
     expect(document.activeElement).toBe(

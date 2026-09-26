@@ -119,6 +119,14 @@
   outline-offset: 2px;
 }
 
+.annotation {
+  display: grid;
+  gap: var(--osp-space-1);
+  padding: var(--osp-space-2) var(--osp-space-3);
+  border-left: var(--osp-border-strong) solid var(--osp-line);
+  background: var(--osp-surface-1);
+}
+
 .mismatch[data-selected="true"] {
   border-left-color: var(--osp-info);
 }
