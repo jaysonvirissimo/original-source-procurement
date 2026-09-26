@@ -7,7 +7,7 @@ import { MissionNode } from "./MissionNode";
 const REGION_DETAILS: Readonly<Record<MapRegion["kind"], string | undefined>> =
   {
     phase: undefined,
-    field: "Solved functions recovered from the real game.",
+    field: "Real game functions that someone has already matched.",
     live: "Functions no one has matched yet.",
   };
 

@@ -68,7 +68,12 @@ describe("ContextPanel", () => {
         .getAllByRole("button")
         .map((button) => button.textContent),
     ).toEqual(["Close"]);
-    expect(within(region).getByText("Offsets here")).toBeTruthy();
+    const offsets = within(region).getByText("Offsets here");
+    // The offset table comes first, above headers that can run long.
+    expect(
+      offsets.compareDocumentPosition(headers) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
 
     fireEvent.click(within(region).getByRole("button", { name: "Close" }));
     expect(onClose).toHaveBeenCalledOnce();

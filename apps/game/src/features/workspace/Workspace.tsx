@@ -24,6 +24,7 @@ import { useToolchain } from "../compiler/toolchainContext";
 import type { CompilerDiagnostic } from "../compiler/types";
 import { nextMission, useMissionCatalog } from "../curriculum/missionCatalog";
 import { missingSkills } from "../mission-map/mapModel";
+import { missionStatus } from "../progress/progressReducer";
 import {
   manualLinks,
   missionAnnotations,
@@ -442,6 +443,9 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
           catalog.manualEntries.filter((entry) => entry.id === id),
         )}
         orientation={catalog.defaultPath[0] === mission.id}
+        solved={
+          missionStatus(progress.state.missions[mission.id]) === "complete"
+        }
         onEnter={() => {
           dispatch({ type: "entered" });
           record({ type: "mission-started", mission: missionRef, at: now() });

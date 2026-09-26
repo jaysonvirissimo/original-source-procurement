@@ -4,9 +4,9 @@
  */
 export const PROVENANCE_LEGEND = [
   {
-    term: "Recovered from",
+    term: "Matched by",
     meaning:
-      "The public decompilation project whose contributors recovered this function's C. You can ignore it while solving.",
+      "The public decompilation project whose contributors wrote C that compiles to exactly this function's instructions. That C is a match, not necessarily the original source. You can ignore it while solving.",
   },
   {
     term: "Overlay",
@@ -16,7 +16,7 @@ export const PROVENANCE_LEGEND = [
   {
     term: "Symbol",
     meaning:
-      "The function's name. You need this one: your source must define a function with exactly this name, because the comparison looks for it.",
+      "The name the project uses for the function. You need this one: your source must define a function with exactly this name, because the comparison looks for it.",
   },
   {
     term: "Address",
@@ -26,6 +26,6 @@ export const PROVENANCE_LEGEND = [
   {
     term: "Target",
     meaning:
-      "The project file that holds the instructions you match, and the commit: a fixed snapshot of the project, so the target never changes while you work. You can ignore it while solving.",
+      "The project file that holds the instructions you match, and the commit: a fixed snapshot of the project, so those instructions never change while you work. It links to the file once you have matched the function, because the project around it holds that function's C. You can ignore it while solving.",
   },
 ] as const;

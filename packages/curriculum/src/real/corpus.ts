@@ -37,6 +37,7 @@ export const pointerCorpus: PointerCorpus = {
         "C.STRUCT.FIELD",
         "MIPS.STORE.WORD",
         "MIPS.ARITH.ADD_IMMEDIATE",
+        "MIPS.REGISTER.TEMP",
       ],
       scaffold: "field",
       completion: "exact",
@@ -321,7 +322,7 @@ export const pointerCorpus: PointerCorpus = {
           "font_set_buffer sets the buffer for a font control block in the game. Write font_set_buffer so it compiles to the four target rows. It takes a font control block and a buffer, and it stores into two fields of the block before returning. Open Context to read the block's declaration and each field's offset.",
       },
       contextTypes: ["KCB", "RECT"],
-      terms: ["glossary.delay-slot"],
+      terms: ["glossary.delay-slot", "glossary.generic-pointer"],
       starterSource:
         '#include "font.h"\n\nvoid font_set_buffer(KCB *kcb, void *buffer)\n{\n}\n',
       symbol: "font_set_buffer",
@@ -337,7 +338,7 @@ export const pointerCorpus: PointerCorpus = {
       hints: [
         {
           stage: 1,
-          text: "This mission combines struct fields reached through a pointer argument, full-width stores, and a constant added to an argument. Nothing is loaded. The function only writes.",
+          text: "This mission combines struct fields reached through a pointer argument, word stores, and a constant added to an argument. Nothing is loaded. The function only writes.",
         },
         {
           stage: 2,
@@ -346,16 +347,16 @@ export const pointerCorpus: PointerCorpus = {
         },
         {
           stage: 3,
-          text: "The highlighted rows add a constant to the second argument and keep the result in that same argument register. Then the function returns. The store after the return sits in the delay slot, so it still runs, and it writes the adjusted value into a second field through the first argument.",
+          text: "The highlighted rows add a constant to the second argument and keep the result in that same argument register. Then the function returns. The store listed after the return runs in its delay slot, before the return takes effect, and it writes the adjusted value into a second field through the first argument.",
           highlight: { start: 1, end: 4 },
         },
         {
           stage: 4,
-          text: "The body is two assignments to struct fields through a pointer. One assigns a parameter as it is. The other assigns an expression built from a parameter plus a constant. There is no return value, no local variable, and no condition.",
+          text: "A body that matches writes two fields of the block through the first argument and does no other work that the rows show. One field gets the second argument exactly as it arrived. The other field gets the second argument with a constant added. Nothing is read, nothing is left where the return value is expected, and any C that produces these rows matches, whether the addition is written with a plus sign, with indexing or with a cast.",
         },
         {
           stage: 5,
-          text: "Here is the struct declaration. To match an offset to a field, add up the sizes of the fields before it, in order. Pointers and ints take 4 bytes on this machine, shorts take 2, and chars take 1. A field may be pushed forward so it lines up with its own size. A nested struct or array counts its whole size.",
+          text: "Here is the project's declaration of the struct. To match an offset to a field, add up the sizes of the fields before it, in order. Pointers and ints take 4 bytes on this machine, shorts take 2, and chars take 1. A field may be pushed forward so it lines up with its own size. A nested struct or array counts its whole size, which the offset table in Context gives.",
           reveal: {
             repository: "FoxdieTeam/mgs_reversing",
             commit: "d8145676642e629623f5eaf036ed8e8b1c5e17af",
@@ -367,7 +368,7 @@ export const pointerCorpus: PointerCorpus = {
         },
         {
           stage: 6,
-          text: "Adding a constant to a pointer moves it by that many elements, so the machine constant is the count times the element size. Arithmetic on a void pointer or a char pointer moves by single bytes, so the constant in the row appears exactly as written. Arithmetic on a pointer to a larger type multiplies the constant, and a sum written as an integer may add a conversion step. Pick the form whose constant matches the highlighted add. In the comparison view, a store with a different offset means the wrong field. An add with a different constant means the wrong step size. Rows that match but sit in different positions mean the statements need rearranging.",
+          text: "Adding a constant to a pointer moves it by that many elements, so the constant in the row is the count times the element size. Arithmetic on a char pointer moves by single bytes, so the constant in the row appears exactly as written. Standard C does not allow arithmetic on a void pointer; PsyQ does, one byte per step. Arithmetic on a pointer to a larger type multiplies the constant, and a sum written as an integer may add a conversion step. Pick the form whose constant matches the highlighted add.",
         },
         {
           stage: 9,

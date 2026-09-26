@@ -39,18 +39,29 @@ describe("FieldProvenance", () => {
     const ignorable = PROVENANCE_LEGEND.filter(({ meaning }) =>
       meaning.includes("You can ignore it while solving."),
     ).map(({ term }) => term);
-    expect(ignorable).toEqual([
-      "Recovered from",
-      "Overlay",
-      "Address",
-      "Target",
-    ]);
+    expect(ignorable).toEqual(["Matched by", "Overlay", "Address", "Target"]);
   });
 
   it("quotes no instructions, registers, or values", () => {
     for (const { meaning } of PROVENANCE_LEGEND) {
       expect(realMissionTextIssues(meaning)).toEqual([]);
     }
+  });
+
+  it("links the target file only once the function is matched", () => {
+    const url = "https://github.com/FoxdieTeam/mgs_reversing/blob/x/a.s";
+    const linked = { ...provenance, target: { ...provenance.target, url } };
+    const { rerender } = render(<FieldProvenance provenance={linked} />);
+    const readout = screen.getByLabelText("Provenance");
+    expect(within(readout).queryByRole("link")).toBeNull();
+    expect(readout.textContent).toContain("asm/sample/sample_function.s");
+
+    rerender(<FieldProvenance provenance={linked} linked />);
+    expect(
+      within(screen.getByLabelText("Provenance"))
+        .getByRole("link")
+        .getAttribute("href"),
+    ).toBe(url);
   });
 
   it("omits Address from the readout when it is unknown", () => {

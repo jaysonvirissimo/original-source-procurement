@@ -186,6 +186,7 @@ describe("Briefing", () => {
         skillNames={new Map()}
         skillStates={new Map()}
         plan={guided}
+        solved
         onEnter={vi.fn()}
       />,
     );

@@ -175,10 +175,9 @@ test("a field mission loads from the raw host, shows provenance, and matches exa
   await page.goto(`./#/mission/${FIELD_MISSION_ID}`);
   const provenance = page.getByLabel("Provenance");
   await expect(provenance).toContainText("osp_pair_sum");
-  await expect(provenance.getByRole("link")).toHaveAttribute(
-    "href",
-    `https://github.com/FoxdieTeam/mgs_reversing/blob/${FIELD_COMMITS.target}/${FIELD_PATHS.target}`,
-  );
+  // The target file links out only after a solve; before one it is text.
+  await expect(provenance).toContainText(FIELD_PATHS.target);
+  await expect(provenance.getByRole("link")).toHaveCount(0);
   await page.getByRole("button", { name: "Enter" }).click();
 
   await expect(targetListing(page)).toContainText("lw $v0,0x4($a0)");

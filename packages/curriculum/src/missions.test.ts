@@ -133,9 +133,14 @@ describe("the first teaching slice", () => {
     expect(f01?.contextTypes).toEqual(["KCB", "RECT"]);
   });
 
-  it("lists the delay-slot glossary entry under the first field mission, whose last store runs in a delay slot", () => {
+  it("lists the entries the first field mission leans on: its last store runs in a delay slot, and it steps a void pointer", () => {
     const f01 = pointerCorpus.missions.find((entry) => entry.id === "F01");
-    expect(f01?.terms).toEqual(["glossary.delay-slot"]);
+    expect(f01?.terms).toEqual([
+      "glossary.delay-slot",
+      "glossary.generic-pointer",
+    ]);
+    // It adds into an argument register, so Register reuse is among its entries.
+    expect(f01?.practices).toContain("MIPS.REGISTER.TEMP");
   });
 
   it("supplies the type names mission's header as authored compiler input", () => {

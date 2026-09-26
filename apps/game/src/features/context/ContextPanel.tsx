@@ -17,7 +17,7 @@ interface ContextPanelProps {
   readonly starterSource: string;
   readonly onRetry: () => void;
   readonly onClose: () => void;
-  /** Shown after the headers, such as the field-offset table. */
+  /** Shown before the headers, such as the field-offset table, which a player reaches for first. */
   readonly children?: ReactNode;
 }
 
@@ -110,8 +110,8 @@ export function ContextPanel({
         them, listed in the order the includes reach them. Reading them costs
         nothing and is not recorded as a hint.
       </p>
-      {renderHeaders()}
       {children}
+      {renderHeaders()}
     </section>
   );
 }

@@ -33,6 +33,8 @@ interface BriefingProps {
   readonly terms?: readonly ManualEntry[];
   /** Offers the orientation, before the first mission on the path. */
   readonly orientation?: boolean;
+  /** The player has completed this mission, so its upstream target may link out. */
+  readonly solved?: boolean;
   readonly onEnter: () => void;
 }
 
@@ -44,6 +46,7 @@ export function Briefing({
   plan,
   terms = [],
   orientation = false,
+  solved = false,
   onEnter,
 }: BriefingProps): ReactElement {
   const titleId = useId();
@@ -123,7 +126,7 @@ export function Briefing({
         </p>
       ) : null}
       {provenance === undefined ? null : (
-        <FieldProvenance provenance={provenance} />
+        <FieldProvenance provenance={provenance} linked={solved} />
       )}
       <button
         className={classNames(controls.button, controls.primary)}

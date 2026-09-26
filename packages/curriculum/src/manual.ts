@@ -353,7 +353,7 @@ export const manualEntries: readonly ManualEntry[] = [
       "A register holds whatever the compiler last put in it. The compiler picks registers for values, not for the names in your source.",
       "When an expression such as p + 4 is needed once, the compiler may compute it in the register that held p. After that instruction the register holds the new address, but the variable p in your source has not changed.",
       "So when a listing writes a new value into an argument register, do not look for an assignment to that parameter. Look for the expression whose result the register now holds.",
-      "Naming the result first, as in char *end = p + 4;, often assembles to the same words, because the compiler does not keep the extra name.",
+      "Naming the result first, as in char *end = p + 4;, often assembles to the same instructions, because the compiler does not keep the extra name.",
     ],
   },
   {
@@ -397,10 +397,10 @@ export const manualEntries: readonly ManualEntry[] = [
     section: "C",
     title: "Storing addresses",
     body: [
-      "A pointer is an address. Assigning one, as in o->data = p;, copies that address: 4 bytes on this machine, stored with one sw.",
-      "The memory at that address is not copied. Afterwards o->data and p name the same bytes, so a change made through one is visible through the other.",
-      "Copying the contents takes more: a loop, a struct assignment, or a call such as memcpy. Each of those assembles to more than a single store.",
-      "Storing p + n stores a different address, n elements further along. The data still stays where it is.",
+      "A pointer is an address. Assigning one, as in a->next = b->next;, copies that address: 4 bytes on this machine, and the store is one sw.",
+      "The memory at that address is not copied. Afterwards a->next and b->next hold the same address, so they point to the same bytes, and a change made through one is visible through the other.",
+      "Background: copying the contents takes more, such as a loop, a struct assignment, or a call such as memcpy. Each of those assembles to more than a single store.",
+      "Storing &list[n], the address of element n, stores a different address, n elements further along. The data still stays where it is. Pointer arithmetic, under C, says how n becomes a byte count, and how void * differs.",
     ],
   },
   {
@@ -845,7 +845,7 @@ export const manualEntries: readonly ManualEntry[] = [
     section: "GLOSSARY",
     title: "void *",
     body: [
-      "A generic pointer: it holds an address of any type. Unlike void as a return type, it is a real 4-byte value.",
+      "A generic pointer: it holds an address of any type. Unlike void as a return type, it is a real 4-byte value. Standard C does not allow adding to one; PsyQ does, one byte per step. Pointer arithmetic, under C, has more.",
     ],
   },
   {
