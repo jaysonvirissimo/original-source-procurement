@@ -146,11 +146,11 @@ test("a wrong prediction completes only after the revealed answer is chosen", as
 
   const prediction = page.getByRole("region", { name: "Prediction" });
   const check = prediction.getByRole("button", { name: "Check answer" });
-  await prediction.getByRole("radio", { name: "$s0" }).check();
+  await prediction.getByRole("radio", { name: "$a1" }).check();
   await expect(check).toBeEnabled({ timeout: 30_000 });
   await check.click();
   await expect(prediction.getByRole("status")).toHaveText(
-    "Not $s0. Read the output again.",
+    "Not $a1. Read the output again.",
   );
   await expect(
     page.getByRole("heading", { name: "Mission complete" }),
