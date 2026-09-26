@@ -71,7 +71,8 @@ export function DiffPanel({
                 row.generated === undefined
                   ? undefined
                   : result.generated[row.generated];
-              const marker = rowMarker(row.status);
+              const mismatched = row.mismatchIds.length > 0;
+              const marker = rowMarker(row.status, mismatched);
               const highlighted = inRange(row.target, highlight);
               const rowSelected =
                 selected !== undefined && row.mismatchIds.includes(selected);
@@ -79,11 +80,12 @@ export function DiffPanel({
                 <tr
                   key={index}
                   className={classNames(
-                    styles[row.status],
+                    mismatched ? styles.different : styles[row.status],
                     highlighted && styles.highlighted,
                     rowSelected && styles.selected,
                   )}
                   data-status={row.status}
+                  data-mismatched={mismatched}
                   data-highlighted={highlighted}
                   data-selected={rowSelected}
                 >

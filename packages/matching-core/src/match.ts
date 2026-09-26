@@ -1,7 +1,13 @@
 import { decode, type AssembledObject } from "psyq-asm";
 import { align, maskedEqual } from "./align.ts";
 import { at } from "./at.ts";
-import { compareLinkedCalls } from "./calls.ts";
+import {
+  callText,
+  callWords,
+  compareLinkedCalls,
+  generatedCallees,
+  targetCallees,
+} from "./calls.ts";
 import { classify, text } from "./classify.ts";
 import { definedFunctions, extractFunction } from "./extract.ts";
 import { linkConsequences } from "./nops.ts";
@@ -15,6 +21,18 @@ import type {
   MatchTarget,
   MismatchKind,
 } from "./types.ts";
+
+/**
+ * A target's words as the player reads them, one line each, with every
+ * call naming its callee.
+ */
+export function targetText(target: MatchTarget): string[] {
+  const names = targetCallees(target);
+  return Array.from(target.words, (value, index) => {
+    const word = value >>> 0;
+    return callText(text(decode(word)), word, names.get(index));
+  });
+}
 
 /**
  * Compares one generated function with its target. Exactness is decided on
@@ -31,7 +49,15 @@ export function compareFunction(
   const rows = align(targetWords, generatedWords);
   const relocationFindings =
     target.kind === "unlinked"
-      ? compareRelocations(generated.relocations, target.relocations)
+      ? compareRelocations(
+          generated.relocations,
+          target.relocations,
+          new Set(
+            callWords(generatedWords.map((entry) => entry.word)).map(
+              (word) => word * 4,
+            ),
+          ),
+        )
       : compareLinkedCalls(rows, target.calls, generated);
   const classified = classify(
     rows,
@@ -75,6 +101,9 @@ export function compareFunction(
       }));
   });
 
+  const targetLines = targetText(target);
+  const generatedNames = generatedCallees(generated);
+
   const byKind: Partial<Record<MismatchKind, number>> = {};
   for (const mismatch of drafts) {
     byKind[mismatch.kind] = (byKind[mismatch.kind] ?? 0) + 1;
@@ -101,13 +130,17 @@ export function compareFunction(
     target: targetWords.map((word, index) => ({
       index,
       word,
-      text: text(decode(word)),
+      text: at(targetLines, index),
       fieldMask: 0,
     })),
     generated: generatedWords.map((word, index) => ({
       index,
       word: word.word,
-      text: text(decode(word.word)),
+      text: callText(
+        text(decode(word.word)),
+        word.word,
+        generatedNames.get(index),
+      ),
       ...(word.origin === undefined ? {} : { origin: word.origin }),
       fieldMask: word.mask,
     })),

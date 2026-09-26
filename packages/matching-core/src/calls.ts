@@ -1,7 +1,7 @@
 import type { AlignedRow } from "./align.ts";
 import { at } from "./at.ts";
 import type { RelocationFinding } from "./relocations.ts";
-import type { GeneratedFunction, LinkedCall } from "./types.ts";
+import type { GeneratedFunction, LinkedCall, MatchTarget } from "./types.ts";
 
 const JAL = 3;
 
@@ -106,4 +106,53 @@ export function compareLinkedCalls(
       },
     ];
   });
+}
+
+/**
+ * The callee of each call in a target, by word. An unlinked target names it
+ * in its relocation; a linked one in its recorded calls (ADR 0024).
+ */
+export function targetCallees(target: MatchTarget): Map<number, string> {
+  if (target.kind === "linked") {
+    return new Map(target.calls.map((call) => [call.word, call.callee]));
+  }
+  return new Map(
+    target.relocations.flatMap((relocation) => {
+      const word = relocation.offset / 4;
+      const { target: identity } = relocation;
+      if (
+        relocation.kind !== "MIPS26" ||
+        !isJal(target.words[word] ?? 0) ||
+        identity.kind !== "symbol" ||
+        identity.addend !== 0
+      ) {
+        return [];
+      }
+      return [[word, identity.name] as const];
+    }),
+  );
+}
+
+/** The callee each generated call names, by word. */
+export function generatedCallees(
+  generated: GeneratedFunction,
+): Map<number, string> {
+  return new Map(
+    generatedCalls(generated).flatMap(({ word, callee }) =>
+      callee === undefined ? [] : [[word, callee] as const],
+    ),
+  );
+}
+
+/**
+ * A call as the player reads it. The field of a `jal` is filled in by the
+ * linker, so the words show zero, or a linked address, where the source
+ * names a function; the callee takes its place when it is known.
+ */
+export function callText(
+  text: string,
+  word: number,
+  callee: string | undefined,
+): string {
+  return callee !== undefined && isJal(word) ? `jal ${callee}` : text;
 }

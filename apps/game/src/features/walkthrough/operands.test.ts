@@ -107,7 +107,7 @@ describe("operandReading", () => {
     );
 
     expect(reading?.parts.map(({ role, value }) => [role, value])).toEqual([
-      ["callee", "0x0"],
+      ["callee", "helper"],
     ]);
     expect(reading?.summary).toBe(
       "Call helper: go there, and set $ra to word 4, the row after the delay slot, so helper comes back to it. The row directly below runs first.",

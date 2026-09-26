@@ -137,16 +137,16 @@ function jumpReading(jump: JumpTarget, index: number): OperandReading {
 }
 
 /**
- * A call's callee. The word prints as jal 0x0 for the same reason a jump
- * does, so the function's name comes from the relocation.
+ * A call's callee. The listing prints the name the relocation gives, because
+ * the word's own address field is left for the linker to fill in.
  */
 function callReading(call: CallTarget, index: number): OperandReading {
   return {
     parts: [
       {
         role: "callee",
-        value: "0x0",
-        meaning: `The address of ${call.callee}, left zero until the program is linked. The relocation names the function, and the comparison checks the name.`,
+        value: call.callee,
+        meaning: `The function called. The word holds its address only once the program is linked, so the listing shows the name the relocation gives, and the comparison checks that name.`,
       },
     ],
     summary: `Call ${call.callee}: go there, and set $ra to word ${String(index + 2)}, the row after the delay slot, so ${call.callee} comes back to it. The row directly below runs first.`,

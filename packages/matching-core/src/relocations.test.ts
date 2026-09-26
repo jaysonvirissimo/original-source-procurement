@@ -65,8 +65,7 @@ describe("compareRelocations", () => {
       {
         offset: 0,
         evidence: [
-          "Target relocates HI16 g+4 here; your output does not.",
-          "Your output relocates HI16 g here; the target does not.",
+          "The target fills in the upper half of the address of g+4 here; your output fills in the upper half of the address of g.",
         ],
       },
     ]);
@@ -81,12 +80,65 @@ describe("compareRelocations", () => {
     ).toEqual([
       {
         offset: 4,
-        evidence: ["Target relocates HI16 g here; your output does not."],
+        evidence: [
+          "The target fills in the upper half of the address of g here; your output does not.",
+        ],
       },
       {
         offset: 8,
-        evidence: ["Your output relocates HI16 g here; the target does not."],
+        evidence: [
+          "Your output fills in the upper half of the address of g here; the target does not.",
+        ],
       },
+    ]);
+  });
+
+  it("names a call by its callee, and a section target by its label", () => {
+    const call = (
+      offset: number,
+      target: RelocationTargetIdentity,
+    ): FunctionRelocation => ({
+      offset,
+      kind: "MIPS26",
+      fieldMask: 0x03ffffff,
+      fieldValue: 0,
+      target,
+    });
+    const h: RelocationTargetIdentity = {
+      kind: "section",
+      section: ".text",
+      offset: 8,
+      label: "h",
+    };
+    expect(
+      compareRelocations([call(0, h)], [call(0, g(0))], new Set([0])),
+    ).toEqual([
+      {
+        offset: 0,
+        evidence: ["The target calls g here; your output calls h."],
+      },
+    ]);
+    expect(compareRelocations([call(0, h)], [], new Set())).toEqual([
+      {
+        offset: 0,
+        evidence: ["Your output jumps to h here; the target does not."],
+      },
+    ]);
+  });
+
+  it("describes every other kind in words", () => {
+    const of = (kind: FunctionRelocation["kind"]): FunctionRelocation => ({
+      ...relocation(0, g(0)),
+      kind,
+    });
+    expect(
+      compareRelocations([of("LO16"), of("GPREL16"), of("WORD32")], []).flatMap(
+        (finding) => finding.evidence,
+      ),
+    ).toEqual([
+      "Your output reaches g through $gp here; the target does not.",
+      "Your output fills in the lower half of the address of g here; the target does not.",
+      "Your output holds the address of g here; the target does not.",
     ]);
   });
 });

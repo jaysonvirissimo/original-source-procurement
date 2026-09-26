@@ -9,7 +9,7 @@ import {
   unlinkedTarget,
   wordsOf,
 } from "./fixtures.test-helpers.ts";
-import { compareFunction, matchFunction } from "./match.ts";
+import { compareFunction, matchFunction, targetText } from "./match.ts";
 import type {
   GeneratedFunction,
   MatchOutcome,
@@ -386,9 +386,19 @@ describe("branches, jumps, and calls", () => {
     expect(kinds(result.mismatches)).toEqual(["CALL_TARGET"]);
     expect(result.mismatches[0]?.evidence).toEqual([
       "Call targets differ.",
-      "Target relocates MIPS26 g here; your output does not.",
-      "Your output relocates MIPS26 h here; the target does not.",
+      "The target calls g here; your output calls h.",
     ]);
+    expect(result.target[0]?.text).toBe("jal g");
+    expect(result.generated[0]?.text).toBe("jal h");
+  });
+
+  it("lists a linked call by its recorded callee, not its linked address", () => {
+    const target = {
+      kind: "linked" as const,
+      words: [0x0c004000, ...wordsOf(RETURN)],
+      calls: [{ word: 0, callee: "g" }],
+    };
+    expect(targetText(target)[0]).toBe("jal g");
   });
 
   describe("a linked target's recorded calls", () => {
@@ -873,8 +883,7 @@ describe("relocations of unlinked targets", () => {
         generatedRange: { start: 0, end: 1 },
         confidence: 1,
         evidence: [
-          "Target relocates HI16 g+4 here; your output does not.",
-          "Your output relocates HI16 g here; the target does not.",
+          "The target fills in the upper half of the address of g+4 here; your output fills in the upper half of the address of g.",
         ],
       },
       expect.objectContaining({
@@ -908,8 +917,12 @@ describe("relocations of unlinked targets", () => {
 
     expect(result.exact).toBe(false);
     expect(result.mismatches.map((mismatch) => mismatch.evidence)).toEqual([
-      ["Your output relocates HI16 g here; the target does not."],
-      ["Your output relocates LO16 g here; the target does not."],
+      [
+        "Your output fills in the upper half of the address of g here; the target does not.",
+      ],
+      [
+        "Your output fills in the lower half of the address of g here; the target does not.",
+      ],
     ]);
   });
 

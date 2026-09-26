@@ -16,6 +16,7 @@ The first real mission whose lesson is a call made that gap a wrong answer marke
 - **The comparison checks the callee on aligned rows.** For a linked target, each recorded call is compared with the generated call on the same aligned row. A relocated call to a different function, or to nothing nameable, is a `CALL_TARGET` finding, and the result is not exact. A missing or moved call is already reported by the word comparison, as is a generated `jal` without a relocation, whose field is then compared as a plain word.
 - **Loading checks that every call is recorded.** When a real mission's words load, the recorded call words must be exactly the words holding a `jal`, or the target is reported as a content mismatch.
 - **The Scan view names the callee.** A linked target's recorded calls stand in for the relocations it does not have, so a `jal` row in a real listing reads its callee the way a synthetic one does.
+- **So do the listing and the comparison.** Amended 2026-09-25, after a novice-persona run could not find which function a real mission calls: every `jal` row whose callee is known prints `jal <callee>` in the target listing and on both sides of the comparison, in place of the zero field of an unlinked word or the address of a linked one. A row whose words agree but whose callee differs is marked as a finding, not as equal, which is how the score already counted it.
 
 ## Consequences
 

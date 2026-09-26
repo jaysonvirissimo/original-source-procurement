@@ -291,7 +291,7 @@ export const manualEntries: readonly ManualEntry[] = [
     body: [
       "jal calls another function. It goes there the way j does, and it also writes the address of the row after its delay slot into $ra, so the called function's jr $ra comes back to exactly that row.",
       "Before the call the caller puts the arguments in $a0 to $a3. After it, the answer is in $v0. That is the same agreement every function in this course has kept from the other side; now you see the caller keeping it.",
-      "In a mission's target a call reads jal 0x0, for the same reason a jump does: the called function's address is filled in by the linker. The relocation names the function, and the comparison checks the name. Calling the wrong function is reported as a call target.",
+      "In a mission's listing a call reads jal helper. The word itself leaves the called function's address for the linker to fill in, for the same reason a jump does, so the listing shows the name its relocation gives, and the comparison checks that name. Calling the wrong function is reported as a call target.",
       "The function being called is declared but never defined in the mission's source, as in int helper(int x);. That tells the compiler how to call it. Where it actually lives is the linker's business.",
       "A call overwrites $ra, and this function needs its own $ra to get back to its own caller. So any function that makes a call saves $ra first and loads it back before returning. That is what the first and last rows around every call are. Stack frames, under ABI, explains where they put it.",
       "Like every jump, jal has a delay slot, and the compiler puts the last step of preparing the call there: often the copy of an argument.",
@@ -416,7 +416,7 @@ export const manualEntries: readonly ManualEntry[] = [
       "A test writes to its first operand, like arithmetic. slt $v0,$a0,$a1 asks whether $a0 is less than $a1 and writes 1 or 0 to $v0. The order of the two source operands is the order of the question.",
       "A branch writes nothing. It reads one or two registers and ends with a distance: bnez $v0,.+12 reads $v0 and, when it is not zero, continues three rows further down. A negative distance goes up: bgtz $a0,.-4 goes back one row while $a0 is above zero.",
       "j reads nothing and writes nothing. Its one operand is where to go, and in a mission's target it shows 0x0 because the linker has not filled it in; the comparison names the destination instead.",
-      "jal is a jump that also writes $ra: it calls a function and arranges for that function to come back. Its operand shows 0x0 for the same reason, and the comparison names the function called.",
+      "jal is a jump that also writes $ra: it calls a function and arranges for that function to come back. Its address is left for the linker in the same way, so the listing shows the name of the function called, and the comparison checks it.",
     ],
   },
   {

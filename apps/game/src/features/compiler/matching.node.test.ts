@@ -193,7 +193,7 @@ describe("matching real compiler output", () => {
     expect(result.alignment.every((row) => row.status === "equal")).toBe(true);
     expect(new Set(kinds(result))).toEqual(new Set(["RELOCATION_TARGET"]));
     expect(result.mismatches[0]?.evidence).toContain(
-      "Target relocates HI16 g+4 here; your output does not.",
+      "The target fills in the upper half of the address of g+4 here; your output fills in the upper half of the address of g.",
     );
   });
 

@@ -1,5 +1,9 @@
 import { sha256Hex } from "@osp/curriculum/hash";
-import { targetWordFacts, teachingHypotheses } from "@osp/matching-core";
+import {
+  targetText,
+  targetWordFacts,
+  teachingHypotheses,
+} from "@osp/matching-core";
 import type { Mission } from "@osp/mission-schema";
 import {
   useCallback,
@@ -16,7 +20,6 @@ import controls from "../../styles/controls.module.css";
 import { useSoundCue } from "../audio/audioContext";
 import { buildCue } from "../audio/sounds";
 import { Briefing } from "../briefing/Briefing";
-import { targetListing } from "../compiler/targetListing";
 import { useToolchain } from "../compiler/toolchainContext";
 import type { CompilerDiagnostic } from "../compiler/types";
 import { nextMission, useMissionCatalog } from "../curriculum/missionCatalog";
@@ -174,7 +177,7 @@ export function Workspace({ mission, saved }: WorkspaceProps): ReactElement {
     paused: state.compiling !== undefined,
   });
   const listing = useMemo(
-    () => (target === undefined ? [] : targetListing(target.words)),
+    () => (target === undefined ? [] : targetText(target)),
     [target],
   );
   const facts = useMemo(

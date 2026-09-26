@@ -36,7 +36,17 @@ export interface RowMarker {
   readonly label: string;
 }
 
-export function rowMarker(status: AlignmentRow["status"]): RowMarker {
+/**
+ * A row's marker. Words that agree can still carry a finding, such as a call
+ * to a different function, and such a row does not count as equal.
+ */
+export function rowMarker(
+  status: AlignmentRow["status"],
+  mismatched = false,
+): RowMarker {
+  if (mismatched && (status === "equal" || status === "field-only")) {
+    return { symbol: "✗", label: "Words agree, but a finding applies" };
+  }
   switch (status) {
     case "equal":
       return { symbol: "✓", label: "Equal" };

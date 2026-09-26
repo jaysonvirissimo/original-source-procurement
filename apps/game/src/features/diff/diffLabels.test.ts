@@ -21,6 +21,20 @@ describe("rowMarker", () => {
       expect(rowMarker(status)).toEqual({ symbol, label });
     },
   );
+
+  it.each(["equal", "field-only"] as const)(
+    "does not call a %s row with a finding equal",
+    (status) => {
+      expect(rowMarker(status, true)).toEqual({
+        symbol: "✗",
+        label: "Words agree, but a finding applies",
+      });
+    },
+  );
+
+  it("keeps other markers when a finding applies", () => {
+    expect(rowMarker("deleted", true).label).toBe("Missing from your output");
+  });
 });
 
 describe("provenanceLabel", () => {

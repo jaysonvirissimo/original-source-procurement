@@ -44,7 +44,7 @@ export const makeACall: MissionDraft = {
     },
     {
       range: { start: 2, end: 3 },
-      text: "The call. It reads 0x0 because the linker fills in helper's address; the relocation names helper, and the comparison checks that name.",
+      text: "The call. The word leaves helper's address for the linker to fill in, so the listing shows the name its relocation gives, and the comparison checks that name.",
       manualEntry: "abi.calls",
     },
     {
@@ -96,7 +96,7 @@ export const makeACall: MissionDraft = {
     },
     {
       stage: 2,
-      text: "The highlighted row is the call. The listing shows 0x0 in both versions, so read the finding instead: it names the function the target calls.",
+      text: "The highlighted row is the call. Compare the function the target column names with the one your output calls.",
       highlight: { start: 2, end: 3 },
     },
     {

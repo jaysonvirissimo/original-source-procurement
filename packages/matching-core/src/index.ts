@@ -27,12 +27,14 @@ export {
   type TeachingHypothesisKind,
 } from "./hypotheses.ts";
 export {
+  callText,
   callWords,
   compareLinkedCalls,
   generatedCalls,
+  targetCallees,
   type CallSite,
 } from "./calls.ts";
-export { compareFunction, matchFunction } from "./match.ts";
+export { compareFunction, matchFunction, targetText } from "./match.ts";
 export {
   abiRegisterNames,
   targetWordFacts,
