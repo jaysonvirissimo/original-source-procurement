@@ -1,4 +1,4 @@
-import type { Mission } from "@osp/mission-schema";
+import { MANUAL_SECTIONS, type Mission } from "@osp/mission-schema";
 import { describe, expect, it } from "vitest";
 import { manualEntries } from "./manual.ts";
 import { missionDrafts } from "./missions/drafts.ts";
@@ -20,6 +20,16 @@ function mission(id: string): Mission {
  * taught, and orientation.c-functions says void has a second meaning later.
  */
 const REVIEWED_PROMISES = ["abi.arguments", "orientation.c-functions"];
+
+// A cross-reference names a section as the schema spells it, so two-word
+// sections and PS1 resolve; the longest name is tried first, and a name
+// may not run on into another word.
+const SECTION_REFERENCE = new RegExp(
+  `, under (${[...MANUAL_SECTIONS]
+    .sort((a, b) => b.length - a.length)
+    .join("|")})(?![A-Z0-9])`,
+  "g",
+);
 
 describe("missions", () => {
   it("attaches a generated inline target to every draft, in order", () => {
@@ -329,7 +339,7 @@ describe("the first teaching slice", () => {
   it("points only at manual entries that exist, in the section it names", () => {
     const references = manualEntries.flatMap((entry) =>
       entry.body.flatMap((paragraph) =>
-        [...paragraph.matchAll(/, under ([A-Z]+)/g)].map((match) => ({
+        [...paragraph.matchAll(SECTION_REFERENCE)].map((match) => ({
           from: entry.id,
           before: paragraph.slice(0, match.index),
           section: match[1],

@@ -525,6 +525,70 @@ export const manualEntries: readonly ManualEntry[] = [
     ],
   },
   {
+    id: "ps1.overlays",
+    section: "PS1",
+    title: "Overlays and the SDK",
+    body: [
+      "A PS1 game cannot keep all of its code in memory at once. An overlay is a block of code and data the game loads for one stage or screen, into memory that an earlier overlay used. The main executable stays loaded; overlays come and go.",
+      "mgs_reversing keeps each overlay in its own directory and names an unmatched function by its overlay and its address. Overlays were built separately, so the same function can exist in several of them, matched in one and not in another. A field mission's provenance names the overlay its function came from, or main for the main executable.",
+      "The PsyQ SDK is Sony's development kit: the C library and headers the game was built against. The project keeps it in a separate repository, psyq_sdk. On a field mission, the Context panel shows its headers whenever a function's types come from it.",
+      "The GTE is a coprocessor for 3D math. Its instructions never appear in this course, and the field missions were chosen to avoid it. Functions that do 3D work use it, so expect to meet it in overlay work.",
+    ],
+  },
+  {
+    id: "field-guide.where-you-are",
+    section: "FIELD GUIDE",
+    title: "Where you are",
+    body: [
+      "This course taught you to read a MIPS listing, write C that PsyQ compiles to it, and explain each difference. The field missions were real functions from the game's main executable, matched by the mgs_reversing project. You matched them with the same compiler, the same assembler version, the same optimization flags, and the same per-file -G setting that the project's build uses, so the habits transfer as they are.",
+      "The Live region on the map is empty because OSP holds no unmatched functions yet. The remaining work lives in the project itself.",
+      "At the time of writing, the project's main executables are fully matched. What remains is overlays: the code for individual stages and screens. Overlays and the SDK, under PS1, explains them. The project's README is the source of truth for what is left and how it is built: https://github.com/FoxdieTeam/mgs_reversing",
+      "The entries that follow describe the project's workflow in this course's words: Real decomp workflow, Your first function, Verifying in a local checkout, and Upstream contribution.",
+    ],
+  },
+  {
+    id: "field-guide.real-workflow",
+    section: "FIELD GUIDE",
+    title: "Real decomp workflow",
+    body: [
+      "An unmatched function is an assembly file in the project's asm directory, named by its overlay and address. Matching it means writing the C that compiles to that file's instructions, then deleting the file and keeping the C. The project's build must still reproduce the original executable byte for byte.",
+      "Most matching happens on decomp.me, a browser workspace much like this one. A scratch holds the target assembly, a context with the declarations the function needs, and the C you are writing. The site compiles the C and shows a diff against the target. It has a preset for this game's overlays that selects the compiler and flags, and the project's build directory holds a script that turns an assembly file into a scratch target. https://decomp.me/",
+      "Translate what you know. The target listing is the scratch target. The Context panel is the scratch context, except that you assemble it yourself from the project's headers. Compile is compile. The comparison is a diff, and it stops there: no mismatch names, no hypotheses, no callee names, and no offset table. You read the diff, decide which kind of difference it is, and change the C. Every mismatch class this course named is one you now recognize unaided.",
+      "Field offsets come from the headers, the way 012B taught: add up the sizes and the padding. A register difference usually means a different expression shape, as Register reuse, under MATCHING, describes.",
+    ],
+  },
+  {
+    id: "field-guide.first-function",
+    section: "FIELD GUIDE",
+    title: "Your first function",
+    body: [
+      "Pick a function the size of a field mission: a handful of rows, few or no calls, no coprocessor instructions. Ordinary C that reads and writes through pointers, in the forms this course covered, is where a first match is likely.",
+      "Overlays share code. A function unmatched in one overlay may already be matched in another, with a different address and the same body. Check before starting, so you do not redo finished work. The project's README describes the check, and its build directory holds a script that finds duplicates.",
+      "Prefer a function whose types are already declared in the project's headers, so that building the context is a matter of including the right files rather than guessing a layout.",
+      "A larger function is several missions stacked: argument handling, a loop, a call, a frame. The qualifications were practice for taking that apart. When a function resists, cut it down to one shape you recognize, match that, and grow it.",
+    ],
+  },
+  {
+    id: "field-guide.local-build",
+    section: "FIELD GUIDE",
+    title: "Verifying in a local checkout",
+    body: [
+      "A match on decomp.me is a candidate. It becomes a match when the project's own build reproduces the original executable with your C in place.",
+      "The project's README documents the setup. Clone psyq_sdk and mgs_reversing side by side, install Python 3, and Wine outside Windows because the original compiler is a Windows program. Install the build's requirements, run the build script, and compare the hash of the result with the one the README lists.",
+      "OSP did several things for you without saying so. It converted your source to the EUC-JP encoding the compiler expects, defined INTEGRAL as the project's build does, converted the SDK headers' line endings, and chose -G per file. The project's build does all of this too, so a function that matched here should match there with the same C. When it does not, the context is the first suspect: a declaration the scratch had that the real file lacks, or the other way round.",
+    ],
+  },
+  {
+    id: "field-guide.contributing",
+    section: "FIELD GUIDE",
+    title: "Upstream contribution",
+    body: [
+      "A contribution is an ordinary pull request on GitHub: your C in place of the assembly file, with the build still producing the original bytes. A reviewer checks that, and that the compiler's warnings stay clean. The project's README links a Discord channel for questions along the way.",
+      "OSP stays out of it. It never submits anything on your behalf, never asks for a GitHub token, and ships none of the project's code. The field missions were built from one pinned revision of the project, and the project has moved since.",
+      "What an exact match proves, under ORIENTATION, holds here too. Your C compiles to the original instructions; it is not the text the original programmers wrote, and the project accepts any C that matches. An exact match in this game is a candidate until the project's build confirms it, and that confirmation is the only one that counts.",
+    ],
+  },
+  {
     id: "glossary.register",
     section: "GLOSSARY",
     title: "register",

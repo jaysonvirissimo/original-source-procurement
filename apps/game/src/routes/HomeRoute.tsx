@@ -39,6 +39,7 @@ export function HomeRoute(): ReactElement {
       <nav className={styles.reference} aria-label="Reference">
         <a href="#/orientation">Orientation</a>
         <a href="#/manual">Manual</a>
+        <a href="#/manual/field-guide.where-you-are">Field guide</a>
         <a href="#/settings">Settings</a>
       </nav>
       <MissionMap />

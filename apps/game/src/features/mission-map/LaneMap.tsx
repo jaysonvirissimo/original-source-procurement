@@ -11,6 +11,18 @@ const REGION_DETAILS: Readonly<Record<MapRegion["kind"], string | undefined>> =
     live: "Functions no one has matched yet.",
   };
 
+/** Where an empty region sends the player instead. */
+const REGION_EMPTY_LINKS: Readonly<
+  Record<MapRegion["kind"], { href: string; label: string } | undefined>
+> = {
+  phase: undefined,
+  field: undefined,
+  live: {
+    href: "#/manual/field-guide.where-you-are",
+    label: "Read the field guide",
+  },
+};
+
 /** Training phases as lanes, then the field and live regions. */
 export function LaneMap({
   regions,
@@ -29,6 +41,7 @@ export function LaneMap({
 function Lane({ region }: { readonly region: MapRegion }): ReactElement {
   const titleId = useId();
   const detail = REGION_DETAILS[region.kind];
+  const emptyLink = REGION_EMPTY_LINKS[region.kind];
   return (
     <section
       className={classNames(
@@ -46,7 +59,15 @@ function Lane({ region }: { readonly region: MapRegion }): ReactElement {
         )}
       </div>
       {region.entries.length === 0 ? (
-        <p className={styles.empty}>No missions yet.</p>
+        <>
+          <p className={styles.empty}>No missions yet.</p>
+          {emptyLink === undefined ? null : (
+            <p className={styles.empty}>
+              <a href={emptyLink.href}>{emptyLink.label}</a> to match one
+              yourself.
+            </p>
+          )}
+        </>
       ) : (
         <ol className={styles.nodes}>
           {region.entries.map((entry) => (

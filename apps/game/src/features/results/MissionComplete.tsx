@@ -155,7 +155,9 @@ export function MissionComplete({
         {next === undefined ? (
           <p className={styles.note}>
             No mission follows this one on the training path yet. The map shows
-            anything left to play or practice.
+            anything left to play or practice, and the{" "}
+            <a href="#/manual/field-guide.where-you-are">field guide</a> shows
+            where the real work continues.
           </p>
         ) : null}
         <a className={controls.button} href="#/">

@@ -75,6 +75,7 @@ describe("MissionComplete", () => {
         .getByRole("link", { name: "Next mission · 003 ADD IMMEDIATE" })
         .getAttribute("href"),
     ).toBe("#/mission/003");
+    expect(screen.queryByRole("link", { name: "field guide" })).toBeNull();
   });
 
   it("confirms a right prediction and says when a revealed solution held skills back", () => {
@@ -108,6 +109,9 @@ describe("MissionComplete", () => {
     expect(screen.getByText(/solution was revealed/)).toBeTruthy();
     expect(screen.queryByRole("link", { name: /Next mission/ })).toBeNull();
     expect(screen.getByText(/No mission follows this one/)).toBeTruthy();
+    expect(
+      screen.getByRole("link", { name: "field guide" }).getAttribute("href"),
+    ).toBe("#/manual/field-guide.where-you-are");
     expect(screen.getByText("MODE").nextElementSibling?.textContent).toBe(
       "Solution revealed",
     );

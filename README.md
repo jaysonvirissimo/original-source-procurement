@@ -12,7 +12,7 @@ Playable and growing. The game ships:
 - Six field missions on real solved functions from `mgs_reversing`. The repository holds only pointers and hashes; the game fetches the target, headers, and context at runtime from pinned commits.
 - An in-browser toolchain: C compiles with `psyq-wasm` and assembles with `psyq-asm`. The Settings screen runs a toolchain check.
 - Matching on assembled words with mismatch classification, teaching hypotheses, and an aligned diff view.
-- A mission map with recommendations, an orientation, a searchable manual with a glossary, a context panel with a compiler-verified offset probe, and a docked reference pane.
+- A mission map with recommendations, an orientation, a searchable manual with a glossary and a field guide to contributing upstream, a context panel with a compiler-verified offset probe, and a docked reference pane.
 - Progress, attempt history, editor source, and settings saved in the browser, with export and import.
 - A presentation layer that draws the training chamber behind the workspace, with a simple-graphics mode and reduced-motion support.
 

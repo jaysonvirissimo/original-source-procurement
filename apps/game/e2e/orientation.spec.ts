@@ -98,10 +98,11 @@ test("skipping the orientation never blocks mission 001, whose briefing defines 
 
   await page.goto("./");
   await expect(page.getByRole("region", { name: "Start here" })).toHaveCount(0);
-  await page
-    .getByRole("navigation", { name: "Reference" })
-    .getByRole("link", { name: "Orientation" })
-    .click();
+  const reference = page.getByRole("navigation", { name: "Reference" });
+  await expect(
+    reference.getByRole("link", { name: "Field guide" }),
+  ).toHaveAttribute("href", "#/manual/field-guide.where-you-are");
+  await reference.getByRole("link", { name: "Orientation" }).click();
   await expect(
     page.getByRole("heading", { level: 1, name: "Orientation" }),
   ).toBeVisible();
@@ -162,4 +163,27 @@ test("a manual address opens the whole manual at its entry", async ({
   await expect(
     page.locator('[id="manual-glossary.register"]'),
   ).toBeInViewport();
+});
+
+test("the field guide opens from its manual address and links the project without fetching it", async ({
+  page,
+}) => {
+  await page.goto("./#/manual/field-guide.where-you-are");
+
+  await expect(
+    page.getByRole("heading", { level: 2, name: "FIELD GUIDE", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.locator('[id="manual-field-guide.where-you-are"]'),
+  ).toBeFocused();
+  await expect(
+    page.getByRole("heading", { level: 3, name: "Where you are" }),
+  ).toBeVisible();
+  // The link is checked, never followed: the page watch fails the test on
+  // any request that leaves the site.
+  const project = page.getByRole("link", {
+    name: "https://github.com/FoxdieTeam/mgs_reversing",
+  });
+  await expect(project).toHaveAttribute("target", "_blank");
+  await expect(project).toHaveAttribute("rel", "noopener noreferrer");
 });

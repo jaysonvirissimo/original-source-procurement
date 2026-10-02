@@ -82,6 +82,16 @@ export function MissionMap(): ReactElement {
           ))}
         </div>
       </div>
+      {phase !== undefined ? null : (
+        <p className={styles.next}>
+          <span>
+            Training is behind you:{" "}
+            <a href="#/manual/field-guide.where-you-are">
+              where the real work continues
+            </a>
+          </span>
+        </p>
+      )}
       {phase !== undefined || practice === undefined ? null : (
         <p className={styles.next}>
           <span>Practice: {missionLink(practice.mission)}</span>

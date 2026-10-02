@@ -64,6 +64,11 @@ test("a fresh save recommends the first mission and marks missions that skip ahe
   ).toContainText("No missions yet.");
   await expect(
     missionMap(page)
+      .getByRole("region", { name: "Live" })
+      .getByRole("link", { name: "Read the field guide" }),
+  ).toHaveAttribute("href", "#/manual/field-guide.where-you-are");
+  await expect(
+    missionMap(page)
       .getByRole("region", { name: "Field" })
       .getByRole("link", { name: "F01 FONT BUFFER" }),
   ).toBeVisible();

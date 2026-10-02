@@ -43,10 +43,15 @@ describe("App", () => {
       within(screen.getByRole("navigation", { name: "Reference" }))
         .getAllByRole("link")
         .map((link) => link.getAttribute("href")),
-    ).toEqual(["#/orientation", "#/manual", "#/settings"]);
+    ).toEqual([
+      "#/orientation",
+      "#/manual",
+      "#/manual/field-guide.where-you-are",
+      "#/settings",
+    ]);
   });
 
-  it("keeps the orientation, manual, and settings one link away once missions are started", async () => {
+  it("keeps the orientation, manual, field guide, and settings one link away once missions are started", async () => {
     render(<App openStorage={memoryProgress(samplePlayer()).openStorage} />);
 
     const reference = await screen.findByRole("navigation", {
@@ -56,7 +61,12 @@ describe("App", () => {
       within(reference)
         .getAllByRole("link")
         .map((link) => link.getAttribute("href")),
-    ).toEqual(["#/orientation", "#/manual", "#/settings"]);
+    ).toEqual([
+      "#/orientation",
+      "#/manual",
+      "#/manual/field-guide.where-you-are",
+      "#/settings",
+    ]);
     expect(screen.queryByRole("region", { name: "Start here" })).toBeNull();
   });
 
@@ -190,6 +200,8 @@ describe("RouteView", () => {
       "MIPS",
       "ABI",
       "MATCHING",
+      "PS1",
+      "FIELD GUIDE",
       "GLOSSARY",
     ]);
     expect(

@@ -1,5 +1,5 @@
 import type { ManualEntry } from "@osp/mission-schema";
-import type { ReactElement } from "react";
+import type { ReactElement, ReactNode } from "react";
 import { classNames } from "../../styles/classNames";
 import controls from "../../styles/controls.module.css";
 import prose from "../../styles/prose.module.css";
@@ -7,6 +7,23 @@ import styles from "./Manual.module.css";
 import { manualEntryElementId } from "./manualEntryElementId";
 
 const HEADINGS = { 2: "h2", 3: "h3", 4: "h4" } as const;
+
+// Splitting on one capturing group alternates text and address, so the odd
+// parts are addresses. Sentence punctuation after an address stays text.
+const ADDRESS = /(https:\/\/[^\s]*[^\s.,;:)])/;
+
+/** A paragraph with each web address as a link that opens in a new tab. */
+function linkify(paragraph: string): ReactNode[] {
+  return paragraph.split(ADDRESS).map((part, index) =>
+    index % 2 === 1 ? (
+      <a href={part} key={index} target="_blank" rel="noopener noreferrer">
+        {part}
+      </a>
+    ) : (
+      part
+    ),
+  );
+}
 
 interface ManualEntryViewProps {
   readonly entry: ManualEntry;
@@ -33,7 +50,7 @@ export function ManualEntryView({
       <Heading className={styles.entryTitle}>{entry.title}</Heading>
       {entry.body.map((paragraph, index) => (
         <p className={classNames(prose.prose, prose.dim)} key={index}>
-          {paragraph}
+          {linkify(paragraph)}
         </p>
       ))}
     </article>

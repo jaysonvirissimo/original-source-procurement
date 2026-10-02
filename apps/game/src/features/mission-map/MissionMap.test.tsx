@@ -35,11 +35,18 @@ describe("MissionMap", () => {
     ]) {
       expect(within(map).getByRole("heading", { name })).toBeTruthy();
     }
+    const live = within(map).getByRole("region", { name: "Live" });
+    expect(within(live).getByText("No missions yet.")).toBeTruthy();
     expect(
-      within(within(map).getByRole("region", { name: "Live" })).getByText(
-        "No missions yet.",
-      ),
-    ).toBeTruthy();
+      within(live)
+        .getByRole("link", { name: "Read the field guide" })
+        .getAttribute("href"),
+    ).toBe("#/manual/field-guide.where-you-are");
+    expect(
+      within(map).queryByRole("link", {
+        name: "where the real work continues",
+      }),
+    ).toBeNull();
     expect(
       within(within(map).getByRole("region", { name: "Field" })).getByRole(
         "link",
@@ -135,6 +142,11 @@ describe("MissionMap", () => {
     expect(within(map).getByText("Training complete")).toBeTruthy();
     expect(within(map).getByText("62 of 62 complete")).toBeTruthy();
     expect(map.textContent).not.toContain("Practice:");
+    expect(
+      within(map)
+        .getByRole("link", { name: "where the real work continues" })
+        .getAttribute("href"),
+    ).toBe("#/manual/field-guide.where-you-are");
   });
 
   it("does not call training complete when a solution was revealed, and offers practice", async () => {
@@ -172,6 +184,11 @@ describe("MissionMap", () => {
     expect(
       within(map).getByRole("link", { name: "FONT BUFFER (F01)" }),
     ).toBeTruthy();
+    expect(
+      within(map)
+        .getByRole("link", { name: "where the real work continues" })
+        .getAttribute("href"),
+    ).toBe("#/manual/field-guide.where-you-are");
   });
 
   it("switches to a searchable list and back", async () => {
